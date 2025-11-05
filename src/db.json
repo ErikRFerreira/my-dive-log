@@ -1,0 +1,49 @@
+{
+  "dives": [
+    {
+      "id": "1",
+      "userId": "user123",
+      "location": "Great Barrier Reef",
+      "date": "2024-06-15",
+      "depth": 17,
+      "duration": 45,
+      "notes": "Amazing coral formations and diverse marine life."
+    },
+    {
+      "id": "2",
+      "userId": "user123",
+      "location": "Blue Hole, Belize",
+      "date": "2024-06-20",
+      "depth": 55,
+      "duration": 50,
+      "notes": "Incredible visibility and unique underwater stalactites."
+    },
+    {
+      "id": "3",
+      "userId": "user123",
+      "location": "Red Sea, Egypt",
+      "date": "2024-06-25",
+      "depth": 25,
+      "duration": 40,
+      "notes": "Vibrant reefs and abundant fish species."
+    },
+    {
+      "id": "4",
+      "userId": "user123",
+      "location": "Maldives",
+      "date": "2024-06-30",
+      "depth": 20,
+      "duration": 35,
+      "notes": "Crystal clear waters and stunning atolls."
+    },
+    {
+      "id": "5",
+      "userId": "user123",
+      "location": "Blue Hole, Belize",
+      "date": "2024-06-10",
+      "depth": 35,
+      "duration": 20,
+      "notes": "Challenging dive with strong currents."
+    }
+  ]
+}

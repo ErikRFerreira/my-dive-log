@@ -1,4 +1,4 @@
-import { getDepthColor } from '../../utils/helpers';
+import { getDepthColor } from '../../../utils/helpers';
 
 type DepthBadgeProps = {
   depth: number;

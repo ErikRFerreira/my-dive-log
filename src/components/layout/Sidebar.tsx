@@ -1,5 +1,5 @@
 import Logo from '../ui/Logo';
-import MainNav from '../ui/MainNav';
+import MainNav from './MainNav';
 
 function Sidebar() {
   return (

@@ -1,12 +1,16 @@
-import DiveCard from '../../components/dives/DiveCard';
-import { sampleDives } from '../../mock/SampleDives';
+import DiveCard from './DiveCard';
+import { type Dive } from '@/features/dives';
 
-function DiveList() {
+type DiveListProps = {
+  dives: Dive[];
+};
+
+function DiveList({ dives }: DiveListProps) {
   const styles = { display: 'grid', gap: 12 };
 
   return (
     <section aria-label="List of dives" style={styles} role="list">
-      {sampleDives.map((dive) => (
+      {dives.map((dive) => (
         <DiveCard key={dive.id} dive={dive} />
       ))}
     </section>

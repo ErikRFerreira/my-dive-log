@@ -1,15 +1,36 @@
 module.exports = {
-  parser: "@typescript-eslint/parser",
+  root: true,
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'import'],
   extends: [
-    "eslint:recommended",
-    "plugin:react/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:jsx-a11y/recommended",
-    "plugin:react-hooks/recommended",
-    "prettier",
+    'plugin:@typescript-eslint/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
   ],
-  plugins: ["react", "@typescript-eslint", "jsx-a11y", "react-hooks"],
   settings: {
-    react: { version: "detect" },
-  }
+    'import/resolver': {
+      typescript: true,
+    },
+  },
+  rules: {
+    // Allow only barrels for features (both aliases: @ and @features)
+    'import/no-internal-modules': [
+      'error',
+      {
+        allow: ['@/features/*', '@/features/*/index', '@features/*', '@features/*/index'],
+      },
+    ],
+    // Extra safety net to catch any deep path
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['@/features/*/**', '@features/*/**'],
+            message: 'Import from the feature barrel (index.ts) instead of deep paths.',
+          },
+        ],
+      },
+    ],
+  },
 };

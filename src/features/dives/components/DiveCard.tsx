@@ -1,4 +1,4 @@
-import type { Dive } from '../../types/Dive';
+import type { Dive } from '../types';
 import DepthBadge from './DepthBadge';
 
 type DiveCardProps = {

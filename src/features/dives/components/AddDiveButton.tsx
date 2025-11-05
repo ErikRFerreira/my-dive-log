@@ -15,7 +15,7 @@ function AddDiveButton({ onClick }: DepthBadgeProps) {
 
   return (
     <button type="button" aria-label="Add Dive" style={syles} onClick={onClick}>
-      Add Dive +
+      + Add Dive
     </button>
   );
 }

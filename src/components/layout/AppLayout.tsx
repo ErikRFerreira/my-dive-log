@@ -25,7 +25,7 @@ function AppLayout() {
       <div style={{ gridArea: 'header', backgroundColor: '#e9ecef' }}>
         <Header />
       </div>
-      <div style={{ gridArea: 'sidebar', backgroundColor: '#6c757d' }}>
+      <div style={{ gridArea: 'sidebar', backgroundColor: '#dee2e6' }}>
         <Sidebar />
       </div>
       <main style={mainStyles}>
