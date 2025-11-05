@@ -1,12 +1,10 @@
-import {getDepthColor} from "../utils/helpers"
+import { getDepthColor } from '../../utils/helpers';
 
 type DepthBadgeProps = {
   depth: number;
-}
+};
 
-
-function DepthBadge({depth} : DepthBadgeProps) {
-  
+function DepthBadge({ depth }: DepthBadgeProps) {
   const bgColor = getDepthColor(depth);
   const label = `${depth} m`;
   const style = {
@@ -17,13 +15,13 @@ function DepthBadge({depth} : DepthBadgeProps) {
     fontSize: 12,
     fontWeight: 600,
     letterSpacing: 0.2,
-  }
-  
+  };
+
   return (
-    <span className={'depth-badge'} aria-label={label} style={style}> 
+    <span className={'depth-badge'} aria-label={label} style={style}>
       {label}
     </span>
-  )
+  );
 }
 
-export default DepthBadge
+export default DepthBadge;

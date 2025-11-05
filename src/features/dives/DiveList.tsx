@@ -1,4 +1,4 @@
-import DiveCard from '../../components/DiveCard';
+import DiveCard from '../../components/dives/DiveCard';
 import { sampleDives } from '../../mock/SampleDives';
 
 function DiveList() {
