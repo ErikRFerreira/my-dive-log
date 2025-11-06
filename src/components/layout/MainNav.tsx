@@ -1,8 +1,13 @@
 import { NavLink } from 'react-router';
 
 function MainNav() {
+  const styles = {
+    padding: '1rem',
+    borderBottom: '1px solid #ccc',
+  };
+
   return (
-    <nav>
+    <nav style={styles} aria-label="Main navigation">
       <ul>
         <li>
           <NavLink to="/dashboard">Dashboard</NavLink>
