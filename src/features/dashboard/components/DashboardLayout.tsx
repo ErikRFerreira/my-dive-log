@@ -1,4 +1,4 @@
-import { AddDiveButton } from '@features/dives';
+import { AddDive } from '@features/dives';
 import DashboardLists from './DashboardLists';
 
 function DashboardLayout() {
@@ -6,7 +6,7 @@ function DashboardLayout() {
     <div>
       <header>
         <h1>Dashboard</h1>
-        <AddDiveButton onClick={() => alert('Add dive (wire up in Week 7)')} />
+        <AddDive />
       </header>
       <DashboardLists />
     </div>

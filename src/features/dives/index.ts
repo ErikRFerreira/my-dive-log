@@ -1,7 +1,7 @@
 // Components
-export { default as AddDiveButton } from './components/AddDiveButton';
 export { default as DiveList } from './components/DiveList';
 export { default as DivesFilter } from './components/DivesFilter';
+export { default as AddDive } from './components/AddDive';
 
 // Hooks
 export { useGetDives } from './hooks/useGetDives';

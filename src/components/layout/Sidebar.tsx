@@ -1,4 +1,4 @@
-import Logo from '../ui/Logo';
+import Logo from '../common/Logo';
 import MainNav from './MainNav';
 
 function Sidebar() {

@@ -1,7 +1,7 @@
 import { DiveList, useGetDives } from '@features/dives';
 import StatsList from './StatsList';
-import Loading from '@/components/ui/Loading';
-import ErrorMessage from '@/components/common/ErrorMessage';
+import Loading from '@/components/common/Loading';
+import ErrorMessage from '@/components/ui/ErrorMessage';
 
 function DashboardLists() {
   const { dives, isLoading, isFetching, isError, refetch } = useGetDives();
