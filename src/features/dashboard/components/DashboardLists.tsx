@@ -1,7 +1,8 @@
-import { DiveList, useGetDives } from '@features/dives';
-import StatsList from './StatsList';
 import Loading from '@/components/common/Loading';
 import ErrorMessage from '@/components/ui/ErrorMessage';
+import { DiveList, useGetDives } from '@features/dives';
+
+import StatsList from './StatsList';
 
 function DashboardLists() {
   const { dives, isLoading, isFetching, isError, refetch } = useGetDives();
@@ -22,10 +23,9 @@ function DashboardLists() {
   }
 
   // Sort dives by date descending and get the last three dives
-  const orderedDives = [...dives].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  const lastTreeDives = orderedDives.slice(-3);
+  const lastTreeDives = [...dives]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
 
   return (
     <section>

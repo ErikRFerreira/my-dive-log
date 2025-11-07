@@ -1,5 +1,11 @@
+import DarkModeToggle from '../ui/DarkModeToggle';
+
 function Header() {
-  return <header>Header</header>;
+  return (
+    <header>
+      <DarkModeToggle />
+    </header>
+  );
 }
 
 export default Header;

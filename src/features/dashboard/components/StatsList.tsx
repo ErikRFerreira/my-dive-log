@@ -40,6 +40,10 @@ function StatsList({ dives }: StatsListProps) {
           dives.filter((dive) => dive.location === a).length
       )[0] || 'N/A';
 
+  const favorteLocationCountry =
+    dives.filter((dive) => dive.location === favoriteLocation).map((dive) => dive.country)[0] ||
+    'N/A';
+
   const favoriteLocationCount = dives.filter((dive) => dive.location === favoriteLocation).length;
 
   return (
@@ -61,7 +65,7 @@ function StatsList({ dives }: StatsListProps) {
       />
       <StatCard
         title="Favorite Location"
-        value={favoriteLocation}
+        value={`${favoriteLocation}, ${favorteLocationCountry}`}
         subtitle={`${favoriteLocationCount} dives`}
       />
     </section>

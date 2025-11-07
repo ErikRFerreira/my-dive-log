@@ -1,7 +1,8 @@
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
-import NewDiveForm from './NewDiveForm';
 import { useState } from 'react';
+
+import NewDiveForm from './NewDiveForm';
 
 function AddDive() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,7 +12,7 @@ function AddDive() {
       <Button onClick={() => setIsModalOpen(true)}>+ Add Dive</Button>
       {isModalOpen && (
         <Modal closeModal={() => setIsModalOpen(false)}>
-          <NewDiveForm />
+          <NewDiveForm onCancel={() => setIsModalOpen(false)} />
         </Modal>
       )}
     </div>

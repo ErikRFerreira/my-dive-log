@@ -1,1 +1,37 @@
 @import 'tailwindcss';
+
+/* Custom tokens for Tailwind v4 */
+@theme {
+  --font-sans: Inter, system-ui, sans-serif; /* font-sans */
+  --color-ocean: #0ea5e9; /* text-ocean */
+  --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.08); /* shadow-soft */
+  --radius-2xl: 1.5rem; /* rounded-2xl */
+}
+
+/* Light/Dark backgrounds + text */
+html {
+  color-scheme: light dark;
+}
+html.dark {
+  color-scheme: dark;
+}
+body {
+  @apply bg-white text-slate-900;
+}
+html.dark body {
+  @apply bg-slate-900 text-slate-100;
+}
+
+/* Focus management */
+*:focus {
+  outline: none;
+}
+
+/* Smooth transitions */
+.button-like,
+button,
+a,
+input,
+select {
+  @apply transition-colors duration-150;
+}
