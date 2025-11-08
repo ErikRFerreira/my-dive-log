@@ -2,7 +2,7 @@ import { DiveList, DivesFilter, useGetDives } from '@features/dives';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import Loading from '@/components/common/Loading';
 import Chip from '@/components/ui/Chip';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useDiveFilterStore, type SortBy, DIVE_FILTER_DEFAULTS } from '@/store/diveFilterStore';
 import { useCallback } from 'react';
 import InlineSpinner from '@/components/common/InlineSpinner';

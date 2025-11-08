@@ -1,11 +1,7 @@
 import { DashboardLayout } from '@features/dashboard';
 
 function Dashboard() {
-  return (
-    <div>
-      <DashboardLayout />
-    </div>
-  );
+  return <DashboardLayout />;
 }
 
 export default Dashboard;

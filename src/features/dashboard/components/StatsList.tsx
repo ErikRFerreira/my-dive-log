@@ -1,19 +1,12 @@
+import type { Dive } from '@/features/dives';
+import { TrendingDown, MapPin, Waves } from 'lucide-react';
 import StatCard from './StatCard';
-import { type Dive } from '@/features/dives';
 
 type StatsListProps = {
   dives: Dive[];
 };
 
 function StatsList({ dives }: StatsListProps) {
-  const styles = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-    gap: '10px',
-    marginBottom: '20px',
-    marginTop: '20px',
-  };
-
   const totalDives = dives.length;
 
   const totalThisMonth = dives.filter((dive) => {
@@ -47,26 +40,34 @@ function StatsList({ dives }: StatsListProps) {
   const favoriteLocationCount = dives.filter((dive) => dive.location === favoriteLocation).length;
 
   return (
-    <section style={styles}>
+    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatCard
         title="Total Dives"
         value={totalDives}
-        subtitle={`+ ${totalThisMonth} this month`}
+        description={`+ ${totalThisMonth} this month`}
+        icon={<Waves className="w-6 h-6" />}
+        color="from-teal-400 to-cyan-600"
       />
       <StatCard
         title="Deepest Dive (m)"
         value={deepestDive}
-        subtitle={`at ${deepestDiveLocation}`}
+        description={`at ${deepestDiveLocation}`}
+        icon={<TrendingDown className="w-6 h-6" />}
+        color="from-teal-400 to-cyan-600"
       />
       <StatCard
         title="Average Duration (min)"
         value={averageDuration.toFixed(1)}
-        subtitle="Across all dives"
+        description="Across all dives"
+        icon={<MapPin className="w-6 h-6" />}
+        color="from-teal-400 to-cyan-600"
       />
       <StatCard
         title="Favorite Location"
         value={`${favoriteLocation}, ${favorteLocationCountry}`}
-        subtitle={`${favoriteLocationCount} dives`}
+        description={`${favoriteLocationCount} dives`}
+        icon={<Waves className="w-6 h-6" />}
+        color="from-teal-400 to-cyan-600"
       />
     </section>
   );

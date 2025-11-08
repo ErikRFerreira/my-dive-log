@@ -15,8 +15,10 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Geist', 'system-ui', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
+
       borderRadius: {
         xl: '1rem',
         '2xl': '1.5rem',

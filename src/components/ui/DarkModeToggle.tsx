@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HiOutlineMoon, HiOutlineSun } from 'react-icons/hi2';
+import { Moon, Sun } from 'lucide-react';
 
 function DarkModeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -25,7 +25,7 @@ function DarkModeToggle() {
 
   return (
     <button onClick={toggleTheme} aria-label="Toggle Dark Mode">
-      {theme === 'dark' ? <HiOutlineSun size={24} /> : <HiOutlineMoon size={24} />}
+      {theme === 'dark' ? <Sun /> : <Moon />}
     </button>
   );
 }
