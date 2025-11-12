@@ -1,24 +1,25 @@
-import { getDepthColor } from '../../../utils/helpers';
-
 type DepthBadgeProps = {
   depth: number;
 };
 
 function DepthBadge({ depth }: DepthBadgeProps) {
-  const bgColor = getDepthColor(depth);
   const label = `${depth} m`;
-  const style = {
-    backgroundColor: bgColor,
-    color: 'white',
-    borderRadius: 9999,
-    padding: '2px 10px',
-    fontSize: 12,
-    fontWeight: 600,
-    letterSpacing: 0.2,
+
+  const getDepthStyles = (depth: number): string => {
+    if (depth <= 18) {
+      return 'bg-green-600 text-white';
+    } else if (depth <= 40) {
+      return 'bg-yellow-500 text-black';
+    } else {
+      return 'bg-red-600 text-white';
+    }
   };
 
   return (
-    <span className={'depth-badge'} aria-label={label} style={style}>
+    <span
+      aria-label={`Depth: ${label}`}
+      className={`px-2 py-1 rounded-full text-sm font-semibold ${getDepthStyles(depth)}`}
+    >
       {label}
     </span>
   );

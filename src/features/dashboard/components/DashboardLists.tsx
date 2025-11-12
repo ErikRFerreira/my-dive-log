@@ -1,4 +1,5 @@
 import Loading from '@/components/common/Loading';
+import Button from '@/components/ui/button';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import { DiveList, useGetDives } from '@features/dives';
 
@@ -17,7 +18,7 @@ function DashboardLists() {
     return (
       <>
         <ErrorMessage>Failed to load dives.</ErrorMessage>
-        <button onClick={() => refetch()}>Retry</button>
+        <Button onClick={() => refetch()}>Retry</Button>
       </>
     );
   }
@@ -31,7 +32,7 @@ function DashboardLists() {
     <section>
       {isFetching && <Loading />}
       <StatsList dives={dives} />
-      <DiveList dives={lastTreeDives} />
+      <DiveList title={'Recent Dives'} dives={lastTreeDives} />
     </section>
   );
 }

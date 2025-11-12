@@ -3,9 +3,10 @@ import { type Dive } from '@/features/dives';
 
 type DiveListProps = {
   dives: Dive[];
+  title?: string;
 };
 
-function DiveList({ dives }: DiveListProps) {
+function DiveList({ dives, title }: DiveListProps) {
   const styles = { display: 'grid', gap: 12 };
 
   if (dives.length === 0) {
@@ -14,6 +15,7 @@ function DiveList({ dives }: DiveListProps) {
 
   return (
     <section aria-label="List of dives" style={styles} role="list">
+      {title && <h2 className="text-xl font-bold text-foreground">{title}</h2>}
       {dives.map((dive) => (
         <DiveCard key={dive.id} dive={dive} />
       ))}

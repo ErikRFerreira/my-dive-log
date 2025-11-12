@@ -10,7 +10,7 @@ type StatCardProps = {
 
 function StatCard({ title, value, description, icon, color }: StatCardProps) {
   return (
-    <Card className="bg-linear-to-br from-card to-slate-50 dark:to-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="bg-gradient-to-br from-card to-slate-50 dark:to-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>

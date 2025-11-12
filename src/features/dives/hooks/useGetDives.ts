@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getDives } from '../services/apiDives';
+import { getDives } from '../../../services/apiDives';
 
 export function useGetDives() {
   const {

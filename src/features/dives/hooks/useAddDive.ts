@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createDive } from '../services/apiDives';
+import { createDive } from '../../../services/apiDives';
 
 export function useAddDive() {
   const queryClient = useQueryClient();

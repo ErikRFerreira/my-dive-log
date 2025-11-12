@@ -1,9 +1,11 @@
+import Dive from '@/pages/Dive';
 import { createBrowserRouter, Navigate } from 'react-router';
+
 import AppLayout from '../components/layout/AppLayout';
-import Dashboard from '../pages/Dashboard';
-import Settings from '../pages/Settings';
-import Dives from '../pages/Dives';
 import Account from '../pages/Account';
+import Dashboard from '../pages/Dashboard';
+import Dives from '../pages/Dives';
+import Settings from '../pages/Settings';
 
 const router = createBrowserRouter([
   {
@@ -20,6 +22,10 @@ const router = createBrowserRouter([
       {
         path: '/dives',
         element: <Dives />,
+      },
+      {
+        path: '/dives/:id',
+        element: <Dive />,
       },
       {
         path: 'account',

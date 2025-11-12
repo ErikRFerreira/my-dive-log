@@ -1,4 +1,4 @@
-import { DiveList, DivesFilter, useGetDives } from '@features/dives';
+import { AddDive, DiveList, DivesFilter, useGetDives } from '@features/dives';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import Loading from '@/components/common/Loading';
 import Chip from '@/components/ui/Chip';
@@ -60,10 +60,13 @@ function Dives() {
   // TOOD: add pagination later
   return (
     <>
-      <header>
-        <h1>Dive History</h1>
-        {isFetching && <InlineSpinner aria-label="Refreshing dives" />}
-        <p>Browse and manage all your recorded dives</p>
+      <header className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dive History</h1>
+          {isFetching && <InlineSpinner aria-label="Refreshing dives" />}
+          <p className="text-muted-foreground mt-1">Browse and manage all your recorded dives</p>
+        </div>
+        <AddDive />
       </header>
       <div>
         <div>

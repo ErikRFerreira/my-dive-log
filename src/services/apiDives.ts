@@ -3,6 +3,17 @@ import type { Dive } from '@/features/dives';
 // TODO: move to supabase service when integrated?
 
 /**
+ *
+ * @param id
+ * @returns
+ */
+export async function getDiveById(id: string): Promise<Dive | null> {
+  const response = await fetch(`${import.meta.env.VITE_MOCK_API_URL}/dives/${id}`);
+  if (!response.ok) return null;
+  return (await response.json()) as Dive;
+}
+
+/**
  *	Fetches the list of dives from the mock API.
  *
  * @returns - A promise that resolves to an array of Dive objects or null if the fetch fails.

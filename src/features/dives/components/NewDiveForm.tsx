@@ -1,10 +1,28 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import { useAddDive } from '../hooks/useAddDive';
 
 import type { Dive } from '../types';
 import { COUNTRIES } from '../../../shared/data/countries';
 import toast from 'react-hot-toast';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { diveFormSchema, type DiveFormInput } from '../schemas';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+import Button from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 type SubmittedDive = Pick<Dive, 'date' | 'location' | 'country' | 'depth' | 'duration'> & {
   notes?: Dive['notes'];
@@ -15,16 +33,6 @@ type NewDiveFormProps = {
   onCancel?: () => void;
 };
 
-// Local form input type
-interface DiveInput {
-  date: string;
-  location: string;
-  countryCode: string;
-  depth: number;
-  duration: number;
-  notes?: string;
-}
-
 function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   const { mutateAdd, isPending } = useAddDive();
 
@@ -33,36 +41,34 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<DiveInput>({
+    control,
+  } = useForm<DiveFormInput>({
+    resolver: zodResolver(diveFormSchema),
     defaultValues: {
       date: '',
       location: '',
-      depth: 1,
-      duration: 1,
+      depth: undefined,
+      duration: undefined,
       notes: '',
       countryCode: '',
     },
     mode: 'onBlur',
   });
 
-  const submit = (raw: DiveInput) => {
-    // Normalize / sanitize
-    const data: DiveInput = {
-      ...raw,
-      location: raw.location.trim(),
-      notes: raw.notes?.trim() ?? '',
-      countryCode: raw.countryCode.toUpperCase(),
-    };
-
+  const submit = (data: DiveFormInput) => {
     const countryName =
-      COUNTRIES.find((c) => c.code.toUpperCase() === data.countryCode)?.name ?? '';
+      COUNTRIES.find((c) => c.code.toUpperCase() === data.countryCode.toUpperCase())?.name ?? '';
 
     const payload: Dive = {
-      // generate random id for now; real id will be from backend
       id: Math.random().toString(36).substring(2, 9),
       userId: 'user123',
-      ...data,
+      date: data.date,
+      location: data.location,
       country: countryName,
+      countryCode: data.countryCode.toUpperCase(),
+      depth: data.depth,
+      duration: data.duration,
+      notes: data.notes || '',
     };
 
     mutateAdd(payload, {
@@ -85,7 +91,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
         toast.success('Dive logged successfully');
         onSubmit?.(submitData);
         reset();
-        onCancel?.(); // parent should close modal
+        onCancel?.();
       },
       onError: (err) => {
         console.error('Failed to add dive:', err);
@@ -100,114 +106,129 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   };
 
   return (
-    <form noValidate onSubmit={handleSubmit(submit)}>
-      <h2>Log a New Dive</h2>
+    <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4">
+      <h2 className="text-2xl font-bold mb-6">Log a New Dive</h2>
 
-      <div>
-        <label htmlFor="date">Date</label>
-        <input
-          id="date"
-          type="date"
-          aria-invalid={!!errors.date}
-          {...register('date', {
-            required: 'Date is required',
-          })}
+      <Field>
+        <FieldLabel htmlFor="date">Date</FieldLabel>
+        <Controller
+          name="date"
+          control={control}
+          render={({ field }) => (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !field.value && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {field.value ? format(new Date(field.value), 'PPP') : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onSelect={(date) => {
+                    field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          )}
         />
-        {errors.date && <small style={{ color: 'red' }}>{errors.date.message}</small>}
-      </div>
+        {errors.date && <FieldError>{errors.date.message}</FieldError>}
+      </Field>
 
-      <div>
-        <label htmlFor="location">Location</label>
-        <input
+      <Field>
+        <FieldLabel htmlFor="location">Location</FieldLabel>
+        <Input
           id="location"
           type="text"
           placeholder="Great Barrier Reef"
           aria-invalid={!!errors.location}
-          {...register('location', {
-            required: 'Location is required',
-            validate: (v) => v.trim().length > 0 || 'Location is required',
-          })}
+          {...register('location')}
         />
-        {errors.location && <small style={{ color: 'red' }}>{errors.location.message}</small>}
-      </div>
+        {errors.location && <FieldError>{errors.location.message}</FieldError>}
+      </Field>
 
-      <div>
-        <label htmlFor="countryCode">Country</label>
-        <select
-          id="countryCode"
-          aria-invalid={!!errors.countryCode}
-          {...register('countryCode', {
-            required: 'Select a country',
-            validate: (v) => v.trim().length === 2 || 'Select a country',
-          })}
-        >
-          <option value="">Select country</option>
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        {errors.countryCode && <small style={{ color: 'red' }}>{errors.countryCode.message}</small>}
-      </div>
+      <Field>
+        <FieldLabel htmlFor="countryCode">Country</FieldLabel>
+        <Controller
+          name="countryCode"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {COUNTRIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {errors.countryCode && <FieldError>{errors.countryCode.message}</FieldError>}
+      </Field>
 
-      <div>
-        <label htmlFor="depth">Depth (meters)</label>
-        <input
+      <Field>
+        <FieldLabel htmlFor="depth">Depth (meters)</FieldLabel>
+        <Input
           id="depth"
           type="number"
           placeholder="18"
           step="0.1"
           min={0}
           aria-invalid={!!errors.depth}
-          {...register('depth', {
-            valueAsNumber: true,
-            required: 'Depth is required',
-            min: { value: 0, message: 'Depth must be >= 0' },
-          })}
+          {...register('depth', { valueAsNumber: true })}
         />
-        {errors.depth && <small style={{ color: 'red' }}>{errors.depth.message}</small>}
-      </div>
+        {errors.depth && <FieldError>{errors.depth.message}</FieldError>}
+      </Field>
 
-      <div>
-        <label htmlFor="duration">Duration (minutes)</label>
-        <input
+      <Field>
+        <FieldLabel htmlFor="duration">Duration (minutes)</FieldLabel>
+        <Input
           id="duration"
           type="number"
           placeholder="35"
           step="1"
           min={1}
           aria-invalid={!!errors.duration}
-          {...register('duration', {
-            valueAsNumber: true,
-            required: 'Duration is required',
-            min: { value: 1, message: 'Duration must be >= 1' },
-          })}
+          {...register('duration', { valueAsNumber: true })}
         />
-        {errors.duration && <small style={{ color: 'red' }}>{errors.duration.message}</small>}
-      </div>
+        {errors.duration && <FieldError>{errors.duration.message}</FieldError>}
+      </Field>
 
-      <div>
-        <label htmlFor="notes">Notes</label>
+      <Field>
+        <FieldLabel htmlFor="notes">Notes</FieldLabel>
         <textarea
           id="notes"
           rows={4}
           placeholder="Any observations or conditions..."
           aria-invalid={!!errors.notes}
-          {...register('notes', {
-            validate: (v) => (v?.trim()?.length ?? 0) <= 500 || 'Notes must be <= 500 characters',
-          })}
+          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          {...register('notes')}
         />
-        {errors.notes && <small style={{ color: 'red' }}>{errors.notes.message}</small>}
-      </div>
+        {errors.notes && <FieldError>{errors.notes.message}</FieldError>}
+      </Field>
 
-      <div>
-        <button type="submit" disabled={isPending}>
+      <div className="flex gap-2 pt-4 border-t">
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Saving...' : 'Save Dive'}
-        </button>
-        <button type="button" onClick={cancel} disabled={isPending}>
+        </Button>
+        <Button type="button" variant="outline" onClick={cancel} disabled={isPending}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );
