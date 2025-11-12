@@ -7,11 +7,7 @@ import DarkModeToggle from '../ui/DarkModeToggle';
 function Header() {
   return (
     <header className="col-start-2 row-start-1 h-20 border-b border-border bg-card flex items-center justify-between px-8 shadow-sm">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Dive Master</h2>
-        <p className="text-sm text-muted-foreground">Track, explore, and master your dives</p>
-      </div>
-
+      <p className="text-muted-foreground mt-1">Track, explore, and master your dives</p>
       <div className="flex items-center gap-4">
         <DarkModeToggle />
         <Avatar className="w-10 h-10">

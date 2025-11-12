@@ -7,7 +7,7 @@ function Dashboard() {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Track your diving adventures</p>
+          <p className="text-muted-foreground">Overview of your diving activities</p>
         </div>
         <AddDive />
       </header>

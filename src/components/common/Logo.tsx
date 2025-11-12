@@ -11,7 +11,7 @@ function Logo() {
             <LogIn className="w-6 h-6 text-white" />
           </div>
         )}
-        <h1 className="text-xl font-bold text-white">Dive Log</h1>
+        <h2 className="text-xl font-bold text-white">Dive Master</h2>
       </div>
     </div>
   );
