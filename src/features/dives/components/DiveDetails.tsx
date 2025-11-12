@@ -1,5 +1,6 @@
 import Loading from '@/components/common/Loading';
 import { useGetDive } from '../hooks/useGetDive';
+import GoBack from '@/components/ui/GoBack';
 
 function DiveDetails() {
   const { dive, isLoading, error } = useGetDive();
@@ -12,9 +13,11 @@ function DiveDetails() {
     return <div>Error loading dive details.</div>;
   }
 
-  console.log(dive);
-
-  return <div>DiveDetails</div>;
+  return (
+    <div>
+      <GoBack />
+    </div>
+  );
 }
 
 export default DiveDetails;
