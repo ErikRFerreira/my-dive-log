@@ -1,16 +1,10 @@
-import { LogIn } from 'lucide-react';
+import { Waves } from 'lucide-react';
 
 function Logo() {
-  const loggedIn = false; // Placeholder for actual authentication logic
-
   return (
     <div className="p-6 border-b border-slate-700">
       <div className="flex items-center gap-3">
-        {loggedIn && (
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center">
-            <LogIn className="w-6 h-6 text-white" />
-          </div>
-        )}
+        <Waves className="w-8 h-8 text-white" />
         <h2 className="text-xl font-bold text-white">Dive Master</h2>
       </div>
     </div>
