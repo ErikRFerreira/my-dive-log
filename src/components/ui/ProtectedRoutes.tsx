@@ -1,6 +1,5 @@
 import { useUser } from '@/features/authentication';
 import { Navigate } from 'react-router';
-import Loading from '../common/Loading';
 
 type ProtectedRoutesProps = {
   children: React.ReactNode;
@@ -9,10 +8,9 @@ type ProtectedRoutesProps = {
 function ProtectedRoutes({ children }: ProtectedRoutesProps) {
   const { user, isLoading } = useUser();
 
-  console.log('Authenticated user:', user);
-
+  // TODO: Add a better loading state UI
   if (isLoading) {
-    return <Loading />;
+    return <> </>;
   }
 
   if (!user) return <Navigate to="/login" replace />;

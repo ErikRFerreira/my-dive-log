@@ -6,11 +6,7 @@ function Loading() {
   const radius = 20;
 
   return (
-    <div
-      role="status"
-      aria-label="Loading"
-      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-    >
+    <div role="status" aria-label="Loading" className="w-full flex justify-center">
       <svg
         width={size}
         height={size}

@@ -1,6 +1,7 @@
 import type { Dive } from '@/features/dives';
 import { TrendingDown, MapPin, Waves } from 'lucide-react';
 import StatCard from './StatCard';
+import { useMemo } from 'react';
 
 type StatsListProps = {
   dives: Dive[];
@@ -9,35 +10,49 @@ type StatsListProps = {
 function StatsList({ dives }: StatsListProps) {
   const totalDives = dives.length;
 
-  const totalThisMonth = dives.filter((dive) => {
-    const diveDate = new Date(dive.date);
-    const now = new Date();
-    return diveDate.getMonth() === now.getMonth() && diveDate.getFullYear() === now.getFullYear();
-  }).length;
+  // Calculate total dives this month
+  const totalThisMonth = useMemo(() => {
+    return dives.filter((dive) => {
+      const diveDate = new Date(dive.date);
+      const now = new Date();
+      return diveDate.getMonth() === now.getMonth() && diveDate.getFullYear() === now.getFullYear();
+    }).length;
+  }, [dives]);
 
-  const deepestDive = dives.reduce((max, dive) => (dive.depth > max ? dive.depth : max), 0);
+  // Calculate deepest dive
+  const { deepestDive, deepestDiveLocation } = useMemo(() => {
+    const deepest = dives.reduce((maxDive, dive) => (dive.depth > maxDive.depth ? dive : maxDive), {
+      depth: 0,
+      location: '',
+    });
+    return { deepestDive: deepest.depth, deepestDiveLocation: deepest.location };
+  }, [dives]);
 
-  const deepestDiveLocation = dives.reduce(
-    (maxDive, dive) => (dive.depth > maxDive.depth ? dive : maxDive),
-    { depth: 0, location: '' }
-  ).location;
+  // Calculate average duration
+  const averageDuration = useMemo(() => {
+    return dives.reduce((sum, dive) => sum + dive.duration, 0) / (dives.length || 1);
+  }, [dives]);
 
-  const averageDuration = dives.reduce((sum, dive) => sum + dive.duration, 0) / (dives.length || 1);
+  // Calculate favorite location
+  const { favoriteLocation, favorteLocationCountry, favoriteLocationCount } = useMemo(() => {
+    const locationCounts = dives.reduce(
+      (acc, dive) => {
+        acc[dive.location] = (acc[dive.location] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
-  const favoriteLocation =
-    dives
-      .map((dive) => dive.location)
-      .sort(
-        (a, b) =>
-          dives.filter((dive) => dive.location === b).length -
-          dives.filter((dive) => dive.location === a).length
-      )[0] || 'N/A';
+    const favLocation = Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    const favCountry = dives.find((dive) => dive.location === favLocation)?.country || 'N/A';
+    const favCount = locationCounts[favLocation] || 0;
 
-  const favorteLocationCountry =
-    dives.filter((dive) => dive.location === favoriteLocation).map((dive) => dive.country)[0] ||
-    'N/A';
-
-  const favoriteLocationCount = dives.filter((dive) => dive.location === favoriteLocation).length;
+    return {
+      favoriteLocation: favLocation,
+      favorteLocationCountry: favCountry,
+      favoriteLocationCount: favCount,
+    };
+  }, [dives]);
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 py-10">

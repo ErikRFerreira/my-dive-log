@@ -38,6 +38,7 @@ export async function logout() {
  * @returns The current user data.
  */
 export async function getCurrentUser() {
+  console.log('Fetching current user from Supabase');
   const {
     data: { user },
     error,
