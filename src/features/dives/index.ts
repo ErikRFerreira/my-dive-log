@@ -9,4 +9,4 @@ export { default as DiveDetails } from './components/DiveDetails';
 export { useGetDives } from './hooks/useGetDives';
 
 // Types
-export type { Dive } from './types';
+export type { Dive, NewDiveInput } from './types';

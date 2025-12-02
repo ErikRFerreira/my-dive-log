@@ -2,7 +2,7 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { useAddDive } from '../hooks/useAddDive';
 
-import type { Dive } from '../types';
+import type { NewDiveInput } from '../types';
 import { COUNTRIES } from '../../../shared/data/countries';
 import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,8 +24,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-type SubmittedDive = Pick<Dive, 'date' | 'location' | 'country' | 'depth' | 'duration'> & {
-  notes?: Dive['notes'];
+type SubmittedDive = Pick<NewDiveInput, 'date' | 'location' | 'country' | 'depth' | 'duration'> & {
+  notes?: NewDiveInput['notes'];
 };
 
 type NewDiveFormProps = {
@@ -59,13 +59,11 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
     const countryName =
       COUNTRIES.find((c) => c.code.toUpperCase() === data.countryCode.toUpperCase())?.name ?? '';
 
-    const payload: Dive = {
-      id: Math.random().toString(36).substring(2, 9),
-      userId: 'user123',
+    const payload: NewDiveInput = {
       date: data.date,
       location: data.location,
       country: countryName,
-      countryCode: data.countryCode.toUpperCase(),
+      country_code: data.countryCode ? data.countryCode.toUpperCase() : null,
       depth: data.depth,
       duration: data.duration,
       notes: data.notes || '',
@@ -135,7 +133,6 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
                   onSelect={(date) => {
                     field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
                   }}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>

@@ -3,8 +3,6 @@ import { useUser } from '@/features/authentication';
 import { Profile } from '@/features/profile';
 import Certification from '@/features/profile/components/Certification';
 
-console.log('here');
-
 function Account() {
   const { user, isLoading, isError } = useUser();
 
