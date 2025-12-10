@@ -41,3 +41,34 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
   if (error) throw error;
   return data ?? null;
 }
+
+/**
+ * Deletes a dive by ID from Supabase.
+ *
+ * @param id - The ID of the dive to delete
+ * @returns
+ */
+export async function deleteDive(id: string): Promise<boolean> {
+  const { error } = await supabase.from('dives').delete().eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+/**
+ * Updates a dive entry in Supabase.
+ *
+ * @param id - Dive ID
+ * @param diveData - Partial dive data to update
+ * @returns
+ */
+export async function updateDive(id: string, diveData: Partial<Dive>): Promise<Dive | null> {
+  const { data, error } = await supabase
+    .from('dives')
+    .update(diveData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data ?? null;
+}

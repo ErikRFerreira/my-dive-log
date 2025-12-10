@@ -63,7 +63,6 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
       date: data.date,
       location: data.location,
       country: countryName,
-      country_code: data.countryCode ? data.countryCode.toUpperCase() : null,
       depth: data.depth,
       duration: data.duration,
       notes: data.notes || '',

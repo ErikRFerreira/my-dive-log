@@ -1,17 +1,34 @@
 interface Dive {
   id: string;
-  user_id: string; // from Supabase
+  user_id: string;
+  date: string;
   location: string;
   country: string | null;
-  country_code?: string | null; // client-only value (optional)
-  date: string; // ISO string from Supabase
+  country_code: string | null;
   depth: number;
   duration: number;
   notes: string | null;
-  summary?: string | null;
-  created_at: string; // Supabase always returns this
+  summary: string | null;
+  created_at: string;
+  water_temp: number | null;
+  visibility: number | null;
+  ai_summary: string | null;
+  conditions: string | null;
+  wave_height: string | null;
+  start_pressure: number | null;
+  end_pressure: number | null;
+  air_usage: number | null;
+  equipment: string[] | null;
+  wildlife: string[] | null;
 }
 
-type NewDiveInput = Omit<Dive, 'id' | 'user_id' | 'created_at' | 'summary'>;
+type NewDiveInput = {
+  date: string;
+  location: string;
+  country: string | null;
+  depth: number;
+  duration: number;
+  notes?: string | null;
+};
 
 export type { Dive, NewDiveInput };
