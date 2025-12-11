@@ -1,5 +1,4 @@
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-
+import { Card } from '@/components/ui/card';
 import type { Dive } from '../types';
 import DepthBadge from './DepthBadge';
 import Button from '@/components/ui/button';

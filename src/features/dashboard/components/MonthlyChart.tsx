@@ -1,34 +1,72 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
 import type { Dive } from '@/features/dives';
+import { useState, useMemo } from 'react';
 
 type MonthlyChartProps = {
   dives: Dive[];
 };
 
 function MonthlyChart({ dives }: MonthlyChartProps) {
-  const monthlyActivityData = dives.reduce(
-    (acc, dive) => {
-      const diveDate = new Date(dive.date);
-      const month = diveDate.toLocaleString('en-US', { month: 'long' });
-      const year = diveDate.getFullYear();
-      const monthYear = `${month} ${year}`;
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
 
-      const existingMonth = acc.find((data) => data.month === monthYear);
-      if (existingMonth) {
-        existingMonth.dives += 1;
-      } else {
-        acc.push({ month: monthYear, dives: 1 });
-      }
-      return acc;
-    },
-    [] as { month: string; dives: number }[]
-  );
+  // Get all available years from dives
+  const availableYears = useMemo(() => {
+    const years = dives.map((dive) => new Date(dive.date).getFullYear());
+    const uniqueYears = Array.from(new Set(years)).sort((a, b) => b - a);
+    return uniqueYears;
+  }, [dives]);
+
+  // Prepare monthly activity data
+  const monthlyActivityData = useMemo(() => {
+    const filteredDives = dives.filter(
+      (dive) => new Date(dive.date).getFullYear() === parseInt(selectedYear)
+    );
+
+    return filteredDives.reduce(
+      (acc, dive) => {
+        const diveDate = new Date(dive.date);
+        const month = diveDate.toLocaleString('en-US', { month: 'long' });
+
+        const existingMonth = acc.find((data) => data.month === month);
+        if (existingMonth) {
+          existingMonth.dives += 1;
+        } else {
+          acc.push({ month, dives: 1 });
+        }
+        return acc;
+      },
+      [] as { month: string; dives: number }[]
+    );
+  }, [dives, selectedYear]);
 
   return (
     <Card className="bg-card border-slate-200 dark:border-slate-700">
       <CardHeader className="border-b border-border">
-        <CardTitle className="text-foreground">Monthly Activity</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-foreground">Monthly Activity</CardTitle>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="p-6">
         <ResponsiveContainer width="100%" height={300}>
