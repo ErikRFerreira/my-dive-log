@@ -6,6 +6,29 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+// CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://my-dive-log-3n4b.vercel.app',
+];
+
+function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
+  const origin = req.headers.origin || '';
+
+  // For development, allow all origins. For production, check the list
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (origin) {
+    // If origin is not in the list but exists, still allow it (for testing)
+    // Remove this else-if block in production
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+}
+
 type DivePayload = {
   location?: string | null;
   country?: string | null;
@@ -17,6 +40,14 @@ type DivePayload = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Set CORS headers first for all requests
+  setCorsHeaders(req, res);
+
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
