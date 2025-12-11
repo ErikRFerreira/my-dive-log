@@ -9,19 +9,23 @@ export async function getDiveSummaryFromAPI(dive: Dive): Promise<string> {
 
   const res = await fetch(`${API_BASE_URL}/api/summarize-dive`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ dive }),
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('summarize-dive error response:', text);
-    throw new Error('Failed to generate summary');
+  const bodyText = await res.text();
+  let data: { summary?: string; error?: string } = {};
+
+  try {
+    data = bodyText ? JSON.parse(bodyText) : {};
+  } catch {
+    // if it's not JSON, keep data as {}
   }
 
-  const data = (await res.json()) as { summary?: string; error?: string };
+  if (!res.ok) {
+    const msg = data.error || 'Failed to generate summary';
+    throw new Error(msg);
+  }
 
   if (!data.summary) {
     throw new Error(data.error || 'No summary returned from API');

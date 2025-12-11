@@ -2,6 +2,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type { Dive } from '../types';
 import { getDiveSummaryFromAPI } from '@/services/apiAI';
+import toast from 'react-hot-toast';
 
 type SetEditedDive = React.Dispatch<React.SetStateAction<Dive | null>>;
 
@@ -16,6 +17,9 @@ export function useGenerateSummary(dive: Dive, setEditedDive: SetEditedDive) {
           : { ...dive, summary }
       );
     },
+    onError: (error) => {
+      toast.error(error.message);
+    }
   });
 
   return {

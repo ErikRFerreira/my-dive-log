@@ -32,6 +32,7 @@
     "countries-list": "^3.2.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
+    "groq-sdk": "^0.37.0",
     "lucide-react": "^0.553.0",
     "lucide-vue-next": "^0.553.0",
     "openai": "^6.10.0",

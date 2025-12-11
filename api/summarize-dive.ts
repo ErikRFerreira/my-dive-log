@@ -1,11 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize client with env var
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
-
+// CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'https://my-dive-log-3n4b.vercel.app',
@@ -17,6 +18,7 @@ function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
+
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Vary', 'Origin');
@@ -33,17 +35,23 @@ type DivePayload = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     setCorsHeaders(req, res);
     return res.status(200).end();
   }
-	
-	if (req.method !== 'POST') {
+
+  if (req.method !== 'POST') {
+    setCorsHeaders(req, res);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const dive = (req.body?.dive || req.body) as DivePayload | undefined;
+    setCorsHeaders(req, res);
+
+    // Some runtimes give body as string, some already as object
+    const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const dive = (rawBody?.dive || rawBody) as DivePayload | undefined;
 
     if (!dive) {
       return res.status(400).json({ error: 'Missing dive payload' });
@@ -59,21 +67,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       notes = 'no additional notes',
     } = dive;
 
-const prompt = `
+    const prompt = `
 You are generating a short scuba dive log summary.
 
-Return the result in **exactly this structure**:
+Return the result in exactly this structure:
 
 Summary:
 <2–3 concise sentences summarizing this dive for a dive logbook.>
 
 Similar locations:
-<- Recommend 1–2 *types* of dive environments the diver might enjoy (e.g., “shallow reefs”, “calm wall dives”). 
-Do NOT name specific geographic locations or famous dive sites. 
+<- Recommend 1–2 types of dive environments the diver might enjoy (e.g., "shallow reefs", "calm wall dives").
+Do NOT name specific geographic locations or famous dive sites.
 If unsure, say: "Not enough information to suggest similar environments.">
 
 Tips:
-<- Provide 1 brief safety reminder AND 1 environmental conservation tip relevant to the dive conditions, if appropriate. 
+<- Provide 1 brief safety reminder AND 1 environmental conservation tip relevant to the dive conditions, if appropriate.
 Otherwise say: "No specific tips for this dive.">
 
 Future practice:
@@ -94,27 +102,39 @@ Rules:
 - Do NOT invent details.
 - Keep each section under 2 sentences.
 - Keep the total output under 120 words.
-`.trim();
+    `.trim();
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    // 🔁 Call Groq (or similar) instead of OpenAI:
+    const completion = await groq.chat.completions.create({
+      // ⚠️ IMPORTANT: check docs of your provider for the exact model name
+      // Example model name - you may need to adjust this
+      model: 'mixtral-8x7b-32768',
       messages: [
         { role: 'system', content: 'You write concise scuba dive log summaries.' },
         { role: 'user', content: prompt },
       ],
+      max_tokens: 200,
       temperature: 0.4,
-      max_tokens: 250,
     });
 
-    const summary = response.choices[0]?.message?.content?.trim();
+    const summary = completion.choices?.[0]?.message?.content?.trim();
 
     if (!summary) {
-      return res.status(500).json({ error: 'No summary returned from OpenAI' });
+      return res.status(500).json({ error: 'No summary returned from model' });
     }
 
     return res.status(200).json({ summary });
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error in summarize-dive:', err);
+    setCorsHeaders(req, res);
+
+    // Provider might also have rate limits, but you can special case if they expose status
+    if (err?.status === 429) {
+      return res
+        .status(429)
+        .json({ error: 'AI rate limit or quota exceeded. Please try again later.' });
+    }
+
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
