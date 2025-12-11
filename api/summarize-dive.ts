@@ -15,18 +15,13 @@ const allowedOrigins = [
 function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin || '';
 
-  // For development, allow all origins. For production, check the list
   if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (origin) {
-    // If origin is not in the list but exists, still allow it (for testing)
-    // Remove this else-if block in production
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Vary', 'Origin');
 }
 
 type DivePayload = {
@@ -128,12 +123,16 @@ Rules:
   } catch (err: any) {
     console.error('Error in summarize-dive:', err);
 
-    if (err?.status === 429) {
-      return res
-        .status(429)
-        .json({ error: 'AI rate limit or quota exceeded. Please try again later.' });
-    }
+	const message =
+		err?.response?.data?.error ||
+		err?.message ||
+		'Internal server error';
 
-    return res.status(500).json({ error: 'Internal server error' });
+	// optional: if provider exposes status on error, keep 429
+	if (err?.status === 429) {
+		return res.status(429).json({ error: 'AI rate limit or quota exceeded. Please try again later.' });
+	}
+
+	return res.status(500).json({ error: message });
   }
 }
