@@ -19,13 +19,14 @@ function DiveDetails() {
   const { dive, isLoading, error } = useGetDive();
   const { mutateAsync: deleteDive, isPending: isDeleting } = useDeleteDive();
   const { mutateAsync: updateDive, isPending: isUpdating } = useUpdateDive();
-  const { generateSummary, isGenerating } = useGenerateSummary();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [newEquipment, setNewEquipment] = useState('');
   const [newWildlife, setNewWildlife] = useState('');
   const [editedDive, setEditedDive] = useState<Dive | null>(null);
+
+  const { generateSummary, isGenerating } = useGenerateSummary(dive ?? ({} as Dive), setEditedDive);
 
   const navigate = useNavigate();
 
@@ -42,7 +43,7 @@ function DiveDetails() {
     );
   }
 
-  // Necessary to handle edit mode and not mutate the original dive object directly
+  // Determine which dive data to display: original or edited
   const currentDive = isEditMode && editedDive ? editedDive : dive;
 
   // Normalize equipment and wildlife to arrays
@@ -212,16 +213,12 @@ function DiveDetails() {
   const handleGenerateAISummary = async () => {
     if (!editedDive) return;
 
-    const summary = await generateSummary(editedDive, dive);
-
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            summary,
-          }
-        : prev
-    );
+    try {
+      await generateSummary();
+      // summary is now in editedDive.summary
+    } catch (err) {
+      console.error('Failed to generate summary', err);
+    }
   };
 
   return (

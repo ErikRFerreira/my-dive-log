@@ -1,10 +1,26 @@
-// api/summarize-dive.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://my-dive-log-3n4b.vercel.app',
+];
+
+function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
+  const origin = req.headers.origin || '';
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
+}
 
 type DivePayload = {
   location?: string | null;
@@ -17,7 +33,12 @@ type DivePayload = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
+  if (req.method === 'OPTIONS') {
+    setCorsHeaders(req, res);
+    return res.status(200).end();
+  }
+	
+	if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -38,10 +59,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       notes = 'no additional notes',
     } = dive;
 
-    const prompt = `
+const prompt = `
 You are generating a short scuba dive log summary.
 
-Write 2–3 concise sentences summarizing this dive for a dive logbook.
+Return the result in **exactly this structure**:
+
+Summary:
+<2–3 concise sentences summarizing this dive for a dive logbook.>
+
+Similar locations:
+<- Recommend 1–2 *types* of dive environments the diver might enjoy (e.g., “shallow reefs”, “calm wall dives”). 
+Do NOT name specific geographic locations or famous dive sites. 
+If unsure, say: "Not enough information to suggest similar environments.">
+
+Tips:
+<- Provide 1 brief safety reminder AND 1 environmental conservation tip relevant to the dive conditions, if appropriate. 
+Otherwise say: "No specific tips for this dive.">
+
+Future practice:
+<- Suggest 1 future dive skill or training activity based on the dive profile, if appropriate.
+Otherwise say: "No specific recommendations.">
 
 Details:
 - Location: ${location}${country ? `, ${country}` : ''}
@@ -51,10 +88,12 @@ Details:
 - Conditions: ${conditions}
 - Notes: ${notes}
 
-Keep it friendly but factual. Do not invent details that are not provided.
-Based on the details, suggest similar dive locations the diver might enjoy (just 1-2).
-If appropriate, include a brief safety reminder and environmental conservation tip relevant to the dive conditions.
-If appropriate, suggest fututre dive activities or skills to practice based on the dive profile.
+Rules:
+- Keep it friendly but factual.
+- Use ONLY the information provided.
+- Do NOT invent details.
+- Keep each section under 2 sentences.
+- Keep the total output under 120 words.
 `.trim();
 
     const response = await openai.chat.completions.create({
@@ -64,7 +103,7 @@ If appropriate, suggest fututre dive activities or skills to practice based on t
         { role: 'user', content: prompt },
       ],
       temperature: 0.4,
-      max_tokens: 160,
+      max_tokens: 250,
     });
 
     const summary = response.choices[0]?.message?.content?.trim();
