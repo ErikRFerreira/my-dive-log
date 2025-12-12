@@ -1,10 +1,10 @@
 import { AddDive, DiveList, useGetDives } from '@/features/dives';
 import Loading from '@/components/common/Loading';
-import ErrorMessage from '@/components/ui/ErrorMessage';
 import Button from '@/components/ui/button';
 import StatsList from '@/features/dashboard/components/StatsList';
 import DepthChart from '@/features/dashboard/components/DepthChart';
 import MonthlyChart from '@/features/dashboard/components/MonthlyChart';
+import NoResults from '@/components/layout/NoResults';
 
 function Dashboard() {
   const { dives, isLoading, isError, refetch } = useGetDives();
@@ -15,10 +15,10 @@ function Dashboard() {
 
   if (isError || !dives) {
     return (
-      <>
-        <ErrorMessage>Failed to load dives.</ErrorMessage>
+      <NoResults>
+        Failed to load dives.
         <Button onClick={() => refetch()}>Retry</Button>
-      </>
+      </NoResults>
     );
   }
 

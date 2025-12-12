@@ -1,10 +1,11 @@
 import { AddDive, DiveList, DivesFilter, useGetDives } from '@features/dives';
-import ErrorMessage from '@/components/ui/ErrorMessage';
 import Loading from '@/components/common/Loading';
 import Button from '@/components/ui/button';
 import { useDiveFilterStore, type SortBy } from '@/store/diveFilterStore';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import InlineSpinner from '@/components/common/InlineSpinner';
+import NoResults from '@/components/layout/NoResults';
+import { ITEMS_PER_PAGE, DEFAULT_MAX_DEPTH } from '@/shared/constants';
 
 type DivesFilterValue = {
   sortBy: 'date' | 'depth' | 'duration';
@@ -13,39 +14,47 @@ type DivesFilterValue = {
 };
 
 function Dives() {
-  const { showFilters, sortBy, maxDepth, setSortBy, setMaxDepth, toggleShowFilters } =
-    useDiveFilterStore();
+  const {
+    showFilters,
+    sortBy,
+    maxDepth,
+    currentPage,
+    setSortBy,
+    setMaxDepth,
+    setCurrentPage,
+    toggleShowFilters,
+  } = useDiveFilterStore();
   const [selectedLocation, setSelectedLocation] = useState('all');
 
-  // Fetch dives with server-side filtering
+  // Fetch dives with server-side filtering and pagination
   const filters = {
     sortBy,
     maxDepth,
     location: selectedLocation === 'all' ? undefined : selectedLocation,
+    page: currentPage,
+    pageSize: ITEMS_PER_PAGE,
   };
-  const { dives, isLoading, isFetching, isError, refetch } = useGetDives(filters);
 
-  const handleFilterChange = useCallback(
-    (next: DivesFilterValue) => {
-      setSortBy(`${next.sortBy}` as SortBy);
-      setMaxDepth(next.maxDepth);
-      setSelectedLocation(next.selectedLocation);
-    },
-    [setSortBy, setMaxDepth]
-  );
+  const { dives, totalCount, isLoading, isFetching, isError, refetch } = useGetDives(filters);
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  const handleFilterChange = (next: DivesFilterValue) => {
+    setSortBy(`${next.sortBy}` as SortBy);
+    setMaxDepth(next.maxDepth);
+    setSelectedLocation(next.selectedLocation);
+    setCurrentPage(1);
+  };
 
   if (isLoading) {
     return <Loading />;
   }
 
-  // TODO: Improve error handling UI - maybe a toast notification?
-  // Also maybe create a reusable Error component?
   if (isError || !dives) {
     return (
-      <>
-        <ErrorMessage>Failed to load dives.</ErrorMessage>
+      <NoResults>
+        Failed to load dives.
         <Button onClick={() => refetch()}>Retry</Button>
-      </>
+      </NoResults>
     );
   }
 
@@ -53,9 +62,9 @@ function Dives() {
   const sortedDives = dives || [];
 
   // Check if any filters are active
-  const hasActiveFilters = maxDepth < 50 || selectedLocation !== 'all' || sortBy !== 'date';
+  const hasActiveFilters =
+    maxDepth < DEFAULT_MAX_DEPTH || selectedLocation !== 'all' || sortBy !== 'date';
 
-  // TOOD: add pagination later
   return (
     <>
       <header className="flex justify-between items-center">
@@ -75,10 +84,17 @@ function Dives() {
           showFilters={showFilters}
           onToggleFilters={toggleShowFilters}
           filteredCount={sortedDives.length}
+          totalCount={totalCount}
         />
       </div>
       <section aria-busy={isFetching}>
-        <DiveList dives={sortedDives} hasActiveFilters={hasActiveFilters} />
+        <DiveList
+          dives={sortedDives}
+          hasActiveFilters={hasActiveFilters}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </section>
     </>
   );

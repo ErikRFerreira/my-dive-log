@@ -1,6 +1,7 @@
 import type { Dive, NewDiveInput } from '@/features/dives';
 import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
+import { ITEMS_PER_PAGE } from '@/shared/constants';
 // TODO: move to supabase service when integrated?
 
 /**
@@ -16,13 +17,16 @@ export async function getDiveById(id: string): Promise<Dive | null> {
 }
 
 /**
- *	Fetches the list of dives from Supabase with optional filtering and sorting.
+ *	Fetches the list of dives from Supabase with optional filtering, sorting, and pagination.
  *
- * @param filters - Optional filters for sorting, depth, and location
- * @returns - A promise that resolves to an array of Dive objects or null if the fetch fails.
+ * @param filters - Optional filters for sorting, depth, location, and pagination
+ * @returns - A promise that resolves to dives array and total count
  */
-export async function getDives(filters?: DiveFilters): Promise<Dive[] | null> {
-  let query = supabase.from('dives').select('*');
+export async function getDives(filters?: DiveFilters): Promise<{
+  dives: Dive[];
+  totalCount: number;
+} | null> {
+  let query = supabase.from('dives').select('*', { count: 'exact' });
 
   // Apply depth filter
   if (filters?.maxDepth) {
@@ -38,11 +42,21 @@ export async function getDives(filters?: DiveFilters): Promise<Dive[] | null> {
   const sortBy = filters?.sortBy || 'date';
   query = query.order(sortBy, { ascending: false });
 
-  const { data, error } = await query;
+  // Apply pagination
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? ITEMS_PER_PAGE;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
 
   if (error) throw error;
 
-  return data ?? null;
+  return {
+    dives: data ?? [],
+    totalCount: count ?? 0,
+  };
 }
 
 /**

@@ -2,6 +2,7 @@ import InlineSpinner from '@/components/common/InlineSpinner';
 import Loading from '@/components/common/Loading';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CERTIFICATION_LEVELS, CERTIFYING_AGENCIES } from '@/shared/constants';
 import {
   Select,
   SelectContent,
@@ -14,39 +15,6 @@ import { useEffect, useState } from 'react';
 
 import { useGetProfile } from '../hooks/useGetProfile';
 import { useUpsertProfile } from '../hooks/useUpsertProfile';
-
-const certificationLevels = [
-  'Open Water Diver',
-  'Advanced Open Water Diver',
-  'Rescue Diver',
-  'Divemaster',
-  'Instructor',
-  'Master Scuba Diver',
-  'Specialty Diver',
-  'Tec 40',
-  'Tec 45',
-  'Tec 50',
-  'Tec Instructor',
-  'Trimix Diver',
-  'Trimix Instructor',
-  'CCR Diver',
-  'CCR Instructor',
-  'Other',
-];
-
-const certifyingAgencies = [
-  'PADI',
-  'SSI',
-  'NAUI',
-  'RAID',
-  'SDI',
-  'TDI',
-  'IANTD',
-  'CMAS',
-  'BSAC',
-  'GUE',
-  'Other',
-];
 
 function Certification() {
   const { profile, isLoading } = useGetProfile();
@@ -85,7 +53,7 @@ function Certification() {
                   <SelectValue placeholder="Select certification level" />
                 </SelectTrigger>
                 <SelectContent>
-                  {certificationLevels.map((cert) => (
+                  {CERTIFICATION_LEVELS.map((cert) => (
                     <SelectItem key={cert} value={cert}>
                       {cert}
                     </SelectItem>
@@ -100,7 +68,7 @@ function Certification() {
                   <SelectValue placeholder="Select certifying agency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {certifyingAgencies.map((agency) => (
+                  {CERTIFYING_AGENCIES.map((agency) => (
                     <SelectItem key={agency} value={agency}>
                       {agency}
                     </SelectItem>

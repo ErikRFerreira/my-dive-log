@@ -3,6 +3,12 @@ import Button from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import type { Dive } from '../types';
+import {
+  DEFAULT_MAX_DEPTH,
+  MIN_DEPTH_FILTER,
+  MAX_DEPTH_FILTER,
+  DEBOUNCE_DELAY,
+} from '@/shared/constants';
 
 type SortBy = 'date' | 'depth' | 'duration';
 type DivesFilterValue = {
@@ -19,6 +25,7 @@ type DivesFilterProps = {
   showFilters: boolean;
   onToggleFilters: () => void;
   filteredCount: number;
+  totalCount: number;
 };
 
 function DivesFilter({
@@ -29,6 +36,7 @@ function DivesFilter({
   showFilters,
   onToggleFilters,
   filteredCount,
+  totalCount,
 }: DivesFilterProps) {
   const [sortBy, setSortBy] = useState<SortBy>(defaultSort);
   const [maxDepth, setMaxDepth] = useState<number>(defaultMaxDepth);
@@ -53,7 +61,7 @@ function DivesFilter({
     onChange?.(newState);
   };
 
-  const notifyChangeDebounced = (updates: Partial<DivesFilterValue>, delay = 500) => {
+  const notifyChangeDebounced = (updates: Partial<DivesFilterValue>, delay = DEBOUNCE_DELAY) => {
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -94,7 +102,7 @@ function DivesFilter({
             Location: {selectedLocation}
           </span>
         )}
-        {maxDepth < 50 && (
+        {maxDepth < DEFAULT_MAX_DEPTH && (
           <span className="text-sm bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 px-2 py-1 rounded">
             Max Depth: {maxDepth} m
           </span>
@@ -149,8 +157,8 @@ function DivesFilter({
               </label>
               <input
                 type="range"
-                min="15"
-                max="50"
+                min={MIN_DEPTH_FILTER}
+                max={MAX_DEPTH_FILTER}
                 value={maxDepth}
                 onChange={(e) => {
                   const newDepth = Number(e.target.value);
@@ -169,8 +177,8 @@ function DivesFilter({
             onClick={() => {
               setSortBy('date');
               setSelectedLocation('all');
-              setMaxDepth(50);
-              onChange?.({ sortBy: 'date', selectedLocation: 'all', maxDepth: 50 });
+              setMaxDepth(DEFAULT_MAX_DEPTH);
+              onChange?.({ sortBy: 'date', selectedLocation: 'all', maxDepth: DEFAULT_MAX_DEPTH });
             }}
           >
             Reset Filters
@@ -178,7 +186,7 @@ function DivesFilter({
         </Card>
       )}
       <p className="text-sm text-muted-foreground">
-        Showing {filteredCount} of {dives.length} dives
+        Showing {filteredCount} of {totalCount} dives
       </p>
     </div>
   );

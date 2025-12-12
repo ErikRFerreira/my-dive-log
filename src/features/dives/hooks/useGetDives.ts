@@ -5,11 +5,13 @@ export type DiveFilters = {
   sortBy?: 'date' | 'depth' | 'duration';
   maxDepth?: number;
   location?: string;
+  page?: number;
+  pageSize?: number;
 };
 
 export function useGetDives(filters?: DiveFilters) {
   const {
-    data: dives,
+    data,
     isLoading,
     isFetching,
     isError,
@@ -19,5 +21,12 @@ export function useGetDives(filters?: DiveFilters) {
     queryFn: () => getDives(filters),
   });
 
-  return { dives, isLoading, isFetching, isError, refetch };
+  return { 
+    dives: data?.dives ?? null, 
+    totalCount: data?.totalCount ?? 0,
+    isLoading, 
+    isFetching, 
+    isError, 
+    refetch 
+  };
 }
