@@ -14,6 +14,13 @@ import type { Dive } from '../types';
 import { useUpdateDive } from '../hooks/useUpdateDive';
 import InlineSpinner from '@/components/common/InlineSpinner';
 import { useGenerateSummary } from '../hooks/useGenerateSummary';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 function DiveDetails() {
   const { dive, isLoading, error } = useGetDive();
@@ -59,11 +66,17 @@ function DiveDetails() {
     | 'depth'
     | 'duration'
     | 'water_temp'
-    | 'visibility'
     | 'start_pressure'
     | 'end_pressure'
     | 'air_usage'
     | 'wave_height'
+    | 'weight'
+  >;
+
+  // Fields that should be treated as select options
+  type SelectField = keyof Pick<
+    Dive,
+    'visibility' | 'dive_type' | 'water_type' | 'exposure' | 'gas' | 'currents'
   >;
 
   // Delete dive and navigate back to dives list
@@ -106,6 +119,12 @@ function DiveDetails() {
       air_usage: editedDive.air_usage,
       equipment: editedDive.equipment ?? [],
       wildlife: editedDive.wildlife ?? [],
+      dive_type: editedDive.dive_type,
+      water_type: editedDive.water_type,
+      exposure: editedDive.exposure,
+      gas: editedDive.gas,
+      currents: editedDive.currents,
+      weight: editedDive.weight,
     };
 
     try {
@@ -148,6 +167,18 @@ function DiveDetails() {
         ? {
             ...prev,
             [field]: parsed,
+          }
+        : prev
+    );
+  };
+
+  // Handler for select fields
+  const handleSelectChange = (field: SelectField, value: string) => {
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            [field]: value,
           }
         : prev
     );
@@ -295,7 +326,6 @@ function DiveDetails() {
             { label: 'Max Depth', key: 'depth', unit: 'm', icon: Gauge },
             { label: 'Duration', key: 'duration', unit: 'min', icon: Clock },
             { label: 'Water Temp', key: 'water_temp', unit: '°C', icon: Thermometer },
-            { label: 'Visibility', key: 'visibility', unit: 'm', icon: Eye },
           ] as const
         ).map(({ label, key, unit, icon: Icon }) => {
           const val = currentDive[key]; // typed as Dive[keyof Dive]
@@ -327,10 +357,200 @@ function DiveDetails() {
             </Card>
           );
         })}
+
+        {/* Visibility Card */}
+        <Card className="bg-card border-slate-200 dark:border-slate-700">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Eye className="w-5 h-5 text-teal-600" />
+              <p className="text-sm text-muted-foreground">Visibility</p>
+            </div>
+            {isEditMode ? (
+              <Select
+                value={currentDive.visibility ?? undefined}
+                onValueChange={(value) => handleSelectChange('visibility', value)}
+              >
+                <SelectTrigger className="text-2xl font-bold">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="poor">Poor</SelectItem>
+                  <SelectItem value="fair">Fair</SelectItem>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="excellent">Excellent</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-2xl font-bold text-foreground capitalize">
+                {currentDive.visibility ?? 'N/A'}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Dive Information */}
+      <Card className="bg-card border-slate-200 dark:border-slate-700">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-foreground">Dive Information</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-6 gap-6">
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Dive Type</p>
+              {isEditMode ? (
+                <Select
+                  value={currentDive.dive_type ?? undefined}
+                  onValueChange={(value) => handleSelectChange('dive_type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="reef">Reef</SelectItem>
+                    <SelectItem value="wreck">Wreck</SelectItem>
+                    <SelectItem value="wall">Wall</SelectItem>
+                    <SelectItem value="cave">Cave</SelectItem>
+                    <SelectItem value="drift">Drift</SelectItem>
+                    <SelectItem value="night">Night</SelectItem>
+                    <SelectItem value="training">Training</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-foreground capitalize">{currentDive.dive_type ?? 'N/A'}</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Water Type</p>
+              {isEditMode ? (
+                <Select
+                  value={currentDive.water_type ?? undefined}
+                  onValueChange={(value) => handleSelectChange('water_type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select water type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="salt">Salt Water</SelectItem>
+                    <SelectItem value="fresh">Fresh Water</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-foreground capitalize">
+                  {currentDive.water_type === 'salt'
+                    ? 'Salt Water'
+                    : currentDive.water_type === 'fresh'
+                      ? 'Fresh Water'
+                      : 'N/A'}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">
+                Exposure Protection
+              </p>
+              {isEditMode ? (
+                <Select
+                  value={currentDive.exposure ?? undefined}
+                  onValueChange={(value) => handleSelectChange('exposure', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select exposure" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="wet-2mm">Wetsuit (2mm)</SelectItem>
+                    <SelectItem value="wet-3mm">Wetsuit (3mm)</SelectItem>
+                    <SelectItem value="wet-5mm">Wetsuit (5mm)</SelectItem>
+                    <SelectItem value="wet-7mm">Wetsuit (7mm)</SelectItem>
+                    <SelectItem value="semi-dry">Semy-dry suit</SelectItem>
+                    <SelectItem value="dry">Dry suit</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-foreground capitalize">
+                  {currentDive.exposure === 'wet-2mm'
+                    ? 'Wetsuit (2mm)'
+                    : currentDive.exposure === 'wet-3mm'
+                      ? 'Wetsuit (3mm)'
+                      : currentDive.exposure === 'wet-5mm'
+                        ? 'Wetsuit (5mm)'
+                        : currentDive.exposure === 'wet-7mm'
+                          ? 'Wetsuit (7mm)'
+                          : currentDive.exposure === 'semi-dry'
+                            ? 'Semi-dry suit'
+                            : currentDive.exposure === 'dry'
+                              ? 'Dry suit'
+                              : 'N/A'}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Gas Mix</p>
+              {isEditMode ? (
+                <Select
+                  value={currentDive.gas ?? undefined}
+                  onValueChange={(value) => handleSelectChange('gas', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="air">Air</SelectItem>
+                    <SelectItem value="nitrox">Nitrox</SelectItem>
+                    <SelectItem value="trimix">Trimix</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-foreground capitalize">{currentDive.gas ?? 'N/A'}</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Currents</p>
+              {isEditMode ? (
+                <Select
+                  value={currentDive.currents ?? undefined}
+                  onValueChange={(value) => handleSelectChange('currents', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="calm">Calm</SelectItem>
+                    <SelectItem value="mild">Mild</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="strong">Strong</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-foreground">{currentDive.currents ?? 'N/A'}</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Weight (kg)</p>
+              {isEditMode ? (
+                <Input
+                  type="number"
+                  value={currentDive.weight ?? ''}
+                  onChange={handleNumberChange('weight')}
+                  placeholder="0"
+                />
+              ) : (
+                <p className="text-foreground">
+                  {currentDive.weight ? `${currentDive.weight} kg` : 'N/A'}
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Summary */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Summary */}
         <Card className="bg-card border-slate-200 dark:border-slate-700">
           <CardHeader className="border-b border-border flex flex-row items-center justify-between">
             <CardTitle className="text-foreground">Dive Summary</CardTitle>
@@ -366,33 +586,6 @@ function DiveDetails() {
                 <p className="text-foreground whitespace-pre-line">
                   {currentDive.summary ?? 'N/A'}
                 </p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground mb-1">Conditions</p>
-              {isEditMode ? (
-                <Input
-                  value={currentDive.conditions ?? ''}
-                  onChange={handleTextChange('conditions')}
-                  placeholder="N/A"
-                />
-              ) : (
-                <p className="text-foreground">{currentDive.conditions ?? 'N/A'}</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground mb-1">Wave Height</p>
-              {isEditMode ? (
-                <Input
-                  value={currentDive.wave_height ?? ''}
-                  type="number"
-                  min={0}
-                  step="any"
-                  onChange={handleNumberChange('wave_height')}
-                  placeholder="N/A"
-                />
-              ) : (
-                <p className="text-foreground">{currentDive.wave_height ?? 'N/A'}</p>
               )}
             </div>
           </CardContent>
@@ -446,6 +639,7 @@ function DiveDetails() {
         </Card>
       </div>
 
+      {/* Notes */}
       <Card className="bg-card border-slate-200 dark:border-slate-700">
         <CardHeader className="border-b border-border">
           <CardTitle className="text-foreground">Notes</CardTitle>
@@ -464,8 +658,8 @@ function DiveDetails() {
         </CardContent>
       </Card>
 
+      {/* Equipment */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Equipment */}
         <Card className="bg-card border-slate-200 dark:border-slate-700">
           <CardHeader className="border-b border-border">
             <CardTitle className="text-foreground">Equipment Used</CardTitle>

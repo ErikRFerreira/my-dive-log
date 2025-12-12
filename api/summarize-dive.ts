@@ -13,7 +13,6 @@ type DivePayload = {
   date?: string | null;
   depth?: number | null;
   duration?: number | null;
-  conditions?: string | null;
   notes?: string | null;
 };
 
@@ -36,7 +35,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       date = 'an unknown date',
       depth = 0,
       duration = 0,
-      conditions = 'unspecified conditions',
       notes = 'no additional notes',
     } = dive;
 
@@ -65,7 +63,6 @@ Details:
 - Date: ${date}
 - Max depth: ${depth} m
 - Duration: ${duration} min
-- Conditions: ${conditions}
 - Notes: ${notes}
 
 Rules:

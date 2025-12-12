@@ -414,7 +414,7 @@ model dives {
   country        String?
   country_code   String?
   water_temp     Decimal? @db.Decimal
-  visibility     Decimal? @db.Decimal
+  visibility     String?
   conditions     String?
   wave_height    String?
   start_pressure Int?
@@ -422,6 +422,12 @@ model dives {
   air_usage      Int?
   equipment      String[]
   wildlife       String[]
+  dive_type      String?
+  water_type     String?
+  exposure       String?
+  gas            String?
+  currents       String?
+  weight         Decimal? @db.Decimal
   users          users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
