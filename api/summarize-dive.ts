@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
 
-const MODEL = 'llama3-8b-8192';
+const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
