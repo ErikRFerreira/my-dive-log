@@ -17,7 +17,7 @@ interface DiveFilterState {
 export const DIVE_FILTER_DEFAULTS = {
   showFilters: false,
   sortBy: 'date' as SortBy,
-  maxDepth: 150,
+  maxDepth: 50,
 };
 
 export const useDiveFilterStore = create<DiveFilterState>()(

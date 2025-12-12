@@ -1,26 +1,35 @@
 import { AddDive, DiveList, DivesFilter, useGetDives } from '@features/dives';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import Loading from '@/components/common/Loading';
-import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/button';
-import { useDiveFilterStore, type SortBy, DIVE_FILTER_DEFAULTS } from '@/store/diveFilterStore';
-import { useCallback } from 'react';
+import { useDiveFilterStore, type SortBy } from '@/store/diveFilterStore';
+import { useCallback, useState } from 'react';
 import InlineSpinner from '@/components/common/InlineSpinner';
 
 type DivesFilterValue = {
   sortBy: 'date' | 'depth' | 'duration';
   maxDepth: number;
+  selectedLocation: string;
 };
 
 function Dives() {
-  const { dives, isLoading, isFetching, isError, refetch } = useGetDives();
   const { showFilters, sortBy, maxDepth, setSortBy, setMaxDepth, toggleShowFilters } =
     useDiveFilterStore();
+  const [selectedLocation, setSelectedLocation] = useState('all');
+
+  // Fetch dives with server-side filtering
+  const filters = {
+    sortBy,
+    maxDepth,
+    location: selectedLocation === 'all' ? undefined : selectedLocation,
+  };
+  const { dives, isLoading, isFetching, isError, refetch } = useGetDives(filters);
 
   const handleFilterChange = useCallback(
     (next: DivesFilterValue) => {
       setSortBy(`${next.sortBy}` as SortBy);
       setMaxDepth(next.maxDepth);
+      setSelectedLocation(next.selectedLocation);
     },
     [setSortBy, setMaxDepth]
   );
@@ -40,22 +49,11 @@ function Dives() {
     );
   }
 
-  // Filtered dives
-  const filteredDives = dives.filter((dive) => dive.depth <= maxDepth);
+  // Data is already filtered and sorted by the server
+  const sortedDives = dives || [];
 
-  // Sorted dives
-  const sortedDives = [...filteredDives].sort((a, b) => {
-    switch (sortBy) {
-      case 'date':
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      case 'depth':
-        return b.depth - a.depth;
-      case 'duration':
-        return b.duration - a.duration;
-      default:
-        return 0;
-    }
-  });
+  // Check if any filters are active
+  const hasActiveFilters = maxDepth < 50 || selectedLocation !== 'all' || sortBy !== 'date';
 
   // TOOD: add pagination later
   return (
@@ -68,36 +66,19 @@ function Dives() {
         </div>
         <AddDive />
       </header>
-      <div>
-        <div>
-          <Button
-            id="dives-filter-toggle-btn"
-            aria-expanded={showFilters}
-            aria-controls="dives-filter-panel"
-            onClick={toggleShowFilters}
-          >
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </Button>
-          {maxDepth < DIVE_FILTER_DEFAULTS.maxDepth && (
-            <Chip type="info">Max Depth: {maxDepth} m</Chip>
-          )}
-        </div>
-        <div
-          id="dives-filter-panel"
-          role="region"
-          aria-labelledby="dives-filter-toggle-btn"
-          aria-hidden={!showFilters}
-          hidden={!showFilters}
-        >
-          <DivesFilter
-            onChange={handleFilterChange}
-            defaultMaxDepth={maxDepth}
-            defaultSort={sortBy}
-          />
-        </div>
+      <div id="dives-filter-panel" role="region" aria-labelledby="dives-filter-toggle-btn">
+        <DivesFilter
+          onChange={handleFilterChange}
+          defaultMaxDepth={maxDepth}
+          defaultSort={sortBy}
+          dives={dives}
+          showFilters={showFilters}
+          onToggleFilters={toggleShowFilters}
+          filteredCount={sortedDives.length}
+        />
       </div>
       <section aria-busy={isFetching}>
-        <DiveList dives={sortedDives} />
+        <DiveList dives={sortedDives} hasActiveFilters={hasActiveFilters} />
       </section>
     </>
   );

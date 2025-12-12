@@ -58,19 +58,12 @@ function DiveDetails() {
   const wildlife = Array.isArray(currentDive.wildlife) ? currentDive.wildlife : [];
 
   // Fields that should be treated as text
-  type TextField = keyof Pick<Dive, 'location' | 'date' | 'summary' | 'conditions' | 'notes'>;
+  type TextField = keyof Pick<Dive, 'location' | 'date' | 'summary' | 'notes'>;
 
   // Fields that should be treated as numbers
   type NumericField = keyof Pick<
     Dive,
-    | 'depth'
-    | 'duration'
-    | 'water_temp'
-    | 'start_pressure'
-    | 'end_pressure'
-    | 'air_usage'
-    | 'wave_height'
-    | 'weight'
+    'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
   >;
 
   // Fields that should be treated as select options
@@ -110,8 +103,6 @@ function DiveDetails() {
       duration: editedDive.duration,
       notes: editedDive.notes,
       summary: editedDive.summary,
-      conditions: editedDive.conditions,
-      wave_height: editedDive.wave_height,
       water_temp: editedDive.water_temp,
       visibility: editedDive.visibility,
       start_pressure: editedDive.start_pressure,
@@ -367,7 +358,7 @@ function DiveDetails() {
             </div>
             {isEditMode ? (
               <Select
-                value={currentDive.visibility ?? undefined}
+                value={currentDive.visibility ?? ''}
                 onValueChange={(value) => handleSelectChange('visibility', value)}
               >
                 <SelectTrigger className="text-2xl font-bold">
@@ -400,7 +391,7 @@ function DiveDetails() {
               <p className="text-sm font-semibold text-muted-foreground mb-2">Dive Type</p>
               {isEditMode ? (
                 <Select
-                  value={currentDive.dive_type ?? undefined}
+                  value={currentDive.dive_type ?? ''}
                   onValueChange={(value) => handleSelectChange('dive_type', value)}
                 >
                   <SelectTrigger>
@@ -425,7 +416,7 @@ function DiveDetails() {
               <p className="text-sm font-semibold text-muted-foreground mb-2">Water Type</p>
               {isEditMode ? (
                 <Select
-                  value={currentDive.water_type ?? undefined}
+                  value={currentDive.water_type ?? ''}
                   onValueChange={(value) => handleSelectChange('water_type', value)}
                 >
                   <SelectTrigger>
@@ -453,7 +444,7 @@ function DiveDetails() {
               </p>
               {isEditMode ? (
                 <Select
-                  value={currentDive.exposure ?? undefined}
+                  value={currentDive.exposure ?? ''}
                   onValueChange={(value) => handleSelectChange('exposure', value)}
                 >
                   <SelectTrigger>
@@ -491,7 +482,7 @@ function DiveDetails() {
               <p className="text-sm font-semibold text-muted-foreground mb-2">Gas Mix</p>
               {isEditMode ? (
                 <Select
-                  value={currentDive.gas ?? undefined}
+                  value={currentDive.gas ?? ''}
                   onValueChange={(value) => handleSelectChange('gas', value)}
                 >
                   <SelectTrigger>
@@ -512,7 +503,7 @@ function DiveDetails() {
               <p className="text-sm font-semibold text-muted-foreground mb-2">Currents</p>
               {isEditMode ? (
                 <Select
-                  value={currentDive.currents ?? undefined}
+                  value={currentDive.currents ?? ''}
                   onValueChange={(value) => handleSelectChange('currents', value)}
                 >
                   <SelectTrigger>
@@ -526,7 +517,7 @@ function DiveDetails() {
                   </SelectContent>
                 </Select>
               ) : (
-                <p className="text-foreground">{currentDive.currents ?? 'N/A'}</p>
+                <p className="text-foreground capitalize">{currentDive.currents ?? 'N/A'}</p>
               )}
             </div>
 
@@ -574,7 +565,6 @@ function DiveDetails() {
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div>
-              <p className="text-sm font-semibold text-muted-foreground mb-1">AI Summary</p>
               {isEditMode ? (
                 <Textarea
                   value={currentDive.summary ?? ''}

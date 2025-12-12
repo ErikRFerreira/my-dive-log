@@ -41,4 +41,4 @@ type NewDiveInput = {
   notes?: string | null;
 };
 
-export type { Dive, NewDiveInput };
+export type { NewDiveInput };

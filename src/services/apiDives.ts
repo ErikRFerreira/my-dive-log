@@ -1,4 +1,5 @@
 import type { Dive, NewDiveInput } from '@/features/dives';
+import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
 // TODO: move to supabase service when integrated?
 
@@ -15,15 +16,29 @@ export async function getDiveById(id: string): Promise<Dive | null> {
 }
 
 /**
- *	Fetches the list of dives from the mock API.
+ *	Fetches the list of dives from Supabase with optional filtering and sorting.
  *
+ * @param filters - Optional filters for sorting, depth, and location
  * @returns - A promise that resolves to an array of Dive objects or null if the fetch fails.
  */
-export async function getDives(): Promise<Dive[] | null> {
-  const { data, error } = await supabase
-    .from('dives')
-    .select('*')
-    .order('date', { ascending: false });
+export async function getDives(filters?: DiveFilters): Promise<Dive[] | null> {
+  let query = supabase.from('dives').select('*');
+
+  // Apply depth filter
+  if (filters?.maxDepth) {
+    query = query.lte('depth', filters.maxDepth);
+  }
+
+  // Apply location filter
+  if (filters?.location) {
+    query = query.eq('location', filters.location);
+  }
+
+  // Apply sorting
+  const sortBy = filters?.sortBy || 'date';
+  query = query.order(sortBy, { ascending: false });
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
