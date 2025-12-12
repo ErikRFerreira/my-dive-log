@@ -363,7 +363,9 @@ function DiveDetails() {
                   placeholder="N/A"
                 />
               ) : (
-                <p className="text-foreground">{currentDive.summary ?? 'N/A'}</p>
+                <p className="text-foreground whitespace-pre-line">
+                  {currentDive.summary ?? 'N/A'}
+                </p>
               )}
             </div>
             <div>
