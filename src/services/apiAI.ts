@@ -1,13 +1,8 @@
 import type { Dive } from '@/features/dives';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export async function getDiveSummaryFromAPI(dive: Dive): Promise<string> {
-  if (!API_BASE_URL) {
-    throw new Error('VITE_API_BASE_URL is not set');
-  }
 
-  const res = await fetch(`${API_BASE_URL}/api/summarize-dive`, {
+  const res = await fetch(`/api/summarize-dive`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ dive }),
