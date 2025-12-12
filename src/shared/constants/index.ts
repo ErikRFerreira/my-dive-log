@@ -18,10 +18,10 @@ export const DEBOUNCE_DELAY = 500;
 export const CERTIFICATION_LEVELS = [
   'Open Water Diver',
   'Advanced Open Water Diver',
+  'Master Scuba Diver',
   'Rescue Diver',
   'Divemaster',
   'Instructor',
-  'Master Scuba Diver',
   'Specialty Diver',
   'Tec 40',
   'Tec 45',

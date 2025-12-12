@@ -1,7 +1,308 @@
-import { DiveDetails } from '@/features/dives';
+import Loading from '@/components/common/Loading';
+import GoBack from '@/components/ui/GoBack';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  type Dive as DiveType,
+  useGetDive,
+  useDeleteDive,
+  useUpdateDive,
+  useGenerateSummary,
+  DiveHeader,
+  DiveStats,
+  DiveInformation,
+  DiveSummary,
+  AirUsage,
+  DiveNotes,
+  DiveEquipment,
+  DiveWildlife,
+  DeleteDiveModal,
+} from '@/features/dives';
+
+// Type aliases for field handlers
+type TextField = keyof Pick<DiveType, 'location' | 'date' | 'summary' | 'notes'>;
+type NumericField = keyof Pick<
+  DiveType,
+  'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
+>;
+type SelectField = keyof Pick<
+  DiveType,
+  'visibility' | 'dive_type' | 'water_type' | 'exposure' | 'gas' | 'currents'
+>;
 
 function Dive() {
-  return <DiveDetails />;
+  const { dive, isLoading, error } = useGetDive();
+  const { mutateAsync: deleteDive, isPending: isDeleting } = useDeleteDive();
+  const { mutateAsync: updateDive, isPending: isUpdating } = useUpdateDive();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [newEquipment, setNewEquipment] = useState('');
+  const [newWildlife, setNewWildlife] = useState('');
+  const [editedDive, setEditedDive] = useState<DiveType | null>(null);
+
+  const { generateSummary, isGenerating } = useGenerateSummary(
+    dive ?? ({} as DiveType),
+    setEditedDive
+  );
+
+  const navigate = useNavigate();
+
+  // Determine which dive data to display: original or edited
+  const currentDive = isEditMode && editedDive ? editedDive : dive;
+
+  // Delete dive and navigate back to dives list
+  const onConfirmDeletion = async () => {
+    if (!currentDive) return;
+    try {
+      await deleteDive(currentDive.id);
+      setIsModalOpen(false);
+      navigate('/dives');
+    } catch (err) {
+      console.error('Failed to delete dive:', err);
+    }
+  };
+
+  // Cancel deletion
+  const onCancelDelete = () => setIsModalOpen(false);
+
+  // Start edit mode
+  const startEdit = () => {
+    if (!dive) return;
+    setEditedDive(dive);
+    setIsEditMode(true);
+  };
+
+  // Save edited dive
+  const handleSaveEdit = async () => {
+    if (!editedDive) return;
+
+    const updates: Partial<DiveType> = {
+      location: editedDive.location,
+      date: editedDive.date,
+      depth: editedDive.depth,
+      duration: editedDive.duration,
+      notes: editedDive.notes,
+      summary: editedDive.summary,
+      water_temp: editedDive.water_temp,
+      visibility: editedDive.visibility,
+      start_pressure: editedDive.start_pressure,
+      end_pressure: editedDive.end_pressure,
+      air_usage: editedDive.air_usage,
+      equipment: editedDive.equipment ?? [],
+      wildlife: editedDive.wildlife ?? [],
+      dive_type: editedDive.dive_type,
+      water_type: editedDive.water_type,
+      exposure: editedDive.exposure,
+      gas: editedDive.gas,
+      currents: editedDive.currents,
+      weight: editedDive.weight,
+    };
+
+    try {
+      await updateDive({ id: editedDive.id, diveData: updates });
+      setIsEditMode(false);
+      setEditedDive(null);
+    } catch (err) {
+      console.error('Failed to update dive:', err);
+    }
+  };
+
+  // Cancel edit mode
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditedDive(null);
+  };
+
+  // Handle changes in edit mode for text fields
+  const handleTextChange =
+    (field: TextField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setEditedDive((prev) =>
+        prev
+          ? {
+              ...prev,
+              [field]: value,
+            }
+          : prev
+      );
+    };
+
+  // Handle changes for numeric fields
+  const handleNumberChange = (field: NumericField) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const parsed = raw === '' ? null : Number(raw);
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            [field]: parsed,
+          }
+        : prev
+    );
+  };
+
+  // Handler for select fields
+  const handleSelectChange = (field: SelectField, value: string) => {
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            [field]: value,
+          }
+        : prev
+    );
+  };
+
+  // Add equipment item
+  const addEquipment = () => {
+    if (!isEditMode || !editedDive || !newEquipment.trim()) return;
+    const value = newEquipment.trim();
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            equipment: [...(prev.equipment ?? []), value],
+          }
+        : prev
+    );
+    setNewEquipment('');
+  };
+
+  // Remove equipment item
+  const removeEquipment = (index: number) => {
+    if (!isEditMode || !editedDive) return;
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            equipment: (prev.equipment ?? []).filter((_, i) => i !== index),
+          }
+        : prev
+    );
+  };
+
+  // Add wildlife item
+  const addWildlife = () => {
+    if (!isEditMode || !editedDive || !newWildlife.trim()) return;
+    const value = newWildlife.trim();
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            wildlife: [...(prev.wildlife ?? []), value],
+          }
+        : prev
+    );
+    setNewWildlife('');
+  };
+
+  // Remove wildlife item
+  const removeWildlife = (index: number) => {
+    if (!isEditMode || !editedDive) return;
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            wildlife: (prev.wildlife ?? []).filter((_, i) => i !== index),
+          }
+        : prev
+    );
+  };
+
+  // Generate AI summary
+  const handleGenerateAISummary = async () => {
+    if (!editedDive) return;
+    try {
+      await generateSummary();
+    } catch (err) {
+      console.error('Failed to generate summary', err);
+    }
+  };
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error || !dive || !currentDive) {
+    return (
+      <div className="p-8">
+        <GoBack />
+        <p className="text-muted-foreground">Dive not found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8 space-y-6">
+      <DiveHeader
+        dive={currentDive}
+        isEditMode={isEditMode}
+        isUpdating={isUpdating}
+        onTextChange={handleTextChange}
+        onStartEdit={startEdit}
+        onSaveEdit={handleSaveEdit}
+        onCancelEdit={handleCancelEdit}
+        onOpenDeleteModal={() => setIsModalOpen(true)}
+      />
+
+      <DiveStats
+        dive={currentDive}
+        isEditMode={isEditMode}
+        onNumberChange={handleNumberChange}
+        onSelectChange={handleSelectChange}
+      />
+
+      <DiveInformation
+        dive={currentDive}
+        isEditMode={isEditMode}
+        onNumberChange={handleNumberChange}
+        onSelectChange={handleSelectChange}
+      />
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <DiveSummary
+          dive={currentDive}
+          isEditMode={isEditMode}
+          isGenerating={isGenerating}
+          onTextChange={handleTextChange}
+          onGenerateSummary={handleGenerateAISummary}
+        />
+
+        <AirUsage dive={currentDive} isEditMode={isEditMode} onNumberChange={handleNumberChange} />
+      </div>
+
+      <DiveNotes dive={currentDive} isEditMode={isEditMode} onTextChange={handleTextChange} />
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <DiveEquipment
+          dive={currentDive}
+          isEditMode={isEditMode}
+          newEquipment={newEquipment}
+          onNewEquipmentChange={setNewEquipment}
+          onAddEquipment={addEquipment}
+          onRemoveEquipment={removeEquipment}
+        />
+
+        <DiveWildlife
+          dive={currentDive}
+          isEditMode={isEditMode}
+          newWildlife={newWildlife}
+          onNewWildlifeChange={setNewWildlife}
+          onAddWildlife={addWildlife}
+          onRemoveWildlife={removeWildlife}
+        />
+      </div>
+
+      <DeleteDiveModal
+        isOpen={isModalOpen}
+        location={currentDive.location ?? 'N/A'}
+        isPending={isDeleting}
+        onCancel={onCancelDelete}
+        onConfirm={onConfirmDeletion}
+      />
+    </div>
+  );
 }
 
 export default Dive;

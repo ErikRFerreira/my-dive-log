@@ -3,8 +3,6 @@ import { upsertUserProfile } from '../../../services/apiProfile';
 import { useUser } from '@/features/authentication';
 import type { UserProfile } from '@/features/profile';
 
-// TODO: Add toast notifications for success and error states
-
 export function useUpsertProfile() {
   const { user } = useUser();
   const queryClient = useQueryClient();
