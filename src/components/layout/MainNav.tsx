@@ -30,9 +30,9 @@ function MainNav() {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/account" className={linkClasses}>
+          <NavLink to="/profile" className={linkClasses}>
             <User className={iconCls} />
-            <span>Account</span>
+            <span>Profile</span>
           </NavLink>
         </li>
         <li>

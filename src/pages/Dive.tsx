@@ -1,26 +1,27 @@
 import Loading from '@/components/common/Loading';
 import GoBack from '@/components/ui/GoBack';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  type Dive as DiveType,
-  useGetDive,
-  useDeleteDive,
-  useUpdateDive,
-  useGenerateSummary,
-  DiveHeader,
-  DiveStats,
-  DiveInformation,
-  DiveSummary,
   AirUsage,
-  DiveNotes,
-  DiveEquipment,
-  DiveWildlife,
   DeleteDiveModal,
+  DiveEquipment,
+  DiveHeader,
+  DiveInformation,
+  DiveNotes,
+  DiveStats,
+  DiveSummary,
+  DiveWildlife,
+  useDeleteDive,
+  useGenerateSummary,
+  useGetDive,
+  useUpdateDive,
 } from '@/features/dives';
 
+import type { Dive as DiveType } from '@/features/dives/types';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 // Type aliases for field handlers
-type TextField = keyof Pick<DiveType, 'location' | 'date' | 'summary' | 'notes'>;
+type TextField = keyof Pick<DiveType, 'location' | 'summary' | 'notes'>;
 type NumericField = keyof Pick<
   DiveType,
   'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
@@ -127,6 +128,18 @@ function Dive() {
           : prev
       );
     };
+
+  // Handle date changes
+  const handleDateChange = (date: string) => {
+    setEditedDive((prev) =>
+      prev
+        ? {
+            ...prev,
+            date,
+          }
+        : prev
+    );
+  };
 
   // Handle changes for numeric fields
   const handleNumberChange = (field: NumericField) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,6 +253,7 @@ function Dive() {
         isEditMode={isEditMode}
         isUpdating={isUpdating}
         onTextChange={handleTextChange}
+        onDateChange={handleDateChange}
         onStartEdit={startEdit}
         onSaveEdit={handleSaveEdit}
         onCancelEdit={handleCancelEdit}

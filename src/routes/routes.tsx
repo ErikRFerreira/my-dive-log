@@ -1,16 +1,15 @@
+import ProtectedRoutes from '@/components/layout/ProtectedRoutes';
 import Dive from '@/pages/Dive';
-import Account from '../pages/Account';
-import Dashboard from '../pages/Dashboard';
-import Dives from '../pages/Dives';
-import Settings from '../pages/Settings';
+import Error from '@/pages/Error';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
-import Error from '@/pages/Error';
-
-import ProtectedRoutes from '@/components/ui/ProtectedRoutes';
-
 import { createBrowserRouter, Navigate } from 'react-router';
+
 import AppLayout from '../components/layout/AppLayout';
+import Dashboard from '../pages/Dashboard';
+import Dives from '../pages/Dives';
+import Profile from '../pages/Profile';
+import Settings from '../pages/Settings';
 
 const router = createBrowserRouter([
   {
@@ -38,8 +37,8 @@ const router = createBrowserRouter([
         element: <Dive />,
       },
       {
-        path: 'account',
-        element: <Account />,
+        path: '/profile',
+        element: <Profile />,
       },
       {
         path: '/settings',

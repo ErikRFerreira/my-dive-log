@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sparkles } from 'lucide-react';
 import type { Dive } from '../types';
 
-type TextField = keyof Pick<Dive, 'location' | 'date' | 'summary' | 'notes'>;
+type TextField = keyof Pick<Dive, 'location' | 'summary' | 'notes'>;
 
 interface DiveSummaryProps {
   dive: Dive;

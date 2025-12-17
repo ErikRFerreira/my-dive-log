@@ -1,10 +1,28 @@
-import GoBack from '@/components/ui/GoBack';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import GoBack from '@/components/ui/GoBack';
 import { Input } from '@/components/ui/input';
-import { Check, Edit2, Trash2, X } from 'lucide-react';
-import type { Dive } from '../types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { CalendarIcon, Check, Edit2, Trash2, X } from 'lucide-react';
 
-type TextField = keyof Pick<Dive, 'location' | 'date' | 'summary' | 'notes'>;
+import type { Dive } from '../types';
+import { format, parse } from 'date-fns';
+
+type TextField = keyof Pick<Dive, 'location' | 'summary' | 'notes'>;
+
+const formatDisplayDate = (dateStr: string): string => {
+  try {
+    const date = parse(dateStr, 'yyyy-MM-dd', new Date());
+    const formatted = format(date, 'dd MMMM yyyy');
+    return formatted.replace(
+      /([A-Z][a-z]+)/,
+      (month) => month.toUpperCase()[0] + month.slice(1).toLowerCase()
+    );
+  } catch {
+    return dateStr;
+  }
+};
 
 interface DiveHeaderProps {
   dive: Dive;
@@ -13,6 +31,7 @@ interface DiveHeaderProps {
   onTextChange: (
     field: TextField
   ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onDateChange: (date: string) => void;
   onStartEdit: () => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
@@ -24,6 +43,7 @@ function DiveHeader({
   isEditMode,
   isUpdating,
   onTextChange,
+  onDateChange,
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
@@ -32,7 +52,7 @@ function DiveHeader({
   return (
     <>
       <div className="flex items-center justify-between">
-        <GoBack />
+        <GoBack disabled={isEditMode} />
         <div className="flex gap-2">
           {isEditMode ? (
             <>
@@ -77,17 +97,38 @@ function DiveHeader({
               className="text-2xl font-bold"
               placeholder="Location"
             />
-            <Input
-              value={dive.date ?? ''}
-              onChange={onTextChange('date')}
-              className="text-muted-foreground"
-              placeholder="Date"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !dive.date && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dive.date ? formatDisplayDate(dive.date) : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dive.date ? parse(dive.date, 'yyyy-MM-dd', new Date()) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      onDateChange(format(date, 'yyyy-MM-dd'));
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         ) : (
           <>
             <h1 className="text-3xl font-bold text-foreground">{dive.location ?? 'N/A'}</h1>
-            <p className="text-muted-foreground mt-1">{dive.date ?? 'N/A'}</p>
+            <p className="text-muted-foreground mt-1">
+              {dive.date ? formatDisplayDate(dive.date) : 'N/A'}
+            </p>
           </>
         )}
       </div>

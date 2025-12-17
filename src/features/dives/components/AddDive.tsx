@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import Modal from '@/components/ui/Modal';
+import Modal from '@/components/common/Modal';
 import { useState } from 'react';
 
 import NewDiveForm from './NewDiveForm';

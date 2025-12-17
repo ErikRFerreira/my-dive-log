@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Modal from '@/components/ui/Modal';
+import Modal from '@/components/common/Modal';
 
 type DeleteDiveModalProps = {
   isOpen: boolean;

@@ -6,7 +6,7 @@ import type { NewDiveInput } from '../types';
 import { COUNTRIES } from '../../../shared/data/countries';
 import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { diveFormSchema, type DiveFormInput } from '../schemas';
+import { createDiveSchema, type CreateDiveInput } from '../schemas/createDiveSchema';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import {
 import { CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 type SubmittedDive = Pick<NewDiveInput, 'date' | 'location' | 'country' | 'depth' | 'duration'> & {
@@ -42,22 +42,22 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
     formState: { errors },
     reset,
     control,
-  } = useForm<DiveFormInput>({
-    resolver: zodResolver(diveFormSchema),
+  } = useForm<CreateDiveInput>({
+    resolver: zodResolver(createDiveSchema),
     defaultValues: {
       date: '',
       location: '',
       depth: undefined,
       duration: undefined,
       notes: '',
-      countryCode: '',
+      country_code: '',
     },
     mode: 'onBlur',
   });
 
-  const submit = (data: DiveFormInput) => {
+  const submit = (data: CreateDiveInput) => {
     const countryName =
-      COUNTRIES.find((c) => c.code.toUpperCase() === data.countryCode.toUpperCase())?.name ?? '';
+      COUNTRIES.find((c) => c.code.toUpperCase() === data.country_code.toUpperCase())?.name ?? '';
 
     const payload: NewDiveInput = {
       date: data.date,
@@ -128,7 +128,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={field.value ? new Date(field.value) : undefined}
+                  selected={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : undefined}
                   onSelect={(date) => {
                     field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
                   }}
@@ -174,7 +174,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
             </Select>
           )}
         />
-        {errors.countryCode && <FieldError>{errors.countryCode.message}</FieldError>}
+        {errors.country_code && <FieldError>{errors.country_code.message}</FieldError>}
       </Field>
 
       <Field>

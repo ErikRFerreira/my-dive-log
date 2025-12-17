@@ -1,9 +1,9 @@
 import Loading from '@/components/common/Loading';
 import { useUser } from '@/features/authentication';
-import { Profile } from '@/features/profile';
+import { CarrerStatistics, DiveMilestones, ProfileInformation } from '@/features/profile';
 import Certification from '@/features/profile/components/Certification';
 
-function Account() {
+function Profile() {
   const { user, isLoading, isError } = useUser();
 
   if (isLoading) return <Loading />;
@@ -13,18 +13,18 @@ function Account() {
     <>
       <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Account Setting</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your account information and preferences
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">Profile</h1>
+          <p className="text-muted-foreground mt-1">Your diving profile and achievements</p>
         </div>
       </header>
-      <section className="mt-8 max-w-2xl space-y-8">
-        <Profile user={user} />
+      <section className="mt-8 max-w-7xl space-y-8">
+        <CarrerStatistics />
+        <DiveMilestones />
+        <ProfileInformation user={user} />
         <Certification />
       </section>
     </>
   );
 }
 
-export default Account;
+export default Profile;

@@ -10,7 +10,7 @@ type ProfileProps = {
   user: User | undefined;
 };
 
-function Profile({ user }: ProfileProps) {
+function ProfileInformation({ user }: ProfileProps) {
   if (!user) return null;
 
   const { email } = user;
@@ -98,4 +98,4 @@ function Profile({ user }: ProfileProps) {
   );
 }
 
-export default Profile;
+export default ProfileInformation;

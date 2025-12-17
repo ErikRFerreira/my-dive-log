@@ -1,6 +1,6 @@
 import type { Dive } from '@/features/dives';
 import { TrendingDown, MapPin, Waves } from 'lucide-react';
-import StatCard from './StatCard';
+import StatCard from '../../../components/common/StatCard';
 import { useMemo } from 'react';
 
 type StatsListProps = {
