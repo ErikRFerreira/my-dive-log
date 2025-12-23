@@ -92,7 +92,7 @@ function DiveHeader({
         {isEditMode ? (
           <div className="space-y-3">
             <Input
-              value={dive.location ?? ''}
+              value={dive.locations?.name ?? ''}
               onChange={onTextChange('location')}
               className="text-2xl font-bold"
               placeholder="Location"

@@ -5,6 +5,13 @@ export type Exposure = 'wet-2mm' | 'wet-3mm' | 'wet-5mm' | 'wet-7mm' | 'semi-dry
 export type Gas = 'air' | 'nitrox' | 'trimix';
 export type Currents = 'calm' | 'mild' | 'moderate' | 'strong';
 
+export interface DiveLocation {
+  id: string;
+  name: string;
+  country: string | null;
+  country_code?: string | null;
+}
+
 export interface Dive {
   id: string;
   user_id: string;
@@ -30,9 +37,10 @@ export interface Dive {
   gas: Gas | null;
   currents: Currents | null;
   weight: number | null;
+  locations?: DiveLocation | null;
 }
 
-type NewDiveInput = {
+export type NewDiveInput = {
   date: string;
   location: string;
   country: string | null;
@@ -40,5 +48,3 @@ type NewDiveInput = {
   duration: number;
   notes?: string | null;
 };
-
-export type { NewDiveInput };

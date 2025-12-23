@@ -10,6 +10,7 @@ export const PAGINATION_ELLIPSIS_THRESHOLD = 7; // Show ellipsis if more than th
 export const DEFAULT_MAX_DEPTH = 50;
 export const MIN_DEPTH_FILTER = 15;
 export const MAX_DEPTH_FILTER = 50;
+export const MIN_SEARCH_LENGTH = 4;
 
 // Debounce delays (in milliseconds)
 export const DEBOUNCE_DELAY = 500;

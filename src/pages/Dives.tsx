@@ -19,9 +19,11 @@ function Dives() {
     sortBy,
     maxDepth,
     currentPage,
+    searchQuery,
     setSortBy,
     setMaxDepth,
     setCurrentPage,
+    setSearchQuery,
     toggleShowFilters,
   } = useDiveFilterStore();
   const [selectedLocation, setSelectedLocation] = useState('all');
@@ -33,6 +35,7 @@ function Dives() {
     location: selectedLocation === 'all' ? undefined : selectedLocation,
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
+    searchQuery,
   };
 
   const { dives, totalCount, isLoading, isFetching, isError, refetch } = useGetDives(filters);
@@ -63,7 +66,10 @@ function Dives() {
 
   // Check if any filters are active
   const hasActiveFilters =
-    maxDepth < DEFAULT_MAX_DEPTH || selectedLocation !== 'all' || sortBy !== 'date';
+    maxDepth < DEFAULT_MAX_DEPTH ||
+    selectedLocation !== 'all' ||
+    sortBy !== 'date' ||
+    searchQuery.trim() !== '';
 
   return (
     <>
@@ -75,6 +81,7 @@ function Dives() {
         </div>
         <AddDive />
       </header>
+
       <div id="dives-filter-panel" role="region" aria-labelledby="dives-filter-toggle-btn">
         <DivesFilter
           onChange={handleFilterChange}
@@ -85,6 +92,11 @@ function Dives() {
           onToggleFilters={toggleShowFilters}
           filteredCount={sortedDives.length}
           totalCount={totalCount}
+          searchQuery={searchQuery}
+          onSearchQueryChange={(query) => {
+            setSearchQuery(query);
+            setCurrentPage(1);
+          }}
         />
       </div>
       <section aria-busy={isFetching}>

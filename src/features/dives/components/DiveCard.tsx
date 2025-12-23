@@ -21,12 +21,14 @@ function DiveCard({ dive }: DiveCardProps) {
   return (
     <Card
       role="listitem"
-      aria-label={`Dive at ${dive.location} on ${dive.date}`}
+      aria-label={`Dive at ${dive.locations?.name || 'Unknown Location'} on ${dive.date}`}
       className="transition-shadow hover:shadow-md bg-card border-slate-200 dark:border-slate-700"
     >
       <div className="px-6 py-5 space-y-2">
         <header className="flex justify-between">
-          <h3 className="text-base font-semibold leading-none tracking-tight">{dive.location}</h3>
+          <h3 className="text-base font-semibold leading-none tracking-tight">
+            {dive.locations?.name || 'Unknown Location'}
+          </h3>
           <div>
             <DepthBadge depth={dive.depth} />
             <p className="text-sm mt-2 text-muted-foreground">

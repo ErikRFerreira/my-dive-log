@@ -1,12 +1,11 @@
 import { supabase } from './supabase';
 
 /**
- * Logs in a user to Supabase using email and password.
+ * Sign in a user with Supabase email/password auth.
  *
- * @param {Object} params - The login parameters.
- * @param {string} params.email - The user's email address.
- * @param {string} params.password - The user's password.
- * @returns - The user data if login is successful, otherwise throws an error.
+ * @param {{ email: string; password: string }} params - Credentials to pass to Supabase.
+ * @returns {Promise<import('@supabase/supabase-js').AuthTokenResponsePassword>} Auth data (session/user) from Supabase.
+ * @throws {Error} When Supabase returns an auth error.
  */
 export async function login({ email, password }: { email: string; password: string }) {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -20,9 +19,10 @@ export async function login({ email, password }: { email: string; password: stri
 }
 
 /**
- * Logs out the current user from Supabase.
+ * Sign out the current user from Supabase.
  *
- * @returns True if logout was successful, otherwise throws an error.
+ * @returns {Promise<true>} Resolves with true when sign-out succeeds.
+ * @throws {Error} When Supabase returns a sign-out error.
  */
 export async function logout() {
   const { error } = await supabase.auth.signOut();
@@ -33,9 +33,10 @@ export async function logout() {
 }
 
 /**
- * Gets the current user from Supabase.
+ * Fetch the currently authenticated user from Supabase.
  *
- * @returns The current user data.
+ * @returns {Promise<import('@supabase/supabase-js').User | null>} The user when authenticated, or null otherwise.
+ * @throws {Error} When Supabase fails to read the session.
  */
 export async function getCurrentUser() {
   const {

@@ -12,15 +12,15 @@ type StatCardProps = {
 function StatCard({ title, value, description, icon, color, bg }: StatCardProps) {
   const cardClass = bg
     ? `${bg} shadow-lg hover:shadow-xl transition-shadow`
-    : 'bg-gradient-to-br from-card to-slate-50 dark:to-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-shadow';
+    : 'bg-gradient-to-br from-card to-slate-50 dark:to-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-sm transition-shadow';
 
   return (
     <Card className={cardClass}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
+            <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
+            <h3 className="text-2xl font-bold text-foreground mt-2">{value}</h3>
             <p className="text-xs text-muted-foreground mt-2">{description}</p>
           </div>
           {icon && (

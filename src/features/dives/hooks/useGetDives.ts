@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { getDives } from '../../../services/apiDives';
 
 export type DiveFilters = {
@@ -7,9 +8,19 @@ export type DiveFilters = {
   location?: string;
   page?: number;
   pageSize?: number;
+  searchQuery?: string;
 };
 
 export function useGetDives(filters?: DiveFilters) {
+  const {
+    sortBy,
+    maxDepth,
+    location,
+    page,
+    pageSize,
+    searchQuery,
+  } = filters ?? {};
+  
   const {
     data,
     isLoading,
@@ -17,7 +28,15 @@ export function useGetDives(filters?: DiveFilters) {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ['dives', filters],
+    queryKey: [
+      'dives',
+      sortBy,
+      maxDepth,
+      location,
+      page,
+      pageSize,
+      searchQuery,
+    ],
     queryFn: () => getDives(filters),
   });
 

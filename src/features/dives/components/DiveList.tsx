@@ -20,9 +20,6 @@ function DiveList({
   totalPages = 1,
   onPageChange,
 }: DiveListProps) {
-  // Remove local pagination logic - now handled by parent
-  //const totalPages = Math.ceil(dives.length / itemsPerPage);
-
   if (dives.length === 0) {
     if (hasActiveFilters) {
       return (

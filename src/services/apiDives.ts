@@ -2,13 +2,15 @@ import type { Dive, NewDiveInput } from '@/features/dives';
 import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
-// TODO: move to supabase service when integrated?
+import { getOrCreateLocationId } from './apiLocations';
+
 
 /**
- * Fetches a single dive by ID from Supabase.
+ * Fetch a single dive by ID from Supabase.
  *
- * @param id - The dive ID
- * @returns - A promise that resolves to a Dive object or null if not found.
+ * @param {string} id - Dive primary key.
+ * @returns {Promise<Dive | null>} Dive when found, otherwise null.
+ * @throws {Error} When Supabase returns an error.
  */
 export async function getDiveById(id: string): Promise<Dive | null> {
   const { data, error } = await supabase.from('dives').select('*').eq('id', id).single();
@@ -17,16 +19,17 @@ export async function getDiveById(id: string): Promise<Dive | null> {
 }
 
 /**
- *	Fetches the list of dives from Supabase with optional filtering, sorting, and pagination.
+ * Fetch a paginated list of dives with optional filters.
  *
- * @param filters - Optional filters for sorting, depth, location, and pagination
- * @returns - A promise that resolves to dives array and total count
+ * @param {DiveFilters} [filters] - Sorting, depth, location, search, and pagination options.
+ * @returns {Promise<{ dives: Dive[]; totalCount: number } | null>} Dives for the requested page plus total row count.
+ * @throws {Error} When Supabase returns an error.
  */
 export async function getDives(filters?: DiveFilters): Promise<{
   dives: Dive[];
   totalCount: number;
 } | null> {
-  let query = supabase.from('dives').select('*', { count: 'exact' });
+  let query = supabase.from('dives').select('*, locations(id, name, country, country_code)', { count: 'exact' });
 
   // Apply depth filter
   if (filters?.maxDepth) {
@@ -36,6 +39,21 @@ export async function getDives(filters?: DiveFilters): Promise<{
   // Apply location filter
   if (filters?.location) {
     query = query.eq('location', filters.location);
+  }
+
+  // Apply search filter
+  if (filters?.searchQuery && filters.searchQuery.trim() !== '') {
+    // Sanitize search query
+    const raw = filters.searchQuery.trim();
+    const searchTerm = raw.replace(/,/g, ' ');
+    
+    // Search in both location AND notes using Supabase's 'or' filter
+    // ilike = case-insensitive LIKE (SQL pattern matching with %)
+    // %searchTerm% = SQL wildcard meaning "contains this text anywhere"
+    // or(...) = Match if either condition is true
+    query = query.or(
+      `location.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`
+    );
   }
 
   // Apply sorting
@@ -60,22 +78,41 @@ export async function getDives(filters?: DiveFilters): Promise<{
 }
 
 /**
- * Creates a new dive entry to Supabase.
+ * Insert a new dive for the authenticated user.
+ * Ensures a per-user location record exists before creating the dive.
  *
- * @param diveData - The dive data to be created.
- * @returns - A promise that resolves to the created Dive object or null if the creation fails.
+ * @param {NewDiveInput} diveData - Payload to insert.
+ * @returns {Promise<Dive | null>} Newly created dive, or null if Supabase returns no rows.
+ * @throws {Error} When auth is missing or Supabase returns an error.
  */
 export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
-  const { data, error } = await supabase.from('dives').insert([diveData]).select().single();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) throw authError;
+  if (!user) throw new Error('User must be authenticated to create a dive');
+
+  // Create or reuse a location entry for this user 
+  const locationId = await getOrCreateLocationId({
+    userId: user.id,
+    name: diveData.location,
+    country: diveData.country ?? null,
+    country_code:null,
+  });
+
+  const { data, error } = await supabase.from('dives').insert([{ ...diveData, location_id: locationId }]).select().single();
   if (error) throw error;
   return data ?? null;
 }
 
 /**
- * Deletes a dive by ID from Supabase.
+ * Delete a dive by ID.
  *
- * @param id - The ID of the dive to delete
- * @returns
+ * @param {string} id - Dive primary key to delete.
+ * @returns {Promise<boolean>} True when delete succeeds.
+ * @throws {Error} When Supabase returns an error.
  */
 export async function deleteDive(id: string): Promise<boolean> {
   const { error } = await supabase.from('dives').delete().eq('id', id);
@@ -84,11 +121,12 @@ export async function deleteDive(id: string): Promise<boolean> {
 }
 
 /**
- * Updates a dive entry in Supabase.
+ * Update a dive by ID.
  *
- * @param id - Dive ID
- * @param diveData - Partial dive data to update
- * @returns
+ * @param {string} id - Dive primary key to update.
+ * @param {Partial<Dive>} diveData - Fields to update.
+ * @returns {Promise<Dive | null>} Updated dive, or null if Supabase returns no rows.
+ * @throws {Error} When Supabase returns an error.
  */
 export async function updateDive(id: string, diveData: Partial<Dive>): Promise<Dive | null> {
   const { data, error } = await supabase

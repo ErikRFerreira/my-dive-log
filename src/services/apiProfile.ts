@@ -2,10 +2,13 @@ import type { UserProfile } from '@/features/profile';
 import { supabase } from './supabase';
 
 /**
- * Fetches the user profile from Supabase by user ID.
+ * Retrieves a user profile from Supabase by user ID.
  *
- * @param userId - The ID of the user whose profile is to be fetched.
- * @returns
+ * This function queries the 'profiles' table for a user with the specified ID.
+ *
+ * @param userId - The unique identifier of the user whose profile is to be fetched.
+ * @returns The user profile object if found, otherwise null.
+ * @throws If there is a database error during the fetch operation.
  */
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
@@ -19,11 +22,15 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 }
 
 /**
- * Updates or inserts the user profile in Supabase.
+ * Updates or inserts a user profile in Supabase.
  *
- * @param userId - The ID of the user whose profile is to be updated.
- * @param profileData - The profile data to update.
- * @returns
+ * This function performs an upsert (update or insert) on the 'profiles' table for the given user ID.
+ * If a profile with the specified ID exists, it will be updated; otherwise, a new profile will be created.
+ *
+ * @param userId - The unique identifier of the user whose profile is to be updated or inserted.
+ * @param profileData - Partial profile data to update or insert.
+ * @returns The updated or newly created user profile object, or null if not found.
+ * @throws If there is a database error during the upsert operation.
  */
 export async function upsertUserProfile(
   userId: string,

@@ -8,6 +8,7 @@ type StatsListProps = {
 };
 
 function StatsList({ dives }: StatsListProps) {
+  console.log('StatsList renders with dives:', dives);
   const totalDives = dives.length;
 
   // Calculate total dives this month
@@ -21,11 +22,14 @@ function StatsList({ dives }: StatsListProps) {
 
   // Calculate deepest dive
   const { deepestDive, deepestDiveLocation } = useMemo(() => {
-    const deepest = dives.reduce((maxDive, dive) => (dive.depth > maxDive.depth ? dive : maxDive), {
-      depth: 0,
-      location: '',
-    });
-    return { deepestDive: deepest.depth, deepestDiveLocation: deepest.location };
+    if (dives.length === 0) {
+      return { deepestDive: 0, deepestDiveLocation: 'N/A' };
+    }
+    const deepest = dives.reduce((maxDive, dive) => (dive.depth > maxDive.depth ? dive : maxDive));
+    return {
+      deepestDive: deepest.depth,
+      deepestDiveLocation: deepest.locations?.name || 'N/A',
+    };
   }, [dives]);
 
   // Calculate average duration
@@ -37,7 +41,8 @@ function StatsList({ dives }: StatsListProps) {
   const { favoriteLocation, favorteLocationCountry, favoriteLocationCount } = useMemo(() => {
     const locationCounts = dives.reduce(
       (acc, dive) => {
-        acc[dive.location] = (acc[dive.location] || 0) + 1;
+        const locName = dive.locations?.name || 'N/A';
+        acc[locName] = (acc[locName] || 0) + 1;
         return acc;
       },
       {} as Record<string, number>
