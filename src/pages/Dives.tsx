@@ -1,17 +1,10 @@
-import { AddDive, DiveList, DivesFilter, useGetDives } from '@features/dives';
+import { AddDive, DiveList, DivesFilter, useGetDives, useGetLocations } from '@features/dives';
 import Loading from '@/components/common/Loading';
 import Button from '@/components/ui/button';
-import { useDiveFilterStore, type SortBy } from '@/store/diveFilterStore';
-import { useState } from 'react';
+import { useDiveFilterStore } from '@/store/diveFilterStore';
 import InlineSpinner from '@/components/common/InlineSpinner';
 import NoResults from '@/components/layout/NoResults';
 import { ITEMS_PER_PAGE, DEFAULT_MAX_DEPTH } from '@/shared/constants';
-
-type DivesFilterValue = {
-  sortBy: 'date' | 'depth' | 'duration';
-  maxDepth: number;
-  selectedLocation: string;
-};
 
 function Dives() {
   const {
@@ -20,19 +13,25 @@ function Dives() {
     maxDepth,
     currentPage,
     searchQuery,
+    locationId,
+    country,
     setSortBy,
     setMaxDepth,
     setCurrentPage,
     setSearchQuery,
+    setCountry,
+    setLocationId,
+    resetFilters,
     toggleShowFilters,
   } = useDiveFilterStore();
-  const [selectedLocation, setSelectedLocation] = useState('all');
+  const { locations, isLoading: isLoadingLocations } = useGetLocations();
 
   // Fetch dives with server-side filtering and pagination
   const filters = {
     sortBy,
     maxDepth,
-    location: selectedLocation === 'all' ? undefined : selectedLocation,
+    locationId: locationId ?? undefined,
+    country: country ?? undefined,
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
     searchQuery,
@@ -41,14 +40,7 @@ function Dives() {
   const { dives, totalCount, isLoading, isFetching, isError, refetch } = useGetDives(filters);
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const handleFilterChange = (next: DivesFilterValue) => {
-    setSortBy(`${next.sortBy}` as SortBy);
-    setMaxDepth(next.maxDepth);
-    setSelectedLocation(next.selectedLocation);
-    setCurrentPage(1);
-  };
-
-  if (isLoading) {
+  if (isLoading && !dives) {
     return <Loading />;
   }
 
@@ -67,7 +59,7 @@ function Dives() {
   // Check if any filters are active
   const hasActiveFilters =
     maxDepth < DEFAULT_MAX_DEPTH ||
-    selectedLocation !== 'all' ||
+    locationId !== null ||
     sortBy !== 'date' ||
     searchQuery.trim() !== '';
 
@@ -84,10 +76,12 @@ function Dives() {
 
       <div id="dives-filter-panel" role="region" aria-labelledby="dives-filter-toggle-btn">
         <DivesFilter
-          onChange={handleFilterChange}
-          defaultMaxDepth={maxDepth}
-          defaultSort={sortBy}
-          dives={dives}
+          sortBy={sortBy}
+          maxDepth={maxDepth}
+          locationId={locationId}
+          locations={locations}
+          country={country}
+          isLoadingLocations={isLoadingLocations}
           showFilters={showFilters}
           onToggleFilters={toggleShowFilters}
           filteredCount={sortedDives.length}
@@ -95,6 +89,27 @@ function Dives() {
           searchQuery={searchQuery}
           onSearchQueryChange={(query) => {
             setSearchQuery(query);
+            setCurrentPage(1);
+          }}
+          onSortByChange={(nextSortBy) => {
+            setSortBy(nextSortBy);
+            setCurrentPage(1);
+          }}
+          onMaxDepthChange={(nextMaxDepth) => {
+            setMaxDepth(nextMaxDepth);
+            setCurrentPage(1);
+          }}
+          onCountryChange={(nextCountry) => {
+            setCountry(nextCountry);
+            setCurrentPage(1);
+            setLocationId(null);
+          }}
+          onLocationIdChange={(nextLocationId) => {
+            setLocationId(nextLocationId);
+            setCurrentPage(1);
+          }}
+          onReset={() => {
+            resetFilters();
             setCurrentPage(1);
           }}
         />

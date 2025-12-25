@@ -430,6 +430,7 @@ model dives {
   weight         Decimal? @db.Decimal
   users          users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
+  @@unique([user_id, date, location])
   @@schema("public")
 }
 

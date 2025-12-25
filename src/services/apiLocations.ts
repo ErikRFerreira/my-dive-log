@@ -8,6 +8,11 @@ export type LocationUpsertInput = {
   country_code?: string | null;
 };
 
+type SupabaseErrorWithCode = {
+  code?: string | null;
+  message?: string;
+};
+
 /**
  * Find-or-create a location for a user and return its ID (atomic upsert).
  *
@@ -22,21 +27,26 @@ export async function getOrCreateLocationId(locationData: LocationUpsertInput): 
   const normalizedName = locationData.name.replace(/\s+/g, ' ').trim();
   if (!normalizedName) throw new Error('Location name is required');
 
+  const payload = {
+    user_id: locationData.userId,
+    name: normalizedName,
+    country: locationData.country ?? null,
+    country_code: locationData.country_code ?? null,
+  };
+
   const { data, error } = await supabase
     .from('locations')
-    .upsert(
-      {
-        user_id: locationData.userId,
-        name: normalizedName,
-        country: locationData.country ?? null,
-        country_code: locationData.country_code ?? null,
-      },
-      { onConflict: 'user_id,name' }
-    )
+    .upsert(payload, { onConflict: 'user_id,name_norm' })
     .select('id')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    const supabaseError = error as SupabaseErrorWithCode;
+    throw new Error(
+      `Failed to upsert location: ${supabaseError.message} (code: ${supabaseError.code ?? 'N/A'})`
+    );
+  }
+  
   if (!data?.id) throw new Error('Failed to upsert location');
 
   return data.id;

@@ -3,7 +3,6 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type SortBy = 'date' | 'depth' | 'duration';
-
 interface DiveFilterState {
   showFilters: boolean;
   sortBy: SortBy;
@@ -11,12 +10,14 @@ interface DiveFilterState {
   currentPage: number;
   searchQuery: string;
   locationId: string | null;
+  country: string | null;
   setShowFilters: (show: boolean) => void;
   toggleShowFilters: () => void;
   setSortBy: (sortBy: SortBy) => void;
   setMaxDepth: (maxDepth: number) => void;
   setCurrentPage: (page: number) => void;
   setSearchQuery: (query: string) => void;
+  setCountry: (country: string | null) => void;
   setLocationId: (locationId: string | null) => void;
   resetFilters: () => void;
 }
@@ -28,6 +29,7 @@ export const DIVE_FILTER_DEFAULTS = {
   currentPage: 1,
   searchQuery: '',
   locationId: null,
+  country: null,
 };
 
 export const useDiveFilterStore = create<DiveFilterState>()(
@@ -40,6 +42,7 @@ export const useDiveFilterStore = create<DiveFilterState>()(
       setMaxDepth: (maxDepth) => set({ maxDepth, currentPage: 1 }),
       setCurrentPage: (currentPage) => set({ currentPage }),
       setSearchQuery: (searchQuery) => set({ searchQuery, currentPage: 1 }),
+      setCountry: (country) => set({ country, currentPage: 1 }),
       setLocationId: (locationId) => set({ locationId, currentPage: 1 }),
       resetFilters: () =>
         set(() => ({
@@ -48,6 +51,7 @@ export const useDiveFilterStore = create<DiveFilterState>()(
           currentPage: DIVE_FILTER_DEFAULTS.currentPage,
           searchQuery: DIVE_FILTER_DEFAULTS.searchQuery,
           locationId: DIVE_FILTER_DEFAULTS.locationId,
+          country: DIVE_FILTER_DEFAULTS.country,
         })),
     }),
     {
@@ -60,6 +64,7 @@ export const useDiveFilterStore = create<DiveFilterState>()(
         currentPage: s.currentPage,
         searchQuery: s.searchQuery,
         locationId: s.locationId,
+        country: s.country,
       }),
     }
   )

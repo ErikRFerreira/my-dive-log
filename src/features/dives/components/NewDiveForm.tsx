@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useGetLocations } from '../hooks/useGetLocations';
 
 type SubmittedDive = Pick<NewDiveInput, 'date' | 'location' | 'country' | 'depth' | 'duration'> & {
   notes?: NewDiveInput['notes'];
@@ -35,6 +36,7 @@ type NewDiveFormProps = {
 
 function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   const { mutateAdd, isPending } = useAddDive();
+  const { locations, isLoading: isLoadingLocations } = useGetLocations();
 
   const {
     register,
@@ -103,7 +105,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   };
 
   return (
-    <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4">
+    <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4" autoComplete="off">
       <h2 className="text-2xl font-bold mb-6">Log a New Dive</h2>
 
       <Field>
@@ -141,21 +143,29 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
       </Field>
 
       <Field>
-        <FieldLabel htmlFor="location">Location</FieldLabel>
+        <FieldLabel htmlFor="location">Location/Dive Site</FieldLabel>
         <Input
           id="location"
           type="text"
-          placeholder="Great Barrier Reef"
+          disabled={isLoadingLocations}
+          placeholder="ex: Great Barrier Reef"
           aria-invalid={!!errors.location}
+          autoComplete='off'
+          list="location-suggestions"
           {...register('location')}
         />
         {errors.location && <FieldError>{errors.location.message}</FieldError>}
+        <datalist id="location-suggestions">
+          {locations.map((l) => (
+            <option key={l.id} value={l.name} />
+          ))}
+        </datalist>
       </Field>
 
       <Field>
-        <FieldLabel htmlFor="countryCode">Country</FieldLabel>
+        <FieldLabel htmlFor="country_code">Country</FieldLabel>
         <Controller
-          name="countryCode"
+          name="country_code"
           control={control}
           render={({ field }) => (
             <Select onValueChange={field.onChange} value={field.value}>

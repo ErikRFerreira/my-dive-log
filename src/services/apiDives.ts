@@ -36,9 +36,14 @@ export async function getDives(filters?: DiveFilters): Promise<{
     query = query.lte('depth', filters.maxDepth);
   }
 
-  // Apply location filter
-  if (filters?.location) {
-    query = query.eq('location', filters.location);
+  // Apply country filter
+  if (filters?.country) {
+    query = query.eq('country', filters.country);
+  }
+
+  // Apply location filter (locations table)
+  if (filters?.locationId) {
+    query = query.eq('location_id', filters.locationId);
   }
 
   // Apply search filter

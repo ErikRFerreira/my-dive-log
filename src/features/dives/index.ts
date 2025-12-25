@@ -19,6 +19,7 @@ export { useGetDive } from './hooks/useGetDive';
 export { useDeleteDive } from './hooks/useDeleteDive';
 export { useUpdateDive } from './hooks/useUpdateDive';
 export { useGenerateSummary } from './hooks/useGenerateSummary';
+export { useGetLocations } from './hooks/useGetLocations';
 
 // Types
 export type { Dive, NewDiveInput } from './types';
