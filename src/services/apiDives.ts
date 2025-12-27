@@ -2,7 +2,7 @@ import type { Dive, NewDiveInput, UpdateDivePatch } from '@/features/dives';
 import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
-import { getOrCreateLocationId } from './apiLocations';
+import { getCurrentUserId, getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';
 
 
 /**
@@ -33,7 +33,9 @@ export async function getDives(filters?: DiveFilters): Promise<{
   dives: Dive[];
   totalCount: number;
 } | null> {
-  let query = supabase.from('dives').select('*, locations(id, name, country, country_code)', { count: 'exact' });
+  let query = supabase
+    .from('dives')
+    .select('*, locations(id, name, country, country_code)', { count: 'exact' });
 
   // Apply depth filter
   if (filters?.maxDepth) {
@@ -42,7 +44,20 @@ export async function getDives(filters?: DiveFilters): Promise<{
 
   // Apply country filter
   if (filters?.country) {
-    query = query.eq('locations.country', filters.country);
+    const { data: locationMatches, error: locationError } = await supabase
+      .from('locations')
+      .select('id')
+      .eq('country', filters.country)
+      .limit(1000);
+
+    if (locationError) throw locationError;
+
+    const locationIds = (locationMatches ?? []).map((l) => l.id).filter(Boolean);
+    if (!locationIds.length) {
+      return { dives: [], totalCount: 0 };
+    }
+
+    query = query.in('location_id', locationIds);
   }
 
   // Apply location filter (locations table)
@@ -52,17 +67,25 @@ export async function getDives(filters?: DiveFilters): Promise<{
 
   // Apply search filter
   if (filters?.searchQuery && filters.searchQuery.trim() !== '') {
-    // Sanitize search query
     const raw = filters.searchQuery.trim();
-    const searchTerm = raw.replace(/,/g, ' ');
-    
-    // Search in both location AND notes using Supabase's 'or' filter
-    // ilike = case-insensitive LIKE (SQL pattern matching with %)
-    // %searchTerm% = SQL wildcard meaning "contains this text anywhere"
-    // or(...) = Match if either condition is true
-    query = query.or(
-      `locations.name.ilike.%${searchTerm}%,locations.country.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`
-    );
+    const searchTerm = raw.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const { data: locationMatches, error: locationError } = await supabase
+      .from('locations')
+      .select('id')
+      .or(`name.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
+      .limit(1000);
+
+    if (locationError) throw locationError;
+
+    const locationIds = (locationMatches ?? []).map((l) => l.id).filter(Boolean);
+
+    const orParts = [`notes.ilike.%${searchTerm}%`, `summary.ilike.%${searchTerm}%`];
+    if (locationIds.length) {
+      orParts.push(`location_id.in.(${locationIds.join(',')})`);
+    }
+
+    query = query.or(orParts.join(','));
   }
 
   // Apply sorting
@@ -95,24 +118,18 @@ export async function getDives(filters?: DiveFilters): Promise<{
  * @throws {Error} When auth is missing or Supabase returns an error.
  */
 export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError) throw authError;
-  if (!user) throw new Error('User must be authenticated to create a dive');
+  const userId = await getCurrentUserId();
 
   // Create or reuse a location entry for this user 
   const locationId = await getOrCreateLocationId({
-    userId: user.id,
+    userId,
     name: diveData.locationName,
     country: diveData.locationCountry ?? null,
     country_code: diveData.locationCountryCode ?? null,
   });
 
   const insertPayload = {
-    user_id: user.id,
+    user_id: userId,
     date: diveData.date,
     depth: diveData.depth,
     duration: diveData.duration,
@@ -146,40 +163,48 @@ export async function deleteDive(id: string): Promise<boolean> {
  * Update a dive by ID.
  *
  * @param {string} id - Dive primary key to update.
- * @param {Partial<Dive>} diveData - Fields to update.
+ * @param {UpdateDivePatch} diveData - Fields to update (includes optional virtual location fields).
  * @returns {Promise<Dive | null>} Updated dive, or null if Supabase returns no rows.
  * @throws {Error} When Supabase returns an error.
  */
 export async function updateDive(id: string, diveData: UpdateDivePatch): Promise<Dive | null> {
+  // `UpdateDivePatch` is mostly real `dives` table columns (date, depth, notes, etc.),
+  // but it also allows "virtual" fields for updating the related location:
+  //
+  // - `locationName` (string): desired location name
+  // - `locationCountry` (string|null): optional country for the location row
+  // - `locationCountryCode` (string|null): optional country code for the location row
+  //
+  // Those 3 fields are NOT columns on the `dives` table. We translate them into a real
+  // `location_id` update by upserting/finding a row in the `locations` table, then we
+  // remove the virtual fields before calling Supabase `.update(...)`.
   const patch: Record<string, unknown> = { ...diveData };
+
+  // The `locations` property is an embedded relation returned by selects like
+  // `select('*, locations(...)')`. It cannot be updated directly via the `dives` update call.
   delete patch.locations;
 
+  // If the caller provided a new location name, convert it to a `location_id`.
   if (typeof patch.locationName === 'string') {
     const name = patch.locationName.trim();
     const locationCountry = typeof patch.locationCountry === 'string' ? patch.locationCountry : null;
     const locationCountryCode =
       typeof patch.locationCountryCode === 'string' ? patch.locationCountryCode : null;
 
+    // Prevent Supabase from receiving unknown columns (these keys don't exist on `dives`).
     delete patch.locationName;
     delete patch.locationCountry;
     delete patch.locationCountryCode;
 
+    // Only change the location relation if the new name is non-empty.
     if (name) {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError) throw authError;
-      if (!user) throw new Error('User must be authenticated to update a dive location');
-
-      const locationId = await getOrCreateLocationId({
-        userId: user.id,
+      const locationId = await getOrCreateLocationIdForCurrentUser({
         name,
         country: locationCountry,
         country_code: locationCountryCode,
       });
 
+      // This is the actual `dives` table update: point the dive at the resolved location row.
       patch.location_id = locationId;
     }
   }
@@ -193,4 +218,19 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
 
   if (error) throw error;
   return data ?? null;
+}
+
+
+/**
+ * 
+ * @param {string} locationId - Location primary key.
+ * @returns {Promise<Dive[] | null>} List of dives at the specified location.
+ */
+export async function getDivesByLocationId(locationId: string) {
+  const { data, error } = await supabase
+    .from('dives')
+    .select('*, locations(id, name, country, country_code)')
+    .eq('location_id', locationId);
+  if (error) throw error;
+  return data ?? [];
 }

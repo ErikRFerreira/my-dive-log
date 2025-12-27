@@ -9,6 +9,7 @@ import AppLayout from '../components/layout/AppLayout';
 import Dashboard from '../pages/Dashboard';
 import Dives from '../pages/Dives';
 import Locations from '@/pages/Locations';
+import Location from '../pages/Location';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
 
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
       {
         path: '/locations',
         element: <Locations />,
+      },
+      {
+        path: '/locations/:id',
+        element: <Location />,
       },
       {
         path: '/profile',

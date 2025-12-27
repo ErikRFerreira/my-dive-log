@@ -20,6 +20,8 @@ function DiveList({
   totalPages = 1,
   onPageChange,
 }: DiveListProps) {
+  
+  
   if (dives.length === 0) {
     if (hasActiveFilters) {
       return (

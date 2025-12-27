@@ -13,6 +13,25 @@ type SupabaseErrorWithCode = {
   message?: string;
 };
 
+export async function getCurrentUserId(): Promise<string> {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) throw error;
+  if (!user) throw new Error('User must be authenticated');
+
+  return user.id;
+}
+
+export async function getOrCreateLocationIdForCurrentUser(
+  locationData: Omit<LocationUpsertInput, 'userId'>
+): Promise<string> {
+  const userId = await getCurrentUserId();
+  return getOrCreateLocationId({ userId, ...locationData });
+}
+
 /**
  * Find-or-create a location for a user and return its ID (atomic upsert).
  *

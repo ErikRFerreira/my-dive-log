@@ -1,6 +1,11 @@
-import { LocationCards, LocationStats } from '@/features/locations';
+import Loading from '@/components/common/Loading';
+import NoResults from '@/components/layout/NoResults';
+import { useGetDives } from '@/features/dives';
+import { LocationCardsGrid, LocationStats } from '@/features/locations';
 
 function Locations() {
+  const {dives, isLoading, isError} = useGetDives();
+  
   return (
     <>
       <header>
@@ -10,13 +15,20 @@ function Locations() {
         </p>
       </header>
 
-      <section>
-        <LocationStats />
-      </section>
+      { isLoading && <Loading /> }
 
-      <section className="mt-8">
-        <LocationCards />
-      </section>
+      { isError && (
+        <NoResults>
+          Error loading dives. Please try again later.
+        </NoResults>
+      )}
+
+      {dives && dives.length > 0 && (
+        <>
+          <LocationStats dives={dives} />
+          <LocationCardsGrid dives={dives} />
+        </>
+      )}
     </>
   );
 }

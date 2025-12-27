@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 type StatCardProps = {
   title: string;
   value: string | number;
-  description: string;
+  description?: string;
   icon?: React.ReactNode;
   color?: string;
   bg?: string;
@@ -21,7 +21,7 @@ function StatCard({ title, value, description, icon, color, bg }: StatCardProps)
           <div>
             <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
             <h3 className="text-2xl font-bold text-foreground mt-2">{value}</h3>
-            <p className="text-xs text-muted-foreground mt-2">{description}</p>
+            {description && <p className="text-xs text-muted-foreground mt-2">{description}</p>}
           </div>
           {icon && (
             <div
