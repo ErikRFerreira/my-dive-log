@@ -8,6 +8,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import AppLayout from '../components/layout/AppLayout';
 import Dashboard from '../pages/Dashboard';
 import Dives from '../pages/Dives';
+import Locations from '@/pages/Locations';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
 
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
       {
         path: '/dives/:id',
         element: <Dive />,
+      },
+      {
+        path: '/locations',
+        element: <Locations />,
       },
       {
         path: '/profile',

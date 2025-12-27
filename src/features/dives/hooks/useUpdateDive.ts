@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDive } from '../../../services/apiDives';
 import toast from 'react-hot-toast';
-import type { Dive } from '../types';
+import type { UpdateDivePatch } from '../types';
 
 export function useUpdateDive() {
   const queryClient = useQueryClient();
 
   const { isPending, mutateAsync } = useMutation({
-    mutationFn: ({ id, diveData }: { id: string; diveData: Partial<Dive> }) =>
+    mutationFn: ({ id, diveData }: { id: string; diveData: UpdateDivePatch }) =>
       updateDive(id, diveData),
     onSuccess: (_data, variables) => {
       const { id } = variables;

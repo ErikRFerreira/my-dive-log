@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import type { Dive } from '../types';
 
-type TextField = keyof Pick<Dive, 'location' | 'summary' | 'notes'>;
+type TextField = keyof Pick<Dive, 'summary' | 'notes'>;
 
 interface DiveNotesProps {
   dive: Dive;

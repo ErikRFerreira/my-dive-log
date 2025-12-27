@@ -1,4 +1,4 @@
-import type { Dive, NewDiveInput } from '@/features/dives';
+import type { Dive, NewDiveInput, UpdateDivePatch } from '@/features/dives';
 import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
@@ -13,7 +13,11 @@ import { getOrCreateLocationId } from './apiLocations';
  * @throws {Error} When Supabase returns an error.
  */
 export async function getDiveById(id: string): Promise<Dive | null> {
-  const { data, error } = await supabase.from('dives').select('*').eq('id', id).single();
+  const { data, error } = await supabase
+    .from('dives')
+    .select('*, locations(id, name, country, country_code)')
+    .eq('id', id)
+    .single();
   if (error) throw error;
   return data ?? null;
 }
@@ -38,7 +42,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
 
   // Apply country filter
   if (filters?.country) {
-    query = query.eq('country', filters.country);
+    query = query.eq('locations.country', filters.country);
   }
 
   // Apply location filter (locations table)
@@ -57,7 +61,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
     // %searchTerm% = SQL wildcard meaning "contains this text anywhere"
     // or(...) = Match if either condition is true
     query = query.or(
-      `location.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`
+      `locations.name.ilike.%${searchTerm}%,locations.country.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%,summary.ilike.%${searchTerm}%`
     );
   }
 
@@ -102,12 +106,25 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
   // Create or reuse a location entry for this user 
   const locationId = await getOrCreateLocationId({
     userId: user.id,
-    name: diveData.location,
-    country: diveData.country ?? null,
-    country_code:null,
+    name: diveData.locationName,
+    country: diveData.locationCountry ?? null,
+    country_code: diveData.locationCountryCode ?? null,
   });
 
-  const { data, error } = await supabase.from('dives').insert([{ ...diveData, location_id: locationId }]).select().single();
+  const insertPayload = {
+    user_id: user.id,
+    date: diveData.date,
+    depth: diveData.depth,
+    duration: diveData.duration,
+    notes: diveData.notes ?? null,
+    location_id: locationId,
+  };
+
+  const { data, error } = await supabase
+    .from('dives')
+    .insert([insertPayload])
+    .select('*, locations(id, name, country, country_code)')
+    .single();
   if (error) throw error;
   return data ?? null;
 }
@@ -133,12 +150,45 @@ export async function deleteDive(id: string): Promise<boolean> {
  * @returns {Promise<Dive | null>} Updated dive, or null if Supabase returns no rows.
  * @throws {Error} When Supabase returns an error.
  */
-export async function updateDive(id: string, diveData: Partial<Dive>): Promise<Dive | null> {
+export async function updateDive(id: string, diveData: UpdateDivePatch): Promise<Dive | null> {
+  const patch: Record<string, unknown> = { ...diveData };
+  delete patch.locations;
+
+  if (typeof patch.locationName === 'string') {
+    const name = patch.locationName.trim();
+    const locationCountry = typeof patch.locationCountry === 'string' ? patch.locationCountry : null;
+    const locationCountryCode =
+      typeof patch.locationCountryCode === 'string' ? patch.locationCountryCode : null;
+
+    delete patch.locationName;
+    delete patch.locationCountry;
+    delete patch.locationCountryCode;
+
+    if (name) {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError) throw authError;
+      if (!user) throw new Error('User must be authenticated to update a dive location');
+
+      const locationId = await getOrCreateLocationId({
+        userId: user.id,
+        name,
+        country: locationCountry,
+        country_code: locationCountryCode,
+      });
+
+      patch.location_id = locationId;
+    }
+  }
+
   const { data, error } = await supabase
     .from('dives')
-    .update(diveData)
+    .update(patch)
     .eq('id', id)
-    .select()
+    .select('*, locations(id, name, country, country_code)')
     .single();
 
   if (error) throw error;

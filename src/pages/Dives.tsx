@@ -1,10 +1,12 @@
-import { AddDive, DiveList, DivesFilter, useGetDives, useGetLocations } from '@features/dives';
-import Loading from '@/components/common/Loading';
-import Button from '@/components/ui/button';
-import { useDiveFilterStore } from '@/store/diveFilterStore';
 import InlineSpinner from '@/components/common/InlineSpinner';
+import Loading from '@/components/common/Loading';
 import NoResults from '@/components/layout/NoResults';
-import { ITEMS_PER_PAGE, DEFAULT_MAX_DEPTH } from '@/shared/constants';
+import Button from '@/components/ui/button';
+import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
+import { useDiveFilterStore } from '@/store/diveFilterStore';
+import { AddDive, DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
+import { Download } from 'lucide-react';
+import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
 
 function Dives() {
   const {
@@ -71,10 +73,20 @@ function Dives() {
           {isFetching && <InlineSpinner aria-label="Refreshing dives" />}
           <p className="text-muted-foreground mt-1">Browse and manage all your recorded dives</p>
         </div>
-        <AddDive />
+        <div className='flex gap-2'>
+          <Button 
+            onClick={() => exportDivesToCsv(sortedDives ?? [])} 
+            variant="outline" 
+            className="gap-2 w-fit bg-transparent"
+            >
+            <Download className="w-4 h-4" />
+            Export to Excel
+          </Button>
+          <AddDive />
+        </div>
       </header>
 
-      <div id="dives-filter-panel" role="region" aria-labelledby="dives-filter-toggle-btn">
+      <section id="dives-filter-panel" role="region" aria-labelledby="dives-filter-toggle-btn">
         <DivesFilter
           sortBy={sortBy}
           maxDepth={maxDepth}
@@ -113,7 +125,7 @@ function Dives() {
             setCurrentPage(1);
           }}
         />
-      </div>
+      </section>
       <section aria-busy={isFetching}>
         <DiveList
           dives={sortedDives}

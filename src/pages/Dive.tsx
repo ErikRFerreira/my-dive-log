@@ -16,12 +16,12 @@ import {
   useUpdateDive,
 } from '@/features/dives';
 
-import type { Dive as DiveType } from '@/features/dives/types';
+import type { Dive as DiveType, UpdateDivePatch } from '@/features/dives/types';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Type aliases for field handlers
-type TextField = keyof Pick<DiveType, 'location' | 'summary' | 'notes'>;
+type TextField = keyof Pick<DiveType, 'summary' | 'notes'>;
 type NumericField = keyof Pick<
   DiveType,
   'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
@@ -38,6 +38,7 @@ function Dive() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [locationNameDraft, setLocationNameDraft] = useState('');
   const [newEquipment, setNewEquipment] = useState('');
   const [newWildlife, setNewWildlife] = useState('');
   const [editedDive, setEditedDive] = useState<DiveType | null>(null);
@@ -71,6 +72,7 @@ function Dive() {
   const startEdit = () => {
     if (!dive) return;
     setEditedDive(dive);
+    setLocationNameDraft(dive.locations?.name ?? '');
     setIsEditMode(true);
   };
 
@@ -78,8 +80,7 @@ function Dive() {
   const handleSaveEdit = async () => {
     if (!editedDive) return;
 
-    const updates: Partial<DiveType> = {
-      location: editedDive.location,
+    const updates: UpdateDivePatch = {
       date: editedDive.date,
       depth: editedDive.depth,
       duration: editedDive.duration,
@@ -101,6 +102,14 @@ function Dive() {
     };
 
     try {
+      const trimmedLocationName = locationNameDraft.trim();
+      const currentLocationName = dive?.locations?.name ?? '';
+      if (trimmedLocationName && trimmedLocationName !== currentLocationName) {
+        updates.locationName = trimmedLocationName;
+        updates.locationCountry = dive?.locations?.country ?? null;
+        updates.locationCountryCode = dive?.locations?.country_code ?? null;
+      }
+
       await updateDive({ id: editedDive.id, diveData: updates });
       setIsEditMode(false);
       setEditedDive(null);
@@ -113,6 +122,7 @@ function Dive() {
   const handleCancelEdit = () => {
     setIsEditMode(false);
     setEditedDive(null);
+    setLocationNameDraft(dive?.locations?.name ?? '');
   };
 
   // Handle changes in edit mode for text fields
@@ -252,7 +262,8 @@ function Dive() {
         dive={currentDive}
         isEditMode={isEditMode}
         isUpdating={isUpdating}
-        onTextChange={handleTextChange}
+        locationName={locationNameDraft}
+        onLocationNameChange={setLocationNameDraft}
         onDateChange={handleDateChange}
         onStartEdit={startEdit}
         onSaveEdit={handleSaveEdit}
@@ -310,7 +321,7 @@ function Dive() {
 
       <DeleteDiveModal
         isOpen={isModalOpen}
-        location={currentDive.location ?? 'N/A'}
+        location={currentDive.locations?.name ?? 'N/A'}
         isPending={isDeleting}
         onCancel={onCancelDelete}
         onConfirm={onConfirmDeletion}

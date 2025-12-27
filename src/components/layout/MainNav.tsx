@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router';
-import { BarChart3, Settings, User, MapPin } from 'lucide-react';
+import { BarChart3, Settings, User, MapPin, ChartSpline } from 'lucide-react';
 
 function MainNav() {
   const linkClasses = ({ isActive }: { isActive: boolean }) => {
@@ -25,8 +25,14 @@ function MainNav() {
         </li>
         <li>
           <NavLink to="/dives" className={linkClasses}>
-            <MapPin className={iconCls} />
+            <ChartSpline className={iconCls} />
             <span>Dives</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/locations" className={linkClasses}>
+            <MapPin className={iconCls} />
+            <span>Locations</span>
           </NavLink>
         </li>
         <li>

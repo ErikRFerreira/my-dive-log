@@ -1,4 +1,5 @@
 import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAddDive } from '../hooks/useAddDive';
 
@@ -10,23 +11,15 @@ import { createDiveSchema, type CreateDiveInput } from '../schemas/createDiveSch
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format, parse } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { useGetLocations } from '../hooks/useGetLocations';
 
-type SubmittedDive = Pick<NewDiveInput, 'date' | 'location' | 'country' | 'depth' | 'duration'> & {
-  notes?: NewDiveInput['notes'];
+type SubmittedDive = {
+  date: string;
+  locationName: string;
+  locationCountry: string | null;
+  depth: number;
+  duration: number;
+  notes?: string | null;
 };
 
 type NewDiveFormProps = {
@@ -37,6 +30,12 @@ type NewDiveFormProps = {
 function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   const { mutateAdd, isPending } = useAddDive();
   const { locations, isLoading: isLoadingLocations } = useGetLocations();
+
+  const countryNameByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    COUNTRIES.forEach((c) => map.set(c.code.toUpperCase(), c.name));
+    return map;
+  }, []);
 
   const {
     register,
@@ -58,16 +57,16 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   });
 
   const submit = (data: CreateDiveInput) => {
-    const countryName =
-      COUNTRIES.find((c) => c.code.toUpperCase() === data.country_code.toUpperCase())?.name ?? '';
+    const countryName = countryNameByCode.get(data.country_code.toUpperCase()) ?? '';
 
     const payload: NewDiveInput = {
       date: data.date,
-      location: data.location,
-      country: countryName,
+      locationName: data.location,
+      locationCountry: countryName || null,
+      locationCountryCode: data.country_code,
       depth: data.depth,
       duration: data.duration,
-      notes: data.notes || '',
+      notes: data.notes || null,
     };
 
     mutateAdd(payload, {
@@ -80,8 +79,8 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
 
         const submitData: SubmittedDive = {
           date: created.date,
-          location: created.location,
-          country: created.country,
+          locationName: created.locations?.name ?? '',
+          locationCountry: created.locations?.country ?? null,
           depth: created.depth,
           duration: created.duration,
         };
@@ -106,37 +105,19 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
 
   return (
     <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4" autoComplete="off">
-      <h2 className="text-2xl font-bold mb-6">Log a New Dive</h2>
-
       <Field>
         <FieldLabel htmlFor="date">Date</FieldLabel>
         <Controller
           name="date"
           control={control}
           render={({ field }) => (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !field.value && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {field.value ? format(new Date(field.value), 'PPP') : 'Pick a date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value ? parse(field.value, 'yyyy-MM-dd', new Date()) : undefined}
-                  onSelect={(date) => {
-                    field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
+            <Input
+              id="date"
+              type="date"
+              aria-invalid={!!errors.date}
+              value={field.value ?? ''}
+              onChange={(e) => field.onChange(e.target.value)}
+            />
           )}
         />
         {errors.date && <FieldError>{errors.date.message}</FieldError>}
@@ -167,53 +148,43 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
         <Controller
           name="country_code"
           control={control}
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {COUNTRIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          )}
+          render={({ field }) => <CountryCombobox field={field} error={errors.country_code} />}
         />
         {errors.country_code && <FieldError>{errors.country_code.message}</FieldError>}
       </Field>
 
-      <Field>
-        <FieldLabel htmlFor="depth">Depth (meters)</FieldLabel>
-        <Input
-          id="depth"
-          type="number"
-          placeholder="18"
-          step="0.1"
-          min={0}
-          aria-invalid={!!errors.depth}
-          {...register('depth', { valueAsNumber: true })}
-        />
-        {errors.depth && <FieldError>{errors.depth.message}</FieldError>}
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="duration">Duration (minutes)</FieldLabel>
-        <Input
-          id="duration"
-          type="number"
-          placeholder="35"
-          step="1"
-          min={1}
-          aria-invalid={!!errors.duration}
-          {...register('duration', { valueAsNumber: true })}
-        />
-        {errors.duration && <FieldError>{errors.duration.message}</FieldError>}
-      </Field>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <Field>
+            <FieldLabel htmlFor="depth">Depth (meters)</FieldLabel>
+            <Input
+              id="depth"
+              type="number"
+              placeholder="18"
+              step="0.1"
+              min={0}
+              aria-invalid={!!errors.depth}
+              {...register('depth', { valueAsNumber: true })}
+            />
+            {errors.depth && <FieldError>{errors.depth.message}</FieldError>}
+          </Field>
+        </div>
+        <div className="flex-1">
+          <Field>
+            <FieldLabel htmlFor="duration">Duration (minutes)</FieldLabel>
+            <Input
+              id="duration"
+              type="number"
+              placeholder="35"
+              step="1"
+              min={1}
+              aria-invalid={!!errors.duration}
+              {...register('duration', { valueAsNumber: true })}
+            />
+            {errors.duration && <FieldError>{errors.duration.message}</FieldError>}
+          </Field>
+        </div>
+      </div>
 
       <Field>
         <FieldLabel htmlFor="notes">Notes</FieldLabel>
@@ -237,6 +208,89 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
         </Button>
       </div>
     </form>
+  );
+}
+
+type CountryComboboxProps = {
+  field: {
+    name: string;
+    value: string;
+    onChange: (value: string) => void;
+    onBlur: () => void;
+  };
+  error?: unknown;
+};
+
+function CountryCombobox({ field }: CountryComboboxProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    if (!field.value) {
+      setQuery('');
+      return;
+    }
+
+    const match = COUNTRIES.find((c) => c.code.toUpperCase() === field.value.toUpperCase());
+    setQuery(match?.name ?? field.value);
+  }, [field.value]);
+
+  const filtered = useMemo(() => {
+    const trimmed = query.trim().toLowerCase();
+    if (!trimmed) return COUNTRIES.slice(0, 40);
+
+    return COUNTRIES.filter((c) => c.name.toLowerCase().includes(trimmed)).slice(0, 40);
+  }, [query]);
+
+  return (
+    <div className="relative">
+      <Input
+        id={field.name}
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-controls="country-options"
+        placeholder="Type to search…"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setIsOpen(true);
+        }}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => {
+          field.onBlur();
+          window.setTimeout(() => setIsOpen(false), 100);
+        }}
+      />
+
+      {isOpen && (
+        <div
+          id="country-options"
+          role="listbox"
+          className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md max-h-64 overflow-y-auto"
+        >
+          {filtered.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-muted-foreground">No matches</div>
+          ) : (
+            filtered.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                role="option"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  field.onChange(c.code);
+                  setQuery(c.name);
+                  setIsOpen(false);
+                }}
+              >
+                {c.name}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

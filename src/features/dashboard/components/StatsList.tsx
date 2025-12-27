@@ -8,7 +8,7 @@ type StatsListProps = {
 };
 
 function StatsList({ dives }: StatsListProps) {
-  console.log('StatsList renders with dives:', dives);
+
   const totalDives = dives.length;
 
   // Calculate total dives this month
@@ -49,7 +49,7 @@ function StatsList({ dives }: StatsListProps) {
     );
 
     const favLocation = Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
-    const favCountry = dives.find((dive) => dive.location === favLocation)?.country || 'N/A';
+    const favCountry = dives.find((dive) => dive.locations?.name === favLocation)?.locations?.country || 'N/A';
     const favCount = locationCounts[favLocation] || 0;
 
     return {

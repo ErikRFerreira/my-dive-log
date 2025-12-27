@@ -31,7 +31,7 @@ function CarrerStatistics() {
 
   const longestDive = dives.length > 0 ? Math.max(...dives.map((dive) => dive.duration)) : 0;
 
-  const uniqueLocations = new Set(dives.map((dive) => dive.location)).size;
+  const uniqueLocations = new Set(dives.map((dive) => dive.locations?.name ?? 'N/A')).size;
 
   /*const speciesDocumented = useMemo(() => {
 	const species = new Set<string>();

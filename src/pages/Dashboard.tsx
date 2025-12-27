@@ -53,11 +53,13 @@ function Dashboard() {
           {/* Recent dives */}
           <DiveList title="Recent Dives" dives={lastThreeDives} />
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DepthChart dives={dives} />
-            <MonthlyChart dives={dives} />
-          </div>
+          {/* Charts Section  - we need at least 2 dives to make sense */}
+          { dives.length > 1 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <DepthChart dives={dives} />
+              <MonthlyChart dives={dives} />
+            </div>
+          )}
         </>
       )}
     </>

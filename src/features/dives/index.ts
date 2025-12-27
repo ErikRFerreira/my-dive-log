@@ -22,4 +22,4 @@ export { useGenerateSummary } from './hooks/useGenerateSummary';
 export { useGetLocations } from './hooks/useGetLocations';
 
 // Types
-export type { Dive, NewDiveInput } from './types';
+export type { Dive, NewDiveInput, UpdateDivePatch } from './types';

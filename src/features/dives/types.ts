@@ -9,16 +9,14 @@ export interface DiveLocation {
   id: string;
   name: string;
   country: string | null;
-  country_code?: string | null;
+  country_code: string | null;
 }
 
 export interface Dive {
   id: string;
   user_id: string;
+  location_id: string | null;
   date: string;
-  location: string;
-  country: string | null;
-  country_code: string | null;
   depth: number;
   duration: number;
   notes: string | null;
@@ -42,9 +40,16 @@ export interface Dive {
 
 export type NewDiveInput = {
   date: string;
-  location: string;
-  country: string | null;
+  locationName: string;
+  locationCountry: string | null;
+  locationCountryCode: string;
   depth: number;
   duration: number;
   notes?: string | null;
+};
+
+export type UpdateDivePatch = Partial<Omit<Dive, 'id' | 'user_id' | 'created_at' | 'locations'>> & {
+  locationName?: string;
+  locationCountry?: string | null;
+  locationCountryCode?: string | null;
 };
