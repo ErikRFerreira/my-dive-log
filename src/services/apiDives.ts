@@ -229,7 +229,7 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
 export async function getDivesByLocationId(locationId: string) {
   const { data, error } = await supabase
     .from('dives')
-    .select('*, locations(id, name, country, country_code)')
+    .select('*, locations(id, name, country, country_code, lat, lng)')
     .eq('location_id', locationId);
   if (error) throw error;
   return data ?? [];

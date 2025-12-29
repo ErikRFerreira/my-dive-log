@@ -1,11 +1,13 @@
 import { supabase } from './supabase';
-import type { DiveLocation } from '@/features/dives/types';
+import type { Location as DiveLocation } from '@/features/locations';
 
 export type LocationUpsertInput = {
   userId: string;
   name: string;
   country?: string | null;
   country_code?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type SupabaseErrorWithCode = {
@@ -13,6 +15,11 @@ type SupabaseErrorWithCode = {
   message?: string;
 };
 
+/**
+ * Get the current authenticated user's ID.
+ * 
+ * @returns {string} The user ID as a string.
+ */
 export async function getCurrentUserId(): Promise<string> {
   const {
     data: { user },
@@ -25,6 +32,12 @@ export async function getCurrentUserId(): Promise<string> {
   return user.id;
 }
 
+/**
+ * Find-or-create a location for the current user and return its ID (atomic upsert).
+ * 
+ * @param {Omit<LocationUpsertInput, 'userId'>} locationData - Location data without userId.
+ * @returns {Promise<string>} The ID of the found or newly created location.
+ */
 export async function getOrCreateLocationIdForCurrentUser(
   locationData: Omit<LocationUpsertInput, 'userId'>
 ): Promise<string> {
@@ -86,4 +99,36 @@ export async function fetchLocationsByUser(userId: string): Promise<DiveLocation
 	.order('name', { ascending: true });
 	  if (error) throw error;
 	    return data ?? null;
+}
+
+/**
+ * Update a location by its ID with the provided data.
+ * 
+ * @param {string} locationId - ID of the location to update.
+ * @param {Partial<LocationUpsertInput>} locationData - Partial location data to update.
+ * @returns {Promise<void>} Resolves when the update is complete.
+ * @throws {Error} When Supabase returns an error.
+ */
+export async function updateLocation(
+  locationId: string,
+  locationData: Partial<LocationUpsertInput>
+): Promise<void> {
+  const payload: Partial<LocationUpsertInput> = {};
+  if (locationData.name !== undefined) payload.name = locationData.name;
+  if (locationData.country !== undefined) payload.country = locationData.country;
+  if (locationData.country_code !== undefined) payload.country_code = locationData.country_code;
+  if (locationData.lat !== undefined) payload.lat = locationData.lat;
+  if (locationData.lng !== undefined) payload.lng = locationData.lng;
+
+  const { error } = await supabase
+    .from('locations')
+    .update(payload)
+    .eq('id', locationId);
+
+  if (error) {
+    const supabaseError = error as SupabaseErrorWithCode;
+    throw new Error(
+      `Failed to update location: ${supabaseError.message} (code: ${supabaseError.code ?? 'N/A'})`
+    );
+  }
 }

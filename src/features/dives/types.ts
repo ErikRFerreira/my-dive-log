@@ -4,13 +4,7 @@ export type WaterType = 'salt' | 'fresh';
 export type Exposure = 'wet-2mm' | 'wet-3mm' | 'wet-5mm' | 'wet-7mm' | 'semi-dry' | 'dry';
 export type Gas = 'air' | 'nitrox' | 'trimix';
 export type Currents = 'calm' | 'mild' | 'moderate' | 'strong';
-
-export interface DiveLocation {
-  id: string;
-  name: string;
-  country: string | null;
-  country_code: string | null;
-}
+import type { Location as DiveLocation } from '../locations/types';
 
 export interface Dive {
   id: string;

@@ -1,53 +1,48 @@
-import type { Dive } from "@/features/dives";
-import { useMemo } from "react";
-import { MapPin, Waves, Zap } from "lucide-react";
-import StatCard from "@/components/common/StatCard";
+import type { Dive } from '@/features/dives';
+import { useMemo } from 'react';
+import { MapPin, Waves, Zap } from 'lucide-react';
+import StatCard from '@/components/common/StatCard';
 
 type LocationStatsProps = {
   dives: Dive[];
 };
 
+function LocationStats({ dives }: LocationStatsProps) {
+  const totalLocations = useMemo(() => {
+    const ids = dives.map((dive) => dive.locations?.id).filter((id): id is string => !!id);
+    return new Set(ids).size;
+  }, [dives]);
 
+  const totalDives = dives.length;
 
-function LocationStats({dives}: LocationStatsProps) {
+  const averageDepth = useMemo(() => {
+    if (dives.length === 0) return 0;
+    const totalDepth = dives.reduce((sum, dive) => sum + dive.depth, 0);
+    return Math.round(totalDepth / dives.length);
+  }, [dives]);
 
-    const totalLocations = useMemo(() => {
-      const ids = dives
-        .map((dive) => dive.locations?.id)
-        .filter((id): id is string => !!id);
-      return new Set(ids).size;
-    }, [dives]);
-
-    const totalDives = dives.length;
-
-    const averageDepth = useMemo(() => {
-      if (dives.length === 0) return 0;
-      const totalDepth = dives.reduce((sum, dive) => sum + dive.depth, 0);
-      return Math.round(totalDepth / dives.length);
-    }, [dives]);
-
-    return (
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          title="Total Locations"
-          value={totalLocations}
-          icon={<MapPin className="w-6 h-6" />}
-          color="from-teal-500 to-teal-700"
-        />
-        <StatCard
-          title="Total Dives"
-          value={totalDives}
-          icon={<Waves className="w-6 h-6" />}
-          color="from-cyan-500 to-cyan-700"
-        />
-        <StatCard
-          title="Average Depth"
-          value={`${averageDepth} m`}
-          icon={<Zap className="w-6 h-6" />}
-          color="from-blue-500 to-blue-700"
-        />
-      </section>
-    );
+  return (
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <StatCard
+        title="Total Locations"
+        value={totalLocations}
+        icon={<MapPin className="w-6 h-6" />}
+        color="from-teal-500 to-teal-700"
+      />
+      <StatCard
+        title="Total Dives"
+        value={totalDives}
+        icon={<Waves className="w-6 h-6" />}
+        color="from-cyan-500 to-cyan-700"
+      />
+      <StatCard
+        title="Average Depth"
+        value={`${averageDepth} m`}
+        icon={<Zap className="w-6 h-6" />}
+        color="from-blue-500 to-blue-700"
+      />
+    </section>
+  );
 }
 
-export default LocationStats
+export default LocationStats;
