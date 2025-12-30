@@ -1,4 +1,6 @@
+import { getCurrentUserId } from './apiAuth';
 import { supabase } from './supabase';
+
 import type { Location as DiveLocation } from '@/features/locations';
 
 export type LocationUpsertInput = {
@@ -15,22 +17,6 @@ type SupabaseErrorWithCode = {
   message?: string;
 };
 
-/**
- * Get the current authenticated user's ID.
- * 
- * @returns {string} The user ID as a string.
- */
-export async function getCurrentUserId(): Promise<string> {
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error) throw error;
-  if (!user) throw new Error('User must be authenticated');
-
-  return user.id;
-}
 
 /**
  * Find-or-create a location for the current user and return its ID (atomic upsert).
@@ -129,6 +115,33 @@ export async function updateLocation(
     const supabaseError = error as SupabaseErrorWithCode;
     throw new Error(
       `Failed to update location: ${supabaseError.message} (code: ${supabaseError.code ?? 'N/A'})`
+    );
+  }
+}
+
+/**
+ * Toggle the favorite status of a location.
+ * 
+ * @param {string} locationId - ID of the location to toggle favorite status.
+ * @param {boolean} isFavorite - New favorite status.
+ * @returns {Promise<void>} Resolves when the toggle is complete.
+ * @throws {Error} When Supabase returns an error.
+ */
+export async function toggleLocationFavorite(
+  locationId: string,
+  isFavorite: boolean
+): Promise<void> {
+  const { error } = await supabase
+    .from('locations')
+    .update({ is_favorite: isFavorite })
+    .eq('id', locationId)
+    .select('id,is_favorite')
+    .single();
+
+  if (error) {
+    const supabaseError = error as SupabaseErrorWithCode;
+    throw new Error(
+      `Failed to toggle favorite: ${supabaseError.message} (code: ${supabaseError.code ?? 'N/A'})`
     );
   }
 }

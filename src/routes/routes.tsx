@@ -1,9 +1,14 @@
 import ProtectedRoutes from '@/components/layout/ProtectedRoutes';
+import PublicOnlyRoute from '@/components/layout/PublicOnlyRoute';
+import AuthAwareRedirect from '@/components/layout/AuthAwareRedirect';
 import Dive from '@/pages/Dive';
 import Error from '@/pages/Error';
+import AuthCallback from '@/pages/AuthCallback';
+import ForgotPassword from '@/pages/ForgotPassword';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
-import { createBrowserRouter, Navigate } from 'react-router';
+import ResetPassword from '@/pages/ResetPassword';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 
 import AppLayout from '../components/layout/AppLayout';
 import Dashboard from '../pages/Dashboard';
@@ -14,6 +19,7 @@ import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
 
 const router = createBrowserRouter([
+  /* Protected routes */
   {
     element: (
       <ProtectedRoutes>
@@ -56,17 +62,41 @@ const router = createBrowserRouter([
       },
     ],
   },
+  /* Public only routes */
   {
-    path: '/login',
-    element: <Login />,
+    element: (
+      <PublicOnlyRoute>
+        <Outlet />
+      </PublicOnlyRoute>
+    ),
+    children: [
+      {
+        path: '/login',
+        element: <Login />,
+      },
+      {
+        path: '/register',
+        element: <Register />,
+      },
+      {
+        path: '/forgot-password',
+        element: <ForgotPassword />,
+      },
+      {
+        path: '/auth/reset',
+        element: <ResetPassword />,
+      },
+    ],
   },
+  /* Auth callback route */
   {
-    path: '/register',
-    element: <Register />,
+    path: '/auth/callback',
+    element: <AuthCallback />,
   },
+  /* Fallback route */
   {
     path: '*',
-    element: <Navigate to="/dashboard" replace />,
+    element: <AuthAwareRedirect authenticatedTo="/dashboard" unauthenticatedTo="/login" />,
   },
 ]);
 

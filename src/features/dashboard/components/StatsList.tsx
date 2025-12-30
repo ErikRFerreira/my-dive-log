@@ -5,12 +5,10 @@ import { useMemo } from 'react';
 
 type StatsListProps = {
   dives: Dive[];
+  totalDives: number;
 };
 
-function StatsList({ dives }: StatsListProps) {
-
-  const totalDives = dives.length;
-
+function StatsList({ dives, totalDives }: StatsListProps) {
   // Calculate total dives this month
   const totalThisMonth = useMemo(() => {
     return dives.filter((dive) => {
@@ -49,7 +47,8 @@ function StatsList({ dives }: StatsListProps) {
     );
 
     const favLocation = Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
-    const favCountry = dives.find((dive) => dive.locations?.name === favLocation)?.locations?.country || 'N/A';
+    const favCountry =
+      dives.find((dive) => dive.locations?.name === favLocation)?.locations?.country || 'N/A';
     const favCount = locationCounts[favLocation] || 0;
 
     return {

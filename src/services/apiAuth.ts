@@ -1,6 +1,24 @@
 import { supabase } from './supabase';
 
 /**
+ * Get the current authenticated user's ID.
+ * 
+ * @returns {string} The user ID as a string.
+ */
+export async function getCurrentUserId(): Promise<string> {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) throw error;
+  if (!user) throw new Error('User must be authenticated');
+
+  return user.id;
+}
+
+
+/**
  * Sign in a user with Supabase email/password auth.
  *
  * @param {{ email: string; password: string }} params - Credentials to pass to Supabase.
@@ -11,6 +29,98 @@ export async function login({ email, password }: { email: string; password: stri
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+/**
+ * Start a Google OAuth sign-in flow via Supabase.
+ *
+ * Note: this redirects the browser to Google, then back to `redirectTo`.
+ */
+export async function loginWithGoogle({ redirectTo }: { redirectTo?: string } = {}) {
+  const resolvedRedirectTo =
+    redirectTo ??
+    (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined);
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: resolvedRedirectTo ? { redirectTo: resolvedRedirectTo } : undefined,
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+/**
+ * Request a password reset email via Supabase.
+ *
+ * Supabase will email a link that redirects back to `redirectTo`.
+ */
+export async function requestPasswordReset({
+  email,
+  redirectTo,
+}: {
+  email: string;
+  redirectTo?: string;
+}) {
+  const resolvedRedirectTo =
+    redirectTo ??
+    (typeof window !== 'undefined' ? `${window.location.origin}/auth/reset` : undefined);
+
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: resolvedRedirectTo,
+  });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+/**
+ * Update the current user's password (typically used after a recovery link).
+ */
+export async function updatePassword({ password }: { password: string }) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+/**
+ * Create a new user via Supabase email/password auth.
+ *
+ * Depending on your Supabase project settings, this may:
+ * - return a session immediately (email confirmations off), OR
+ * - return a user only and require email confirmation (confirmations on).
+ */
+export async function registerWithEmail({
+  email,
+  password,
+  fullName,
+  emailRedirectTo,
+}: {
+  email: string;
+  password: string;
+  fullName: string;
+  emailRedirectTo?: string;
+}) {
+  const resolvedEmailRedirectTo =
+    emailRedirectTo ??
+    (typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined);
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: resolvedEmailRedirectTo,
+    },
   });
 
   if (error) throw new Error(error.message);

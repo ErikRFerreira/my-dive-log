@@ -1,14 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
-import type { DiveLocation } from '../types';
-import {
-  DEFAULT_MAX_DEPTH,
-  DEBOUNCE_DELAY,
-  MIN_SEARCH_LENGTH,
-} from '@/shared/constants';
+import type { Location as DiveLocation } from '@/features/locations/';
+import { DEFAULT_MAX_DEPTH, DEBOUNCE_DELAY, MIN_SEARCH_LENGTH } from '@/shared/constants';
 import DivesFilterHeaderRow from './DivesFilterHeaderRow';
 import DivesFilterPanel from './DivesFilterPanel';
-
 
 type SortBy = 'date' | 'depth' | 'duration';
 
@@ -51,6 +46,8 @@ function DivesFilter({
   onCountryChange,
   onReset,
 }: DivesFilterProps) {
+  // If a locationId is set, always show filters
+  const filtersVisible = showFilters || !!locationId;
   const [localMaxDepth, setLocalMaxDepth] = useState(maxDepth);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || '');
   const selectedCountry = country ?? '';
@@ -146,7 +143,7 @@ function DivesFilter({
   return (
     <div className="space-y-4">
       <DivesFilterHeaderRow
-        showFilters={showFilters}
+        showFilters={filtersVisible}
         onToggleFilters={onToggleFilters}
         localMaxDepth={localMaxDepth}
         selectedLocationLabel={selectedLocationLabel}
@@ -156,7 +153,7 @@ function DivesFilter({
       />
 
       <DivesFilterPanel
-        show={showFilters}
+        show={filtersVisible}
         sortBy={sortBy}
         onSortByChange={onSortByChange}
         derivedCountry={derivedCountry}

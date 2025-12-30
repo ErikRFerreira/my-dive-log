@@ -12,6 +12,7 @@ type DiveLocationSummary = {
   id: string;
   name: string;
   country: string | null;
+  isFavorite: boolean;
   diveCount: number;
   deepestDive: number;
   lastDiveDate: string;
@@ -63,6 +64,7 @@ function LocationCardsGrid({ dives }: LocationCardsProps) {
           id: location.id,
           name: location.name,
           country: location.country,
+          isFavorite: Boolean(location.is_favorite),
           diveCount: divesAtLocation.length,
           deepestDive,
           lastDiveDate,
@@ -79,10 +81,9 @@ function LocationCardsGrid({ dives }: LocationCardsProps) {
     if (sortBy === 'depth') sorted.sort((a, b) => b.deepestDive - a.deepestDive);
     if (sortBy === 'recent') sorted.sort((a, b) => b.lastDiveTimestamp - a.lastDiveTimestamp);
 
-    // TODO: Favorites support. Once favorites are persisted, filter `sorted` here when
-    // `showFavoritesOnly` is true.
-    return sorted;
-  }, [dives, sortBy]);
+    // If "show favorites only" is enabled, filter out non-favorite locations.
+    return showFavoritesOnly ? sorted.filter((group) => group.isFavorite) : sorted;
+  }, [dives, showFavoritesOnly, sortBy]);
 
   return (
     <>
@@ -93,7 +94,6 @@ function LocationCardsGrid({ dives }: LocationCardsProps) {
         showFavoritesOnly={showFavoritesOnly}
         onShowFavoritesOnlyChange={(next) => {
           setShowFavoritesOnly(next);
-          console.log('showFavoritesOnly:', next);
         }}
       />
 
@@ -108,6 +108,7 @@ function LocationCardsGrid({ dives }: LocationCardsProps) {
             diveCount={group.diveCount}
             deepestDive={group.deepestDive}
             lastDiveDate={group.lastDiveDate}
+            isFavorite={group.isFavorite}
           />
         ))}
       </section>

@@ -1,15 +1,18 @@
+import InlineSpinner from '@/components/common/InlineSpinner';
 import Loading from '@/components/common/Loading';
 import StatCard from '@/components/common/StatCard';
 import NoResults from '@/components/layout/NoResults';
 import GoBack from '@/components/ui/GoBack';
-import { useGetLocationDives } from '@/features/locations';
-import LocationMap from '@/features/locations/components/LocationMap';
+import { useGetLocationDives, LocationMap, LocationRecentDives } from '@/features/locations';
+import { useToggleLocationFavorite } from '@/features/locations/hooks/useToggleLocationFavorite';
 import { useUpdateLocation } from '@/features/locations/hooks/useUpdateLocation';
-import { Calendar, MapPin, TrendingUp, Waves, Zap } from 'lucide-react';
+import { Calendar, MapPin, Star, TrendingUp, Waves, Zap } from 'lucide-react';
 
 function Location() {
   const { dives, isLoading, isError } = useGetLocationDives();
   const { isPending: isUpdatingLocation, mutateAsync: updateLocation } = useUpdateLocation();
+  const { isPending: isTogglingFavorite, mutateAsync: toggleFavoriteMutate } =
+    useToggleLocationFavorite();
 
   if (isLoading) {
     return <Loading />;
@@ -20,10 +23,10 @@ function Location() {
   }
 
   const location = dives?.[0]?.locations ?? null;
-  console.log('Location data:', location);
   const locationId = location?.id ?? null;
   const country = location?.country ?? 'Unknown Country';
   const name = location?.name ?? 'Unknown Location';
+  const is_favorite = location?.is_favorite ?? false;
   const lat = location?.lat ?? null;
   const lng = location?.lng ?? null;
   const totalDives = dives.length;
@@ -54,11 +57,33 @@ function Location() {
     <>
       <header>
         <GoBack />
-        <h1 className="text-3xl font-bold text-foreground">{name}</h1>
-        <p className="text-muted-foreground mt-1 flex items-center gap-1">
-          <MapPin className="w-4 h-4" />
-          {country}
-        </p>
+        <div className="flex gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{name}</h1>
+            <p className="text-muted-foreground mt-1 flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              {country}
+            </p>
+          </div>
+          {isTogglingFavorite ? (
+            <div className="pt-2">
+              <InlineSpinner size={24} />
+            </div>
+          ) : (
+            <button
+              onClick={() =>
+                locationId && toggleFavoriteMutate({ id: locationId, isFavorite: !is_favorite })
+              }
+              className="inline h-10"
+            >
+              <Star
+                className={`w-6 h-6 ${
+                  is_favorite ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'
+                }`}
+              />
+            </button>
+          )}
+        </div>
       </header>
       <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
@@ -88,7 +113,6 @@ function Location() {
       </section>
 
       {/* Map Section */}
-
       <LocationMap
         name={name}
         country={country}
@@ -97,6 +121,9 @@ function Location() {
         onLatLngChange={onLatLngChange}
         isUpdatingLocation={isUpdatingLocation}
       />
+
+      {/* Recent Dives Section */}
+      <LocationRecentDives dives={dives} />
     </>
   );
 }

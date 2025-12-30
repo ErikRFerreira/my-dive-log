@@ -2,7 +2,7 @@ import Button from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MAX_DEPTH_FILTER, MIN_DEPTH_FILTER } from '@/shared/constants';
 
-import type { DiveLocation } from '../types';
+import type { Location as DiveLocation } from '@/features/locations/';
 import type { ChangeEvent } from 'react';
 
 type SortBy = 'date' | 'depth' | 'duration';

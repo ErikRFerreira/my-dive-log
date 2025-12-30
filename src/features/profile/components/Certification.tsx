@@ -3,36 +3,38 @@ import Loading from '@/components/common/Loading';
 import Button from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CERTIFICATION_LEVELS, CERTIFYING_AGENCIES } from '@/shared/constants';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@radix-ui/react-label';
+import { Label } from '@/components/ui/label';
 import { useEffect, useState } from 'react';
 
 import { useGetProfile } from '../hooks/useGetProfile';
 import { useUpsertProfile } from '../hooks/useUpsertProfile';
 
+function matchOption(rawValue: string | null | undefined, options: readonly string[]) {
+  const raw = (rawValue ?? '').trim();
+  if (!raw) return '';
+
+  const lower = raw.toLowerCase();
+  return options.find((opt) => opt.toLowerCase() === lower) ?? '';
+}
+
 function Certification() {
   const { profile, isLoading } = useGetProfile();
   const { isPending, mutateUpsert } = useUpsertProfile();
-  const levelFromProfile = profile?.cert_level ?? '';
-  const agencyFromProfile = profile?.agency ?? '';
   const [level, setLevel] = useState('');
   const [agency, setAgency] = useState('');
 
   useEffect(() => {
-    if (levelFromProfile) setLevel(levelFromProfile);
-    if (agencyFromProfile) setAgency(agencyFromProfile);
-  }, [agencyFromProfile, levelFromProfile]);
+    setLevel(matchOption(profile?.cert_level, CERTIFICATION_LEVELS));
+    setAgency(matchOption(profile?.agency, CERTIFYING_AGENCIES));
+  }, [profile?.agency, profile?.cert_level]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    mutateUpsert({ cert_level: level, agency: agency });
+    mutateUpsert({
+      cert_level: level || null,
+      agency: agency || null,
+    });
   };
 
   if (isLoading) return <Loading />;
@@ -48,33 +50,41 @@ function Certification() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="cert">Certification Level</Label>
-              <Select onValueChange={(value) => setLevel(value)} value={level}>
-                <SelectTrigger id="cert" className="border-slate-700">
-                  <SelectValue placeholder="Select certification level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CERTIFICATION_LEVELS.map((cert) => (
-                    <SelectItem key={cert} value={cert}>
-                      {cert}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                id="cert"
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+                disabled={isPending}
+                className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-slate-700 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="" disabled>
+                  Select certification level
+                </option>
+                {CERTIFICATION_LEVELS.map((cert) => (
+                  <option key={cert} value={cert}>
+                    {cert}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="agency">Certifying Agency</Label>
-              <Select onValueChange={(value) => setAgency(value)} value={agency}>
-                <SelectTrigger id="agency" className="border-slate-700">
-                  <SelectValue placeholder="Select certifying agency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CERTIFYING_AGENCIES.map((agency) => (
-                    <SelectItem key={agency} value={agency}>
-                      {agency}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                id="agency"
+                value={agency}
+                onChange={(e) => setAgency(e.target.value)}
+                disabled={isPending}
+                className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-slate-700 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="" disabled>
+                  Select certifying agency
+                </option>
+                {CERTIFYING_AGENCIES.map((agencyOption) => (
+                  <option key={agencyOption} value={agencyOption}>
+                    {agencyOption}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <Button

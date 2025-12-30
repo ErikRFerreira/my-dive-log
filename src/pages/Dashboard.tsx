@@ -7,11 +7,15 @@ import MonthlyChart from '@/features/dashboard/components/MonthlyChart';
 import NoResults from '@/components/layout/NoResults';
 
 function Dashboard() {
-  const { dives, isLoading, isError, refetch } = useGetDives();
+  const { dives, isLoading, isError, totalCount, refetch } = useGetDives({
+    sortBy: 'date',
+  });
 
   const hasDives = (dives?.length ?? 0) > 0;
   const lastThreeDives = hasDives
-    ? [...dives!].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3)
+    ? [...dives!]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 3)
     : [];
 
   return (
@@ -32,15 +36,11 @@ function Dashboard() {
           <Button onClick={() => refetch()}>Retry</Button>
         </NoResults>
       ) : !hasDives ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            No dives logged yet. Start by adding your first dive!
-          </p>
-        </div>
+        <NoResults>No dives logged yet. Start by adding your first dive!</NoResults>
       ) : (
         <>
           {/* Stats list grid */}
-          <StatsList dives={dives} />
+          <StatsList dives={dives} totalDives={totalCount} />
 
           {/* Recent dives */}
           <DiveList title="Recent Dives" dives={lastThreeDives} />

@@ -2,6 +2,8 @@ import Button from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useToggleLocationFavorite } from '../hooks/useToggleLocationFavorite';
+import InlineSpinner from '@/components/common/InlineSpinner';
 
 type LocationCardProps = {
   id: string;
@@ -10,6 +12,7 @@ type LocationCardProps = {
   diveCount: number;
   deepestDive: number;
   lastDiveDate: string;
+  isFavorite: boolean;
 };
 
 function LocationCard({
@@ -19,8 +22,11 @@ function LocationCard({
   diveCount,
   deepestDive,
   lastDiveDate,
+  isFavorite,
 }: LocationCardProps) {
   const navigate = useNavigate();
+  const { isPending: isTogglingFavorite, mutateAsync: toggleFavoriteMutate } =
+    useToggleLocationFavorite();
 
   return (
     <Card
@@ -37,10 +43,16 @@ function LocationCard({
             </p>
           </div>
           <button
-            //onClick={() => toggleFavorite(id)}
+            onClick={() => toggleFavoriteMutate({ id, isFavorite: !isFavorite })}
             className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
           >
-            <Heart className="w-5 h-5 text-muted-foreground" />
+            {isTogglingFavorite ? (
+              <InlineSpinner />
+            ) : isFavorite ? (
+              <Heart className="w-5 h-5 text-red-500" fill="currentColor" />
+            ) : (
+              <Heart className="w-5 h-5 text-muted-foreground" />
+            )}
           </button>
         </div>
       </CardHeader>

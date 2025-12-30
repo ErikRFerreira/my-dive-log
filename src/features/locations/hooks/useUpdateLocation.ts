@@ -15,6 +15,7 @@ export function useUpdateLocation() {
 			// Invalidate and refetch
 			queryClient.invalidateQueries({ queryKey: ['locations'] });
 			queryClient.invalidateQueries({ queryKey: ['location', id] });
+			queryClient.invalidateQueries({ queryKey: ['location-dives'] });
 			// Show success toast
 			toast.success('Location updated successfully.');
 		},

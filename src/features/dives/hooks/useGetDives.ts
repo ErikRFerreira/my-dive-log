@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useUser } from '@/features/authentication';
 
 import { getDives } from '../../../services/apiDives';
 
@@ -13,6 +14,9 @@ export type DiveFilters = {
 };
 
 export function useGetDives(filters?: DiveFilters) {
+  const { user } = useUser();
+  const userId = user?.id;
+
   const {
     sortBy,
     maxDepth,
@@ -32,6 +36,7 @@ export function useGetDives(filters?: DiveFilters) {
   } = useQuery({
     queryKey: [
       'dives',
+      userId,
       sortBy,
       maxDepth,
       locationId,
@@ -40,6 +45,7 @@ export function useGetDives(filters?: DiveFilters) {
       pageSize,
       searchQuery,
     ],
+    enabled: !!userId,
     queryFn: () => getDives(filters),
     placeholderData: keepPreviousData,
   });

@@ -2,7 +2,8 @@ import type { Dive, NewDiveInput, UpdateDivePatch } from '@/features/dives';
 import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
-import { getCurrentUserId, getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';
+import { getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';
+import { getCurrentUserId } from './apiAuth';
 
 
 /**
@@ -13,10 +14,13 @@ import { getCurrentUserId, getOrCreateLocationId, getOrCreateLocationIdForCurren
  * @throws {Error} When Supabase returns an error.
  */
 export async function getDiveById(id: string): Promise<Dive | null> {
+  const userId = await getCurrentUserId();
+
   const { data, error } = await supabase
     .from('dives')
     .select('*, locations(id, name, country, country_code)')
     .eq('id', id)
+    .eq('user_id', userId)
     .single();
   if (error) throw error;
   return data ?? null;
@@ -33,9 +37,13 @@ export async function getDives(filters?: DiveFilters): Promise<{
   dives: Dive[];
   totalCount: number;
 } | null> {
+  const userId = await getCurrentUserId();
+
   let query = supabase
     .from('dives')
-    .select('*, locations(id, name, country, country_code)', { count: 'exact' });
+    .select('*, locations(id, name, country, country_code, is_favorite)', { count: 'exact' });
+
+  query = query.eq('user_id', userId);
 
   // Apply depth filter
   if (filters?.maxDepth) {
@@ -47,6 +55,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
     const { data: locationMatches, error: locationError } = await supabase
       .from('locations')
       .select('id')
+      .eq('user_id', userId)
       .eq('country', filters.country)
       .limit(1000);
 
@@ -73,6 +82,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
     const { data: locationMatches, error: locationError } = await supabase
       .from('locations')
       .select('id')
+      .eq('user_id', userId)
       .or(`name.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
       .limit(1000);
 
@@ -92,12 +102,15 @@ export async function getDives(filters?: DiveFilters): Promise<{
   const sortBy = filters?.sortBy || 'date';
   query = query.order(sortBy, { ascending: false });
 
-  // Apply pagination
-  const page = filters?.page ?? 1;
-  const pageSize = filters?.pageSize ?? ITEMS_PER_PAGE;
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
-  query = query.range(from, to);
+  // Apply pagination (opt-in).
+  // If the caller doesn't specify pagination, return all matching rows.
+  if (filters?.page !== undefined || filters?.pageSize !== undefined) {
+    const page = filters?.page ?? 1;
+    const pageSize = filters?.pageSize ?? ITEMS_PER_PAGE;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    query = query.range(from, to);
+  }
 
   const { data, error, count } = await query;
 
@@ -154,7 +167,9 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
  * @throws {Error} When Supabase returns an error.
  */
 export async function deleteDive(id: string): Promise<boolean> {
-  const { error } = await supabase.from('dives').delete().eq('id', id);
+  const userId = await getCurrentUserId();
+
+  const { error } = await supabase.from('dives').delete().eq('id', id).eq('user_id', userId);
   if (error) throw error;
   return true;
 }
@@ -168,6 +183,8 @@ export async function deleteDive(id: string): Promise<boolean> {
  * @throws {Error} When Supabase returns an error.
  */
 export async function updateDive(id: string, diveData: UpdateDivePatch): Promise<Dive | null> {
+  const userId = await getCurrentUserId();
+
   // `UpdateDivePatch` is mostly real `dives` table columns (date, depth, notes, etc.),
   // but it also allows "virtual" fields for updating the related location:
   //
@@ -213,6 +230,7 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
     .from('dives')
     .update(patch)
     .eq('id', id)
+    .eq('user_id', userId)
     .select('*, locations(id, name, country, country_code)')
     .single();
 
@@ -227,10 +245,13 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
  * @returns {Promise<Dive[] | null>} List of dives at the specified location.
  */
 export async function getDivesByLocationId(locationId: string) {
+  const userId = await getCurrentUserId();
+
   const { data, error } = await supabase
     .from('dives')
-    .select('*, locations(id, name, country, country_code, lat, lng)')
-    .eq('location_id', locationId);
+    .select('*, locations(id, name, country, country_code, lat, lng, is_favorite)')
+    .eq('location_id', locationId)
+    .eq('user_id', userId);
   if (error) throw error;
   return data ?? [];
 }

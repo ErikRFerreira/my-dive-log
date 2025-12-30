@@ -9,15 +9,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { useGoogleLogin } from '../hooks/useGoogleLogin';
-import { useLogin } from '../hooks/useLogin';
-import { loginSchema, type LoginFormValues } from '../schemas/authSchemas';
+import { useRegister } from '../hooks/useRegister';
+import { registerSchema, type RegisterFormValues } from '../schemas/authSchemas';
 import { useState } from 'react';
 
-function LoginForm() {
+function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLogingIn } = useLogin();
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { register: registerUser, isRegistering } = useRegister();
   const { loginWithGoogle, isGoogleLoggingIn } = useGoogleLogin();
-
   const navigate = useNavigate();
 
   const {
@@ -25,28 +25,47 @@ function LoginForm() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
     mode: 'onBlur',
   });
 
-  const isBusy = isLogingIn || isGoogleLoggingIn || isSubmitting;
+  const isBusy = isRegistering || isGoogleLoggingIn || isSubmitting;
 
-  const onSubmit = (values: LoginFormValues) => {
-    login(values, {
-      onSettled: () => reset(),
-    });
+  const onSubmit = (values: RegisterFormValues) => {
+    registerUser(
+      { fullName: values.fullName, email: values.email, password: values.password },
+      { onSettled: () => reset() }
+    );
   };
 
   return (
     <Card className="bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 shadow-lg">
       <CardHeader className="space-y-2">
-        <CardTitle className="text-2xl text-slate-900 dark:text-white">Sign In</CardTitle>
-        <CardDescription>Enter your credentials to access your dive log</CardDescription>
+        <CardTitle className="text-2xl text-slate-900 dark:text-white">Create Account</CardTitle>
+        <CardDescription>Sign up with your details or use Google</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <div className="space-y-2">
+            <Label htmlFor="fullName" className="text-slate-700 dark:text-slate-300">
+              Full Name
+            </Label>
+            <Input
+              id="fullName"
+              type="text"
+              autoComplete="name"
+              aria-invalid={!!errors.fullName}
+              disabled={isBusy}
+              className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+              {...register('fullName')}
+            />
+            {errors.fullName?.message && (
+              <p className="text-xs text-destructive">{errors.fullName.message}</p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">
               Email
@@ -54,7 +73,6 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
               autoComplete="email"
               aria-invalid={!!errors.email}
               disabled={isBusy}
@@ -75,7 +93,7 @@ function LoginForm() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 aria-invalid={!!errors.password}
                 disabled={isBusy}
                 className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 pr-10"
@@ -94,15 +112,36 @@ function LoginForm() {
             {errors.password?.message && (
               <p className="text-xs text-destructive">{errors.password.message}</p>
             )}
-            <div className="flex justify-end">
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-slate-700 dark:text-slate-300">
+              Confirm Password
+            </Label>
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                aria-invalid={!!errors.confirmPassword}
+                disabled={isBusy}
+                className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 pr-10"
+                {...register('confirmPassword')}
+              />
               <button
                 type="button"
-                onClick={() => navigate('/forgot-password')}
-                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                tabIndex={-1}
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 p-1"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
               >
-                Forgot password?
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+            {errors.confirmPassword?.message && (
+              <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
+            )}
           </div>
 
           <Button
@@ -110,8 +149,8 @@ function LoginForm() {
             disabled={isBusy}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {isLogingIn ? 'Signing in...' : 'Sign In'}
-            {isLogingIn && <InlineSpinner />}
+            {isRegistering ? 'Creating account...' : 'Create Account'}
+            {isRegistering && <InlineSpinner />}
           </Button>
         </form>
 
@@ -134,12 +173,12 @@ function LoginForm() {
         </Button>
 
         <div className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
-          Don't have an account?{' '}
+          Already have an account?{' '}
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate('/login')}
             className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
           >
-            Sign up
+            Sign in
           </button>
         </div>
       </CardContent>
@@ -147,4 +186,4 @@ function LoginForm() {
   );
 }
 
-export default LoginForm;
+export default RegisterForm;
