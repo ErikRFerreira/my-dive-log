@@ -134,7 +134,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
           id="location"
           type="text"
           disabled={isLoadingLocations}
-          placeholder="ex: Great Barrier Reef"
+          placeholder="Ex: Manta Point, Nusa Penida"
           aria-invalid={!!errors.location}
           autoComplete="off"
           list="location-suggestions"
