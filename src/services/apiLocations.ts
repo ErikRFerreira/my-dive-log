@@ -145,3 +145,22 @@ export async function toggleLocationFavorite(
     );
   }
 }
+
+/**
+ * Update the latitude and longitude of a location by its ID.
+ * 
+ * @param {string} id - Location ID
+ * @param { lat: number | null; lng: number | null } coords - New coordinates
+ * @returns {Promise<DiveLocation>} Updated location data
+ */
+export async function updateLocationCoords(id: string, coords: { lat: number | null; lng: number | null }) {
+  const { data, error } = await supabase
+    .from('locations')
+    .update(coords)
+    .eq('id', id)
+    .select('id,lat,lng')
+    .single();
+
+  if (error) throw error;
+  return data;
+}

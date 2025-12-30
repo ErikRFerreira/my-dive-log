@@ -4,6 +4,7 @@ import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';
 import { getCurrentUserId } from './apiAuth';
+import { geocodeLocation } from './apiGeocode';
 
 
 /**
@@ -141,6 +142,44 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     country_code: diveData.locationCountryCode ?? null,
   });
 
+  // Attempt to geocode the location in the background if we have a country code
+  const geocodePromise = (async () => {
+    const countryCode = diveData.locationCountryCode?.trim();
+    if (!countryCode) return;
+
+    try {
+      const { lat, lng } = await geocodeLocation({
+        name: diveData.locationName,
+        country_code: countryCode,
+      });
+
+      if (typeof lat !== 'number' || typeof lng !== 'number') return;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+      const { data: existing, error: existingError } = await supabase
+        .from('locations')
+        .select('lat,lng')
+        .eq('id', locationId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existingError || !existing) return;
+      if (existing.lat !== null || existing.lng !== null) return;
+
+      const { error: updateError } = await supabase
+        .from('locations')
+        .update({ lat, lng })
+        .eq('id', locationId)
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.warn('Geocoded coords could not be saved:', updateError);
+      }
+    } catch (error) {
+      console.warn('Geocoding failed, continuing without coordinates:', error);
+    }
+  })();
+
   const insertPayload = {
     user_id: userId,
     date: diveData.date,
@@ -156,6 +195,9 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     .select('*, locations(id, name, country, country_code)')
     .single();
   if (error) throw error;
+
+  await geocodePromise;
+
   return data ?? null;
 }
 

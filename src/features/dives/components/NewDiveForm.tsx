@@ -1,17 +1,19 @@
 import { Controller, useForm } from 'react-hook-form';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
-import { useAddDive } from '../hooks/useAddDive';
-
-import type { NewDiveInput } from '../types';
-import { COUNTRIES } from '../../../shared/data/countries';
 import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createDiveSchema, type CreateDiveInput } from '../schemas/createDiveSchema';
-import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+
 import Button from '@/components/ui/button';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+
+import { COUNTRIES } from '../../../shared/data/countries';
+import { useAddDive } from '../hooks/useAddDive';
 import { useGetLocations } from '../hooks/useGetLocations';
+import { createDiveSchema, type CreateDiveInput } from '../schemas/createDiveSchema';
+import type { NewDiveInput } from '../types';
+import CountryCombobox from './CountryCombobox';
 
 type SubmittedDive = {
   date: string;
@@ -37,6 +39,9 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
     return map;
   }, []);
 
+  // Get today's date in yyyy-mm-dd format
+  const today = new Date().toISOString().slice(0, 10);
+
   const {
     register,
     handleSubmit,
@@ -46,7 +51,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   } = useForm<CreateDiveInput>({
     resolver: zodResolver(createDiveSchema),
     defaultValues: {
-      date: '',
+      date: today,
       location: '',
       depth: undefined,
       duration: undefined,
@@ -131,7 +136,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
           disabled={isLoadingLocations}
           placeholder="ex: Great Barrier Reef"
           aria-invalid={!!errors.location}
-          autoComplete='off'
+          autoComplete="off"
           list="location-suggestions"
           {...register('location')}
         />
@@ -148,7 +153,7 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
         <Controller
           name="country_code"
           control={control}
-          render={({ field }) => <CountryCombobox field={field} error={errors.country_code} />}
+          render={({ field }) => <CountryCombobox field={field} />}
         />
         {errors.country_code && <FieldError>{errors.country_code.message}</FieldError>}
       </Field>
@@ -208,89 +213,6 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
         </Button>
       </div>
     </form>
-  );
-}
-
-type CountryComboboxProps = {
-  field: {
-    name: string;
-    value: string;
-    onChange: (value: string) => void;
-    onBlur: () => void;
-  };
-  error?: unknown;
-};
-
-function CountryCombobox({ field }: CountryComboboxProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
-
-  useEffect(() => {
-    if (!field.value) {
-      setQuery('');
-      return;
-    }
-
-    const match = COUNTRIES.find((c) => c.code.toUpperCase() === field.value.toUpperCase());
-    setQuery(match?.name ?? field.value);
-  }, [field.value]);
-
-  const filtered = useMemo(() => {
-    const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return COUNTRIES.slice(0, 40);
-
-    return COUNTRIES.filter((c) => c.name.toLowerCase().includes(trimmed)).slice(0, 40);
-  }, [query]);
-
-  return (
-    <div className="relative">
-      <Input
-        id={field.name}
-        role="combobox"
-        aria-expanded={isOpen}
-        aria-controls="country-options"
-        placeholder="Type to search…"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        onBlur={() => {
-          field.onBlur();
-          window.setTimeout(() => setIsOpen(false), 100);
-        }}
-      />
-
-      {isOpen && (
-        <div
-          id="country-options"
-          role="listbox"
-          className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md max-h-64 overflow-y-auto"
-        >
-          {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-muted-foreground">No matches</div>
-          ) : (
-            filtered.map((c) => (
-              <button
-                key={c.code}
-                type="button"
-                role="option"
-                className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  field.onChange(c.code);
-                  setQuery(c.name);
-                  setIsOpen(false);
-                }}
-              >
-                {c.name}
-              </button>
-            ))
-          )}
-        </div>
-      )}
-    </div>
   );
 }
 
