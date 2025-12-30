@@ -16,6 +16,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    // Vercel parses JSON automatically when `Content-Type: application/json` is provided.
+    // If a client sends invalid JSON, `req.body` access can throw (statusCode: 400).
     const raw = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const body = raw as Body;
 
@@ -74,6 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ lat, lng });
   } catch (err: any) {
+    if (err?.statusCode === 400 && `${err?.message ?? ''}`.toLowerCase().includes('invalid json')) {
+      return res.status(400).json({
+        error: 'Invalid JSON body',
+        details:
+          'Send a JSON payload with header Content-Type: application/json, e.g. {"name":"Blue Lagoon","country_code":"PT"}',
+      });
+    }
+
     console.error('geocode-location error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
