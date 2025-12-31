@@ -1,12 +1,12 @@
 type InlineSpinnerProps = React.ComponentProps<'span'> & { size?: number };
 
-function InlineSpinner({ size = 14, ...rest }: InlineSpinnerProps) {
+function InlineSpinner({ size = 14, style, ...rest }: InlineSpinnerProps) {
   return (
     <span
       {...rest}
       role="status"
       aria-live="polite"
-      style={{ display: 'inline-flex', marginLeft: 8 }}
+      style={{ display: 'inline-flex', marginLeft: 8, ...style }}
     >
       <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
         <circle

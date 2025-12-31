@@ -45,3 +45,47 @@ export async function upsertUserProfile(
   if (error) throw error;
   return data;
 }
+
+/**
+ * Uploads a user's avatar image to Supabase Storage and updates the profile with the avatar path.
+ * 
+ * @param {string} userId - The unique identifier of the user.
+ * @param {File} file - The avatar image file to be uploaded.
+ * @returns {Promise<string>} The path of the uploaded avatar image.
+ */
+export async function uploadAvatar(userId: string, file: File) {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const path = `${userId}/avatar.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (uploadError) throw uploadError;
+
+  // store path on profile
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ avatar_path: path })
+    .eq('id', userId);
+
+  if (profileError) throw profileError;
+
+  return path;
+}
+
+
+/**
+ * Generates a signed URL for accessing a user's avatar image stored in Supabase Storage.
+ * 
+ * @param {string} path - The storage path of the avatar image.
+ * @returns {Promise<string>} The signed URL for accessing the avatar image.
+ */
+export async function getAvatarSignedUrl(path: string) {
+  const { data, error } = await supabase.storage
+    .from('avatars')
+    .createSignedUrl(path, 60 * 10); // 10 minutes
+
+  if (error) throw error;
+  return data.signedUrl;
+}

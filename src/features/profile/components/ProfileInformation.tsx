@@ -6,16 +6,84 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mail, User as UserIcon, Calendar } from 'lucide-react';
 import { getUserAvatarData } from '@/shared/utils/userAvatar';
+import { useEffect, useRef, useState } from 'react';
+import type { UserProfile } from '@/features/profile';
+import toast from 'react-hot-toast';
+import { AVATAR_ALLOWED_MIME_TYPES, prepareAvatarUpload } from '@/shared/utils/avatarUpload';
+import { useUploadAvatar } from '../hooks/useUploadAvatar';
+import { useAvatarSignedUrl } from '../hooks/useAvatarSignedUrl';
+import InlineSpinner from '@/components/common/InlineSpinner';
+import { getAvatarDisplay } from '@/shared/utils/avatarDisplay';
 
 type ProfileProps = {
   user: User | undefined;
+  profile: UserProfile | null | undefined;
+  isLoading: boolean;
+  isSaving: boolean;
+  onUpsert: (profileData: Partial<UserProfile>) => void;
 };
 
-function ProfileInformation({ user }: ProfileProps) {
+function ProfileInformation({ user, profile, isLoading, isSaving, onUpsert }: ProfileProps) {
+  const [bio, setBio] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { signedUrl, isLoading: isLoadingAvatarUrl } = useAvatarSignedUrl(profile?.avatar_path);
+  const { isPending: isUploadingAvatar, uploadAvatar } = useUploadAvatar(user?.id);
+  const [imageStatus, setImageStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
+
+  useEffect(() => {
+    setBio(profile?.bio ?? '');
+  }, [profile?.bio]);
+
+  const handleSave = () => {
+    const normalizedBio = bio.trim();
+    onUpsert({ bio: normalizedBio ? normalizedBio : null });
+  };
+
+  const handlePickAvatar = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!user) return;
+
+    try {
+      const prepared = await prepareAvatarUpload(file, { maxBytes: 100_000, maxDimension: 256 });
+      await uploadAvatar(prepared);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to process avatar image.';
+      toast.error(message);
+    }
+  };
+
+  const { avatarUrl: fallbackAvatarUrl, initials } = getUserAvatarData(user);
+
+  const hasStoredAvatar = !!profile?.avatar_path;
+  const isProfileResolved = profile !== undefined && !isLoading;
+  const { avatarUrl, isPending } = getAvatarDisplay({
+    isProfileResolved,
+    hasStoredAvatar,
+    signedUrl,
+    isLoadingSignedUrl: isLoadingAvatarUrl,
+    googleAvatarUrl: fallbackAvatarUrl,
+  });
+
+  useEffect(() => {
+    if (!avatarUrl) {
+      setImageStatus('idle');
+      return;
+    }
+    setImageStatus('loading');
+  }, [avatarUrl]);
+
+  const showSpinner = isUploadingAvatar || isPending || imageStatus === 'loading';
+
   if (!user) return null;
 
   const { email } = user;
-  const joinDate = user?.created_at
+  const joinDate = user.created_at
     ? new Date(user.created_at).toLocaleDateString(undefined, {
         year: 'numeric',
         month: 'long',
@@ -24,7 +92,6 @@ function ProfileInformation({ user }: ProfileProps) {
     : 'N/A';
 
   const fullName = (user.user_metadata?.full_name as string | undefined) ?? '';
-  const { avatarUrl, initials } = getUserAvatarData(user);
 
   return (
     <Card>
@@ -40,16 +107,39 @@ function ProfileInformation({ user }: ProfileProps) {
               src={avatarUrl || undefined}
               alt="User Avatar"
               referrerPolicy="no-referrer"
+              onLoadingStatusChange={(status) => {
+                if (status === 'idle') setImageStatus('idle');
+                if (status === 'loading') setImageStatus('loading');
+                if (status === 'loaded') setImageStatus('loaded');
+                if (status === 'error') setImageStatus('error');
+              }}
             />
             <AvatarFallback className="bg-transparent text-white font-semibold">
-              {initials || 'U'}
+              {showSpinner ? (
+                <InlineSpinner size={22} style={{ marginLeft: 0 }} />
+              ) : (
+                initials || 'U'
+              )}
             </AvatarFallback>
           </Avatar>
           <div>
-            <Button variant="outline" className="gap-2 bg-transparent">
-              Change Avatar
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={AVATAR_ALLOWED_MIME_TYPES.join(',')}
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2 bg-transparent"
+              onClick={handlePickAvatar}
+              disabled={isLoading || isSaving || isUploadingAvatar || isLoadingAvatarUrl}
+            >
+              {isUploadingAvatar ? 'Uploading…' : 'Change Avatar'}
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">JPG, PNG or GIF (max 2MB)</p>
+            <p className="text-xs text-muted-foreground mt-2">JPG, PNG, or WebP (max 100KB)</p>
           </div>
         </div>
 
@@ -71,6 +161,7 @@ function ProfileInformation({ user }: ProfileProps) {
             <Input
               id="email"
               type="email"
+              disabled
               placeholder={email}
               defaultValue={email}
               className="bg-slate-900/50 border-slate-700"
@@ -95,14 +186,21 @@ function ProfileInformation({ user }: ProfileProps) {
             <Label htmlFor="bio">Bio</Label>
             <textarea
               id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              disabled={isLoading || isSaving}
               className="w-full px-3 py-2 bg-slate-900/50 border border-slate-700 rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-teal-500"
               rows={4}
             />
           </div>
         </div>
 
-        <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700">
-          Save Changes
+        <Button
+          disabled={isLoading || isSaving}
+          className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700"
+          onClick={handleSave}
+        >
+          {isSaving ? 'Saving…' : 'Save Changes'}
         </Button>
       </CardContent>
     </Card>

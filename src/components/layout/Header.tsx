@@ -7,12 +7,40 @@ import { useLogout } from '@/features/authentication/hooks/useLogout';
 import InlineSpinner from '../common/InlineSpinner';
 import { useUser } from '@/features/authentication/hooks/useUser';
 import { getUserAvatarData } from '@/shared/utils/userAvatar';
+import { useGetProfile } from '@/features/profile/hooks/useGetProfile';
+import { useAvatarSignedUrl } from '@/features/profile/hooks/useAvatarSignedUrl';
+import { getAvatarDisplay } from '@/shared/utils/avatarDisplay';
+import { useEffect, useState } from 'react';
 
 function Header() {
   const { logout, isLoggingOut } = useLogout();
   const { user, isLoading, isError } = useUser();
 
-  const { avatarUrl, initials } = getUserAvatarData(user);
+  const { profile, isLoading: isProfileLoading } = useGetProfile(user?.id);
+  const { signedUrl, isLoading: isLoadingSignedUrl } = useAvatarSignedUrl(profile?.avatar_path);
+
+  const { avatarUrl: fallbackAvatarUrl, initials } = getUserAvatarData(user);
+  const isProfileResolved = profile !== undefined && !isProfileLoading;
+  const hasStoredAvatar = !!profile?.avatar_path;
+  const { avatarUrl, isPending } = getAvatarDisplay({
+    isProfileResolved,
+    hasStoredAvatar,
+    signedUrl,
+    isLoadingSignedUrl,
+    googleAvatarUrl: fallbackAvatarUrl,
+  });
+
+  const [imageStatus, setImageStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
+
+  useEffect(() => {
+    if (!avatarUrl) {
+      setImageStatus('idle');
+      return;
+    }
+    setImageStatus('loading');
+  }, [avatarUrl]);
+
+  const showSpinner = !!user && !isError && (isPending || imageStatus === 'loading');
 
   return (
     <header className="col-start-2 row-start-1 h-20 border-b border-border bg-card flex items-center justify-between px-8 shadow-sm">
@@ -24,8 +52,20 @@ function Header() {
             src={avatarUrl || undefined}
             alt="User avatar"
             referrerPolicy="no-referrer"
+            onLoadingStatusChange={(status) => {
+              if (status === 'idle') setImageStatus('idle');
+              if (status === 'loading') setImageStatus('loading');
+              if (status === 'loaded') setImageStatus('loaded');
+              if (status === 'error') setImageStatus('error');
+            }}
           />
-          <AvatarFallback>{isLoading || isError ? '…' : initials || 'U'}</AvatarFallback>
+          <AvatarFallback>
+            {showSpinner || isLoading ? (
+              <InlineSpinner size={18} style={{ marginLeft: 0 }} />
+            ) : (
+              initials || 'U'
+            )}
+          </AvatarFallback>
         </Avatar>
         <Button
           variant="ghost"

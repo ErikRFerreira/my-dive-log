@@ -1,10 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { upsertUserProfile } from '../../../services/apiProfile';
-import { useUser } from '@/features/authentication';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
 import type { UserProfile } from '@/features/profile';
 
-export function useUpsertProfile() {
-  const { user } = useUser();
+export function useUpsertProfile(userId: string | undefined) {
   const queryClient = useQueryClient();
 
   // Partial - a type representing a subset of UserProfile fields
@@ -12,14 +11,14 @@ export function useUpsertProfile() {
   // This is useful for updates where not all fields are required
   const { isPending, mutate: mutateUpsert } = useMutation({
     mutationFn: (profileData: Partial<UserProfile>) => {
-      if (!user?.id) {
+      if (!userId) {
         return Promise.reject('Missing user ID');
       }
-      return upsertUserProfile(user.id, profileData);
+      return upsertUserProfile(userId, profileData);
     },
     onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },
     onError: (error) => {
       console.error('Error updating profile:', error);

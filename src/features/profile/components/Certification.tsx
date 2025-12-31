@@ -6,8 +6,7 @@ import { CERTIFICATION_LEVELS, CERTIFYING_AGENCIES } from '@/shared/constants';
 import { Label } from '@/components/ui/label';
 import { useEffect, useState } from 'react';
 
-import { useGetProfile } from '../hooks/useGetProfile';
-import { useUpsertProfile } from '../hooks/useUpsertProfile';
+import type { UserProfile } from '@/features/profile';
 
 function matchOption(rawValue: string | null | undefined, options: readonly string[]) {
   const raw = (rawValue ?? '').trim();
@@ -17,9 +16,14 @@ function matchOption(rawValue: string | null | undefined, options: readonly stri
   return options.find((opt) => opt.toLowerCase() === lower) ?? '';
 }
 
-function Certification() {
-  const { profile, isLoading } = useGetProfile();
-  const { isPending, mutateUpsert } = useUpsertProfile();
+type CertificationProps = {
+  profile: UserProfile | null | undefined;
+  isLoading: boolean;
+  isSaving: boolean;
+  onUpsert: (profileData: Partial<UserProfile>) => void;
+};
+
+function Certification({ profile, isLoading, isSaving, onUpsert }: CertificationProps) {
   const [level, setLevel] = useState('');
   const [agency, setAgency] = useState('');
 
@@ -31,7 +35,7 @@ function Certification() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    mutateUpsert({
+    onUpsert({
       cert_level: level || null,
       agency: agency || null,
     });
@@ -54,7 +58,7 @@ function Certification() {
                 id="cert"
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
-                disabled={isPending}
+                disabled={isSaving}
                 className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-slate-700 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="" disabled>
@@ -73,7 +77,7 @@ function Certification() {
                 id="agency"
                 value={agency}
                 onChange={(e) => setAgency(e.target.value)}
-                disabled={isPending}
+                disabled={isSaving}
                 className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-slate-700 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="" disabled>
@@ -89,10 +93,10 @@ function Certification() {
           </div>
           <Button
             type="submit"
-            disabled={isPending}
+            disabled={isSaving}
             className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700"
           >
-            {isPending ? (
+            {isSaving ? (
               <>
                 saving... <InlineSpinner />
               </>

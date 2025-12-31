@@ -1,11 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUserProfile } from '../../../services/apiProfile';
-import { useUser } from '@/features/authentication';
 
-export function useGetProfile() {
-  const { user } = useUser();
-  const userId = user?.id;
-
+export function useGetProfile(userId: string | undefined) {
   const {
     data: profile,
     isLoading,
