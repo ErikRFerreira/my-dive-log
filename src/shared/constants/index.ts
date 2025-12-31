@@ -6,6 +6,9 @@
 export const ITEMS_PER_PAGE = 5;
 export const PAGINATION_ELLIPSIS_THRESHOLD = 7; // Show ellipsis if more than this many pages
 
+// Unit systems
+export type UnitSystem = 'metric' | 'imperial';
+
 // Filter defaults
 export const DEFAULT_MAX_DEPTH = 50;
 export const MIN_DEPTH_FILTER = 15;

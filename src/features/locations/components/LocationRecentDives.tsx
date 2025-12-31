@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react';
 import type { Dive } from '@/features/dives/';
 import { useNavigate } from 'react-router';
 import { useDiveFilterStore } from '@/store/diveFilterStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 type LocationRecentDivesProps = {
   dives: Dive[];
@@ -12,6 +14,7 @@ type LocationRecentDivesProps = {
 function LocationRecentDives({ dives }: LocationRecentDivesProps) {
   const { setLocationId, setCurrentPage } = useDiveFilterStore();
   const navigate = useNavigate();
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
 
   const setFilterLocationId = (locationId: string | null) => {
     setLocationId(locationId);
@@ -38,7 +41,10 @@ function LocationRecentDives({ dives }: LocationRecentDivesProps) {
                     <p className="text-sm text-muted-foreground mt-1">{dive.notes}</p>
                     <div className="flex gap-4 mt-2">
                       <span className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">{dive.depth}m</span> depth
+                        <span className="font-medium text-foreground">
+                          {formatValueWithUnit(dive.depth, 'depth', unitSystem)}
+                        </span>{' '}
+                        depth
                       </span>
                       <span className="text-xs text-muted-foreground">
                         <span className="font-medium text-foreground">{dive.duration}min</span>{' '}

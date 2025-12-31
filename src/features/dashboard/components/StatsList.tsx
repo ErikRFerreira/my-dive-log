@@ -2,6 +2,8 @@ import type { Dive } from '@/features/dives';
 import { TrendingDown, MapPin, Waves } from 'lucide-react';
 import StatCard from '../../../components/common/StatCard';
 import { useMemo } from 'react';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValue, getUnitLabel } from '@/shared/utils/units';
 
 type StatsListProps = {
   dives: Dive[];
@@ -9,6 +11,8 @@ type StatsListProps = {
 };
 
 function StatsList({ dives, totalDives }: StatsListProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   // Calculate total dives this month
   const totalThisMonth = useMemo(() => {
     return dives.filter((dive) => {
@@ -68,8 +72,8 @@ function StatsList({ dives, totalDives }: StatsListProps) {
         color="from-teal-400 to-cyan-600"
       />
       <StatCard
-        title="Deepest Dive (m)"
-        value={deepestDive}
+        title={`Deepest Dive (${getUnitLabel('depth', unitSystem)})`}
+        value={formatValue(deepestDive, 'depth', unitSystem)}
         description={`at ${deepestDiveLocation}`}
         icon={<TrendingDown className="w-6 h-6" />}
         color="from-teal-400 to-cyan-600"

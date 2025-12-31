@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/select';
 import { Clock, Eye, Gauge, Thermometer } from 'lucide-react';
 import type { Dive } from '../types';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 type NumericField = keyof Pick<
   Dive,
@@ -28,6 +30,8 @@ interface DiveStatsProps {
 }
 
 function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveStatsProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   return (
     <div className="grid md:grid-cols-4 gap-4">
       {(
@@ -38,7 +42,14 @@ function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveSta
         ] as const
       ).map(({ label, key, unit, icon: Icon }) => {
         const val = dive[key];
-        const display = val !== null && val !== undefined ? `${val} ${unit}` : 'N/A';
+        const display =
+          val !== null && val !== undefined
+            ? key === 'depth'
+              ? formatValueWithUnit(val, 'depth', unitSystem)
+              : key === 'water_temp'
+                ? formatValueWithUnit(val, 'temperature', unitSystem)
+                : `${val} ${unit}`
+            : 'N/A';
         return (
           <Card key={key} className="bg-card border-slate-200 dark:border-slate-700">
             <CardContent className="p-6">
@@ -57,7 +68,9 @@ function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveSta
                     className="text-2xl font-bold"
                     placeholder="N/A"
                   />
-                  <span className="text-muted-foreground">{unit}</span>
+                  <span className="text-muted-foreground">
+                    {key === 'depth' ? 'm' : key === 'water_temp' ? '°C' : unit}
+                  </span>
                 </div>
               ) : (
                 <p className="text-2xl font-bold text-foreground">{display}</p>

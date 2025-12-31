@@ -2,8 +2,9 @@ import { supabase } from './supabase';
 
 /**
  * Get the current authenticated user's ID.
- * 
- * @returns {string} The user ID as a string.
+ *
+ * @returns {Promise<string>} The user ID.
+ * @throws {Error} When the user is not authenticated or Supabase returns an error.
  */
 export async function getCurrentUserId(): Promise<string> {
   const {
@@ -16,7 +17,6 @@ export async function getCurrentUserId(): Promise<string> {
 
   return user.id;
 }
-
 
 /**
  * Sign in a user with Supabase email/password auth.
@@ -40,6 +40,11 @@ export async function login({ email, password }: { email: string; password: stri
  * Start a Google OAuth sign-in flow via Supabase.
  *
  * Note: this redirects the browser to Google, then back to `redirectTo`.
+ *
+ * @param {{ redirectTo?: string }} [params] - Optional redirect settings.
+ * @param {string} [params.redirectTo] - Callback URL; defaults to `${window.location.origin}/auth/callback`.
+ * @returns {Promise<import('@supabase/supabase-js').OAuthResponse>} OAuth data used for the redirect flow.
+ * @throws {Error} When Supabase returns an auth error.
  */
 export async function loginWithGoogle({ redirectTo }: { redirectTo?: string } = {}) {
   const resolvedRedirectTo =
@@ -60,6 +65,12 @@ export async function loginWithGoogle({ redirectTo }: { redirectTo?: string } = 
  * Request a password reset email via Supabase.
  *
  * Supabase will email a link that redirects back to `redirectTo`.
+ *
+ * @param {{ email: string; redirectTo?: string }} params - Reset password request settings.
+ * @param {string} params.email - Target email address.
+ * @param {string} [params.redirectTo] - Callback URL; defaults to `${window.location.origin}/auth/reset`.
+ * @returns {Promise<import('@supabase/supabase-js').AuthResponse>} Supabase response data.
+ * @throws {Error} When Supabase returns an auth error.
  */
 export async function requestPasswordReset({
   email,
@@ -82,10 +93,36 @@ export async function requestPasswordReset({
 }
 
 /**
- * Update the current user's password (typically used after a recovery link).
+ * Update the current user's password.
+ *
+ * Typically used after a recovery/reset flow, but can also be used for signed-in
+ * email/password users.
+ *
+ * @param {{ password: string }} params - Password update settings.
+ * @param {string} params.password - New password.
+ * @returns {Promise<import('@supabase/supabase-js').UserResponse>} Supabase response data.
+ * @throws {Error} When Supabase returns an auth error.
  */
 export async function updatePassword({ password }: { password: string }) {
   const { data, error } = await supabase.auth.updateUser({ password });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+/**
+ * Update the current user's email address.
+ *
+ * Note: Supabase may require confirmation depending on your Auth settings.
+ *
+ * @param {{ email: string }} params - Email update settings.
+ * @param {string} params.email - New email address.
+ * @returns {Promise<import('@supabase/supabase-js').UserResponse>} Supabase response data.
+ * @throws {Error} When Supabase returns an auth error.
+ */
+export async function updateEmail({ email }: { email: string }) {
+  const { data, error } = await supabase.auth.updateUser({ email });
 
   if (error) throw new Error(error.message);
 
@@ -98,6 +135,14 @@ export async function updatePassword({ password }: { password: string }) {
  * Depending on your Supabase project settings, this may:
  * - return a session immediately (email confirmations off), OR
  * - return a user only and require email confirmation (confirmations on).
+ *
+ * @param {object} params - Registration settings.
+ * @param {string} params.email - Email address to register.
+ * @param {string} params.password - Password to register.
+ * @param {string} params.fullName - Display name stored in user metadata.
+ * @param {string} [params.emailRedirectTo] - Confirmation redirect URL; defaults to `${window.location.origin}/login`.
+ * @returns {Promise<import('@supabase/supabase-js').AuthResponse>} Supabase sign-up response data.
+ * @throws {Error} When Supabase returns an auth error.
  */
 export async function registerWithEmail({
   email,

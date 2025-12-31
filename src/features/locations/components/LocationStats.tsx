@@ -2,12 +2,16 @@ import type { Dive } from '@/features/dives';
 import { useMemo } from 'react';
 import { MapPin, Waves, Zap } from 'lucide-react';
 import StatCard from '@/components/common/StatCard';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 type LocationStatsProps = {
   dives: Dive[];
 };
 
 function LocationStats({ dives }: LocationStatsProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   const totalLocations = useMemo(() => {
     const ids = dives.map((dive) => dive.locations?.id).filter((id): id is string => !!id);
     return new Set(ids).size;
@@ -37,7 +41,7 @@ function LocationStats({ dives }: LocationStatsProps) {
       />
       <StatCard
         title="Average Depth"
-        value={`${averageDepth} m`}
+        value={formatValueWithUnit(averageDepth, 'depth', unitSystem)}
         icon={<Zap className="w-6 h-6" />}
         color="from-blue-500 to-blue-700"
       />

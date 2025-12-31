@@ -8,6 +8,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Dive } from '../types';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
 
 type NumericField = keyof Pick<
   Dive,
@@ -32,6 +34,8 @@ function DiveInformation({
   onNumberChange,
   onSelectChange,
 }: DiveInformationProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   return (
     <Card className="bg-card border-slate-200 dark:border-slate-700">
       <CardHeader className="border-b border-border">
@@ -172,7 +176,9 @@ function DiveInformation({
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-muted-foreground mb-2">Weight (kg)</p>
+            <p className="text-sm font-semibold text-muted-foreground mb-2">
+              Weight ({isEditMode ? 'kg' : getUnitLabel('weight', unitSystem)})
+            </p>
             {isEditMode ? (
               <Input
                 type="number"
@@ -181,7 +187,11 @@ function DiveInformation({
                 placeholder="0"
               />
             ) : (
-              <p className="text-foreground">{dive.weight ? `${dive.weight} kg` : 'N/A'}</p>
+              <p className="text-foreground">
+                {dive.weight !== null && dive.weight !== undefined
+                  ? formatValueWithUnit(dive.weight, 'weight', unitSystem)
+                  : 'N/A'}
+              </p>
             )}
           </div>
         </div>

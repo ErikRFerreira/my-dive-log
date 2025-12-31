@@ -2,9 +2,12 @@ import Loading from '@/components/common/Loading';
 import StatCard from '@/components/common/StatCard';
 import { useGetDives } from '@/features/dives';
 import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 function CarrerStatistics() {
   const { dives, isLoading: divesLoading, isError: divesError } = useGetDives();
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
 
   if (divesLoading) return <Loading />;
   if (divesError || !dives) return <div>Error loading career statistics.</div>;
@@ -26,7 +29,7 @@ function CarrerStatistics() {
   const averageDepth = (() => {
     if (dives.length === 0) return 0;
     const totalDepth = dives.reduce((acc, dive) => acc + dive.depth, 0);
-    return (totalDepth / dives.length).toFixed(1);
+    return totalDepth / dives.length;
   })();
 
   const longestDive = dives.length > 0 ? Math.max(...dives.map((dive) => dive.duration)) : 0;
@@ -65,7 +68,7 @@ function CarrerStatistics() {
 
         <StatCard
           title="Deepest Dive"
-          value={`${deepestDive}m`}
+          value={formatValueWithUnit(deepestDive, 'depth', unitSystem)}
           description="Personal record"
           icon={<TrendingUp className="w-6 h-6" />}
           color="from-cyan-400 to-cyan-600"
@@ -83,7 +86,7 @@ function CarrerStatistics() {
 
         <StatCard
           title="Average Depth"
-          value={`${averageDepth}m`}
+          value={formatValueWithUnit(averageDepth, 'depth', unitSystem, { fractionDigits: 1 })}
           description="Across all dives"
           icon={<TrendingUp className="w-6 h-6" />}
           color="from-emerald-400 to-emerald-600"

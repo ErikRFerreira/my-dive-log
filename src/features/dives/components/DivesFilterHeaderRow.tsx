@@ -4,6 +4,8 @@ import { ChevronDown, Search, X } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 
 import { DEFAULT_MAX_DEPTH, MIN_SEARCH_LENGTH } from '@/shared/constants';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 type DivesFilterHeaderRowProps = {
   showFilters: boolean;
@@ -24,6 +26,8 @@ export default function DivesFilterHeaderRow({
   onSearchChange,
   onClearSearch,
 }: DivesFilterHeaderRowProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   return (
     <div className="flex flex-wrap gap-6 items-center">
       <Button
@@ -38,7 +42,7 @@ export default function DivesFilterHeaderRow({
 
       {localMaxDepth < DEFAULT_MAX_DEPTH && (
         <span className="text-sm bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 px-2 py-1 rounded">
-          Max Depth: {localMaxDepth} m
+          Max Depth: {formatValueWithUnit(localMaxDepth, 'depth', unitSystem)}
         </span>
       )}
 

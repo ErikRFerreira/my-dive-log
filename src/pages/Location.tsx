@@ -7,12 +7,15 @@ import { useGetLocationDives, LocationMap, LocationRecentDives } from '@/feature
 import { useToggleLocationFavorite } from '@/features/locations/hooks/useToggleLocationFavorite';
 import { useUpdateLocation } from '@/features/locations/hooks/useUpdateLocation';
 import { Calendar, MapPin, Star, TrendingUp, Waves, Zap } from 'lucide-react';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 function Location() {
   const { dives, isLoading, isError } = useGetLocationDives();
   const { isPending: isUpdatingLocation, mutateAsync: updateLocation } = useUpdateLocation();
   const { isPending: isTogglingFavorite, mutateAsync: toggleFavoriteMutate } =
     useToggleLocationFavorite();
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
 
   if (isLoading) {
     return <Loading />;
@@ -94,13 +97,13 @@ function Location() {
         />
         <StatCard
           title="Average Depth"
-          value={`${averageDepth} m`}
+          value={formatValueWithUnit(averageDepth, 'depth', unitSystem)}
           icon={<Zap className="w-6 h-6" />}
           color="from-cyan-500 to-cyan-700"
         />
         <StatCard
           title="Deepest Dive"
-          value={`${deepestDive} m`}
+          value={formatValueWithUnit(deepestDive, 'depth', unitSystem)}
           icon={<TrendingUp className="w-6 h-6" />}
           color="from-blue-500 to-blue-700"
         />

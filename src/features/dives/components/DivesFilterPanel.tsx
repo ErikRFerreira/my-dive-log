@@ -1,6 +1,8 @@
 import Button from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MAX_DEPTH_FILTER, MIN_DEPTH_FILTER } from '@/shared/constants';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 import type { Location as DiveLocation } from '@/features/locations/';
 import type { ChangeEvent } from 'react';
@@ -38,6 +40,8 @@ export default function DivesFilterPanel({
   onMaxDepthChange,
   onResetClick,
 }: DivesFilterPanelProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   if (!show) return null;
 
   return (
@@ -98,7 +102,7 @@ export default function DivesFilterPanel({
 
         <div>
           <label className="text-sm font-semibold text-foreground block mb-2">
-            Max Depth: {localMaxDepth} m
+            Max Depth: {formatValueWithUnit(localMaxDepth, 'depth', unitSystem)}
           </label>
           <input
             type="range"

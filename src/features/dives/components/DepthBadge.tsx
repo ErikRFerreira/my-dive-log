@@ -1,9 +1,13 @@
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
+
 type DepthBadgeProps = {
   depth: number;
 };
 
 function DepthBadge({ depth }: DepthBadgeProps) {
-  const label = `${depth} m`;
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+  const label = formatValueWithUnit(depth, 'depth', unitSystem);
 
   const getDepthStyles = (depth: number): string => {
     if (depth <= 18) {

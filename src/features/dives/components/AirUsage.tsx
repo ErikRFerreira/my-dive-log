@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type { Dive } from '../types';
+import { useSettingsStore } from '@/store/settingsStore';
+import { formatValueWithUnit } from '@/shared/utils/units';
 
 type NumericField = keyof Pick<
   Dive,
@@ -14,6 +16,8 @@ interface AirUsageProps {
 }
 
 function AirUsage({ dive, isEditMode, onNumberChange }: AirUsageProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   return (
     <Card className="bg-card border-slate-200 dark:border-slate-700">
       <CardHeader className="border-b border-border">
@@ -28,7 +32,10 @@ function AirUsage({ dive, isEditMode, onNumberChange }: AirUsageProps) {
           ] as const
         ).map(({ label, key, unit }, idx) => {
           const val = dive[key];
-          const display = val !== null && val !== undefined ? `${val} ${unit}` : 'N/A';
+          const display =
+            val !== null && val !== undefined
+              ? formatValueWithUnit(val, 'pressure', unitSystem)
+              : 'N/A';
           return (
             <div
               key={key}

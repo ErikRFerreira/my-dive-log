@@ -10,18 +10,22 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useSettingsStore } from '@/store/settingsStore';
+import { convertValue, getUnitLabel } from '@/shared/utils/units';
 
 type DepthChartProps = {
   dives: Dive[];
 };
 
 function DepthChart({ dives }: DepthChartProps) {
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
   const depthTrendData = dives.map((dive) => {
     const diveDate = new Date(dive.date);
     const formattedDate = `${diveDate.toLocaleString('en-US', { month: 'short' })} ${diveDate.getDate()}`;
     return {
       date: formattedDate,
-      depth: dive.depth,
+      depth: convertValue(dive.depth, 'depth', unitSystem),
       duration: dive.duration,
     };
   });
@@ -50,7 +54,7 @@ function DepthChart({ dives }: DepthChartProps) {
               dataKey="depth"
               stroke="hsl(20, 90%, 56%)"
               strokeWidth={2}
-              name="Max Depth (ft)"
+              name={`Max Depth (${getUnitLabel('depth', unitSystem)})`}
               dot={{ fill: 'hsl(20, 90%, 56%)', r: 4 }}
             />
             <Line
