@@ -203,3 +203,47 @@ export async function getCurrentUser() {
 
   return user;
 }
+
+/**
+ * Delete the current user's account (and their related app data).
+ *
+ * This calls a server-side API route because Supabase user deletion requires
+ * a service role key and must not run in the browser.
+ *
+ * @returns {Promise<true>} Resolves with true when deletion succeeds.
+ * @throws {Error} When the user is not authenticated or deletion fails.
+ */
+export async function deleteAccount(): Promise<true> {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) throw new Error(sessionError.message);
+  const token = session?.access_token;
+  if (!token) throw new Error('User must be authenticated');
+
+  const res = await fetch('/api/delete-account', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const bodyText = await res.text();
+  let data: { error?: string } = {};
+
+  try {
+    data = bodyText ? JSON.parse(bodyText) : {};
+  } catch {
+    // keep `data` as {}
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || `Delete account failed (${res.status})`);
+  }
+
+  await supabase.auth.signOut();
+  return true;
+}
