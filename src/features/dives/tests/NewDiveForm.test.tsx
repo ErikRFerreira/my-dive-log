@@ -38,8 +38,7 @@ describe('NewDiveForm', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /save dive/i }));
 
-    // Zod requires date/location/country_code/depth/duration.
-    expect(await screen.findByText(/date must be in yyyy-mm-dd format/i)).toBeInTheDocument();
+    // Zod requires location/country_code/depth/duration.
     expect(await screen.findByText(/location is required/i)).toBeInTheDocument();
     expect(await screen.findByText(/select a country/i)).toBeInTheDocument();
     expect(await screen.findByText(/depth is required/i)).toBeInTheDocument();

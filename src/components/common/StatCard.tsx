@@ -1,37 +1,36 @@
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 
 type StatCardProps = {
   title: string;
   value: string | number;
   description?: string;
   icon?: React.ReactNode;
-  color?: string;
-  bg?: string;
+  descriptionColor?: 'default' | 'green' | 'red';
 };
 
-function StatCard({ title, value, description, icon, color, bg }: StatCardProps) {
-  const cardClass = bg
-    ? `${bg} shadow-lg hover:shadow-xl transition-shadow`
-    : 'bg-gradient-to-br from-card to-slate-50 dark:to-slate-900 border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-sm transition-shadow';
+function StatCard({
+  title,
+  value,
+  description,
+  icon,
+  descriptionColor = 'default',
+}: StatCardProps) {
+  const descriptionColorClass = {
+    default: 'text-gray-400',
+    green: 'text-green-400',
+    red: 'text-red-400',
+  }[descriptionColor];
 
   return (
-    <Card className={cardClass}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
-            <h3 className="text-2xl font-bold text-foreground mt-2">{value}</h3>
-            {description && <p className="text-xs text-muted-foreground mt-2">{description}</p>}
-          </div>
-          {icon && (
-            <div
-              className={`w-12 h-12 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white`}
-            >
-              {icon}
-            </div>
-          )}
-        </div>
-      </CardContent>
+    <Card className="bg-[#233C48] border-[#2a3845] p-5 rounded-2xl col-span-1 relative overflow-hidden flex flex-col justify-center gap-3 min-h-[140px]">
+      {icon && (
+        <div className="absolute -top-2 -right-12 w-32 h-32 text-white/5 rotate-12">{icon}</div>
+      )}
+      <p className="text-gray-400 text-xs uppercase mb-2 relative z-10">{title}</p>
+      <p className="text-white text-4xl font-bold relative z-10">{value}</p>
+      {description && (
+        <p className={`${descriptionColorClass} text-sm relative z-10 mt-2`}>{description}</p>
+      )}
     </Card>
   );
 }

@@ -1,10 +1,12 @@
+import AuthAwareRedirect from '@/components/layout/AuthAwareRedirect';
 import ProtectedRoutes from '@/components/layout/ProtectedRoutes';
 import PublicOnlyRoute from '@/components/layout/PublicOnlyRoute';
-import AuthAwareRedirect from '@/components/layout/AuthAwareRedirect';
+import AuthCallback from '@/pages/AuthCallback';
 import Dive from '@/pages/Dive';
 import Error from '@/pages/Error';
-import AuthCallback from '@/pages/AuthCallback';
 import ForgotPassword from '@/pages/ForgotPassword';
+import Locations from '@/pages/Locations';
+import LogDive from '@/pages/LogDive';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ResetPassword from '@/pages/ResetPassword';
@@ -13,7 +15,6 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import AppLayout from '../components/layout/AppLayout';
 import Dashboard from '../pages/Dashboard';
 import Dives from '../pages/Dives';
-import Locations from '@/pages/Locations';
 import Location from '../pages/Location';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
@@ -61,6 +62,15 @@ const router = createBrowserRouter([
         element: <Settings />,
       },
     ],
+  },
+  /* Log Dive route (no AppLayout) */
+  {
+    path: '/log-dive',
+    element: (
+      <ProtectedRoutes>
+        <LogDive />
+      </ProtectedRoutes>
+    ),
   },
   /* Public only routes */
   {

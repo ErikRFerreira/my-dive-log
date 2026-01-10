@@ -1,9 +1,49 @@
 import { Card } from '@/components/ui/card';
 import type { Dive } from '../types';
-import DepthBadge from './DepthBadge';
-import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router';
-import { ArrowRight } from 'lucide-react';
+
+/*
+ <div className="space-y-3">
+          {recentDives.map((dive) => (
+            <Card
+              key={dive.id}
+              className="bg-[#233C48] border-[#2a3845] p-4 rounded-2xl cursor-pointer hover:border-cyan-400/50 transition-all"
+              onClick={() => onViewDive?.(dive.id)}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-xl bg-[#0f1419] flex items-center justify-center text-3xl flex-shrink-0">
+                  {dive.icon}
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-bold text-lg mb-1">{dive.name}</p>
+                  <p className="text-gray-400 text-sm flex items-center gap-1 mb-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    {dive.date}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1 items-end">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-bold text-xl">{dive.depth}</span>
+                    <span className="text-white font-bold text-xl">{dive.duration}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400 text-xs uppercase">
+                    <span>DEPTH</span>
+                    <span>TIME</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+*/
 
 type DiveCardProps = {
   dive: Dive;
@@ -22,34 +62,39 @@ function DiveCard({ dive }: DiveCardProps) {
     <Card
       role="listitem"
       aria-label={`Dive at ${dive.locations?.name || 'Unknown Location'} on ${dive.date}`}
-      className="transition-shadow hover:shadow-md bg-card border-slate-200 dark:border-slate-700"
+      className="bg-[#233C48] border-[#2a3845] p-4 rounded-2xl cursor-pointer hover:border-cyan-400/50 transition-all"
+      onClick={() => navigate(`/dives/${dive.id}`)}
     >
-      <div className="px-6 py-5 space-y-2">
-        <header className="flex justify-between">
-          <h3 className="text-base font-semibold leading-none tracking-tight">
-            {dive.locations?.name || 'Unknown Location'}
-            {dive.locations?.country ? `, ${dive.locations.country}` : ''}
-          </h3>
-          <div>
-            <DepthBadge depth={dive.depth} />
-            <p className="text-sm mt-2 text-muted-foreground">
-              <strong>{dive.duration}</strong> min
-            </p>
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-xl bg-[#0f1419] flex items-center justify-center text-3xl flex-shrink-0">
+          {dive.icon}
+        </div>
+
+        <div className="flex-1">
+          <p className="text-white font-bold text-lg mb-1">{dive.name}</p>
+          <p className="text-gray-400 text-sm flex items-center gap-1 mb-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {formatedDate}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1 items-end">
+          <div className="flex items-center gap-2">
+            <span className="text-white font-bold text-xl">{dive.depth}</span>
+            <span className="text-white font-bold text-xl">{dive.duration}</span>
           </div>
-        </header>
-        <p className="text-xs text-muted-foreground">{formatedDate}</p>
-        {dive.notes && (
-          <p className="text-sm italic text-slate-700 dark:text-slate-300">{dive.notes}</p>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 bg-transparent mt-2"
-          onClick={() => navigate(`/dives/${dive.id}`)}
-        >
-          View Details
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+          <div className="flex items-center gap-2 text-gray-400 text-xs uppercase">
+            <span>DEPTH</span>
+            <span>TIME</span>
+          </div>
+        </div>
       </div>
     </Card>
   );

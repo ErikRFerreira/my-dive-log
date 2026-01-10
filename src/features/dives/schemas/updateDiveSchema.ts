@@ -3,7 +3,17 @@ import { z } from 'zod';
 // enums 
 const visibilitySchema = z.enum(['poor', 'fair', 'good', 'excellent']);
 const currentsSchema = z.enum(['calm', 'mild', 'moderate', 'strong']);
-const diveTypeSchema = z.enum(['reef', 'wreck', 'wall', 'cave', 'drift', 'night', 'training']);
+const diveTypeSchema = z.enum([
+  'reef',
+  'wreck',
+  'wall',
+  'cave',
+  'drift',
+  'night',
+  'training',
+  'lake',
+  'river',
+]);
 const waterTypeSchema = z.enum(['salt', 'fresh']);
 const exposureSchema = z.enum(['wet-2mm', 'wet-5mm', 'wet-7mm', 'semi-dry', 'dry']);
 const gasSchema = z.enum(['air', 'nitrox', 'trimix']);

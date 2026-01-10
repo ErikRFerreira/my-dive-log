@@ -68,29 +68,26 @@ function StatsList({ dives, totalDives }: StatsListProps) {
         title="Total Dives"
         value={totalDives}
         description={`+ ${totalThisMonth} this month`}
-        icon={<Waves className="w-6 h-6" />}
-        color="from-teal-400 to-cyan-600"
+        icon={<Waves className="w-24 h-24" />}
+        descriptionColor={totalThisMonth === 0 ? 'red' : 'green'}
       />
       <StatCard
         title={`Deepest Dive (${getUnitLabel('depth', unitSystem)})`}
         value={formatValue(deepestDive, 'depth', unitSystem)}
         description={`at ${deepestDiveLocation}`}
-        icon={<TrendingDown className="w-6 h-6" />}
-        color="from-teal-400 to-cyan-600"
+        icon={<TrendingDown className="w-24 h-24" />}
       />
       <StatCard
         title="Average Duration (min)"
         value={averageDuration.toFixed(1)}
         description="Across all dives"
-        icon={<MapPin className="w-6 h-6" />}
-        color="from-teal-400 to-cyan-600"
+        icon={<MapPin className="w-24 h-24" />}
       />
       <StatCard
         title="Favorite Location"
         value={`${favoriteLocation}, ${favorteLocationCountry}`}
         description={`${favoriteLocationCount} dives`}
-        icon={<Waves className="w-6 h-6" />}
-        color="from-teal-400 to-cyan-600"
+        icon={<Waves className="w-24 h-24" />}
       />
     </section>
   );

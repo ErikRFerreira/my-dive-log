@@ -126,6 +126,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
 /**
  * Insert a new dive for the authenticated user.
  * Ensures a per-user location record exists before creating the dive.
+ * Supports inserting optional dive metadata (temperature, pressures, equipment, etc.) when provided.
  *
  * @param {NewDiveInput} diveData - Payload to insert.
  * @returns {Promise<Dive | null>} Newly created dive, or null if Supabase returns no rows.
@@ -187,6 +188,19 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     duration: diveData.duration,
     notes: diveData.notes ?? null,
     location_id: locationId,
+    water_temp: diveData.water_temp ?? null,
+    visibility: diveData.visibility ?? null,
+    start_pressure: diveData.start_pressure ?? null,
+    end_pressure: diveData.end_pressure ?? null,
+    air_usage: diveData.air_usage ?? null,
+    equipment: diveData.equipment ?? null,
+    wildlife: diveData.wildlife ?? null,
+    dive_type: diveData.dive_type ?? null,
+    water_type: diveData.water_type ?? null,
+    exposure: diveData.exposure ?? null,
+    gas: diveData.gas ?? null,
+    currents: diveData.currents ?? null,
+    weight: diveData.weight ?? null,
   };
 
   const { data, error } = await supabase

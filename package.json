@@ -4,14 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "test": "vitest",
     "test:watch": "vitest --watch",
+    "build": "tsc -b && vite build",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
-    "seed": "node --import tsx prisma/seed.ts"
+    "test": "vitest",
+    "seed": "node --import tsx prisma/seed.ts",
+    "dev": "vite",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

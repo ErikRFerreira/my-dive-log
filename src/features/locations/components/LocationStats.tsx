@@ -30,20 +30,13 @@ function LocationStats({ dives }: LocationStatsProps) {
       <StatCard
         title="Total Locations"
         value={totalLocations}
-        icon={<MapPin className="w-6 h-6" />}
-        color="from-teal-500 to-teal-700"
+        icon={<MapPin className="w-24 h-24" />}
       />
-      <StatCard
-        title="Total Dives"
-        value={totalDives}
-        icon={<Waves className="w-6 h-6" />}
-        color="from-cyan-500 to-cyan-700"
-      />
+      <StatCard title="Total Dives" value={totalDives} icon={<Waves className="w-24 h-24" />} />
       <StatCard
         title="Average Depth"
         value={formatValueWithUnit(averageDepth, 'depth', unitSystem)}
-        icon={<Zap className="w-6 h-6" />}
-        color="from-blue-500 to-blue-700"
+        icon={<Zap className="w-24 h-24" />}
       />
     </section>
   );

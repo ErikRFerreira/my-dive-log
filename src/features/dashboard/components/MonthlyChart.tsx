@@ -9,7 +9,7 @@ import {
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import type { Dive } from '@/features/dives';
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type MonthlyChartProps = {
   dives: Dive[];
@@ -17,7 +17,11 @@ type MonthlyChartProps = {
 
 function MonthlyChart({ dives }: MonthlyChartProps) {
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
+  const [selectedYear, setSelectedYear] = useState<string>(() => {
+    const years = dives.map((dive) => new Date(dive.date).getFullYear());
+    const mostRecentDiveYear = Array.from(new Set(years)).sort((a, b) => b - a)[0];
+    return (mostRecentDiveYear ?? currentYear).toString();
+  });
 
   // Get all available years from dives
   const availableYears = useMemo(() => {
@@ -25,6 +29,15 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
     const uniqueYears = Array.from(new Set(years)).sort((a, b) => b - a);
     return uniqueYears;
   }, [dives]);
+
+  useEffect(() => {
+    if (availableYears.length === 0) return;
+
+    const selectedYearNumber = parseInt(selectedYear);
+    if (!availableYears.includes(selectedYearNumber)) {
+      setSelectedYear(availableYears[0].toString());
+    }
+  }, [availableYears, selectedYear]);
 
   // Prepare monthly activity data
   const monthlyActivityData = useMemo(() => {
@@ -69,30 +82,43 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
         </div>
       </CardHeader>
       <CardContent className="p-6">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={monthlyActivityData} barSize={60}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="month"
-              stroke="hsl(var(--foreground))"
-              tick={{ fill: 'hsl(var(--foreground))' }}
-            />
-            <YAxis stroke="hsl(var(--foreground))" tick={{ fill: 'hsl(var(--foreground))' }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-            />
-            <Bar
-              dataKey="dives"
-              fill="hsl(174, 62%, 55%)"
-              radius={[8, 8, 0, 0]}
-              name="Number of Dives"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {monthlyActivityData.length === 0 ? (
+          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+            No dives logged for {selectedYear}.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={monthlyActivityData} barSize={60}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="month"
+                stroke="var(--chart-text)"
+                tick={{ fill: 'var(--chart-text)' }}
+              />
+              <YAxis
+                stroke="var(--chart-text)"
+                tick={{ fill: 'var(--chart-text)' }}
+                allowDecimals={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--chart-text)',
+                }}
+                labelStyle={{ color: 'var(--chart-text)' }}
+                itemStyle={{ color: 'var(--chart-text)' }}
+              />
+              <Bar
+                dataKey="dives"
+                fill="hsl(174, 62%, 55%)"
+                radius={[8, 8, 0, 0]}
+                name="Number of Dives"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   );
