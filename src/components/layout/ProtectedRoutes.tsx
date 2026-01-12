@@ -1,5 +1,6 @@
 import { useUser } from '@/features/authentication';
 import { Navigate } from 'react-router';
+import Loading from '@/components/common/Loading';
 
 type ProtectedRoutesProps = {
   children: React.ReactNode;
@@ -7,10 +8,12 @@ type ProtectedRoutesProps = {
 
 function ProtectedRoutes({ children }: ProtectedRoutesProps) {
   const { user, isLoading } = useUser();
-
-  // TODO: Add a better loading state UI
   if (isLoading) {
-    return <> </>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading />
+      </div>
+    );
   }
 
   if (!user) return <Navigate to="/login" replace />;
@@ -19,3 +22,4 @@ function ProtectedRoutes({ children }: ProtectedRoutesProps) {
 }
 
 export default ProtectedRoutes;
+
