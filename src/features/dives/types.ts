@@ -7,8 +7,7 @@ export type DiveType =
   | 'drift'
   | 'night'
   | 'training'
-  | 'lake'
-  | 'river';
+  | 'lake-river';
 export type WaterType = 'salt' | 'fresh';
 export type Exposure = 'wet-2mm' | 'wet-3mm' | 'wet-5mm' | 'wet-7mm' | 'semi-dry' | 'dry';
 export type Gas = 'air' | 'nitrox' | 'trimix';

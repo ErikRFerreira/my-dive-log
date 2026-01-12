@@ -61,8 +61,7 @@ function DiveInformation({
                   <SelectItem value="drift">Drift</SelectItem>
                   <SelectItem value="night">Night</SelectItem>
                   <SelectItem value="training">Training</SelectItem>
-                  <SelectItem value="lake">Lake</SelectItem>
-                  <SelectItem value="river">River</SelectItem>
+                  <SelectItem value="lake-river">Lake/River</SelectItem>
                 </SelectContent>
               </Select>
             ) : (

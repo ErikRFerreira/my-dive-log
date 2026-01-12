@@ -11,8 +11,7 @@ const diveTypeSchema = z.enum([
   'drift',
   'night',
   'training',
-  'lake',
-  'river',
+  'lake-river',
 ]);
 const waterTypeSchema = z.enum(['salt', 'fresh']);
 const exposureSchema = z.enum(['wet-2mm', 'wet-5mm', 'wet-7mm', 'semi-dry', 'dry']);

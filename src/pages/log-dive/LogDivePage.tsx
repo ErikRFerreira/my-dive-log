@@ -1,23 +1,26 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import type { UnitSystem } from '@/shared/constants';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router';
+
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAddDive } from '@/features/dives/hooks/useAddDive';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 
-import type { LogDiveFormData } from './types';
+import type { LogDiveFormData } from './schema';
+import { logDiveSchema } from './schema';
 import { buildNewDivePayload } from './mappers';
 import EssentialsStep from './steps/EssentialsStep';
 import DiveInfoStep from './steps/DiveInfoStep';
 import EquipmentStep from './steps/EquipmentStep';
-import ConditionsStep from './steps/ConditionsStep';
 import GasUsageStep from './steps/GasUsageStep';
 
+// Multi-step log dive flow: RHF stores form state; step UI uses controlled values.
 function LogDivePage() {
   const navigate = useNavigate();
   const defaultUnitSystem = useSettingsStore((s) => s.unitSystem);
@@ -25,122 +28,109 @@ function LogDivePage() {
   const { locations, isLoading: isLoadingLocations } = useGetLocations();
 
   const [step, setStep] = useState(1);
-  const [localUnitSystem, setLocalUnitSystem] = useState<UnitSystem>(defaultUnitSystem);
 
-  const [formData, setFormData] = useState<LogDiveFormData>({
-    date: new Date().toISOString().split('T')[0],
-    countryCode: '',
-    location: '',
-    maxDepth: '',
-    duration: '',
-    diveType: '',
-    waterType: '',
-    exposure: '',
-    currents: '',
-    weight: '',
-    waterTemp: '',
-    visibility: '',
-    equipment: [],
-    wildlife: [],
-    notes: '',
-    cylinderType: '',
-    cylinderSize: '',
-    gasMix: '',
-    startingPressure: '',
-    endingPressure: '',
+  // Stable defaults for form state and field arrays.
+  const defaultValues = useMemo<LogDiveFormData>(
+    () => ({
+      date: new Date().toISOString().split('T')[0],
+      countryCode: '',
+      location: '',
+      maxDepth: '',
+      depthUnit: defaultUnitSystem,
+      duration: '',
+      diveType: '',
+      waterType: '',
+      exposure: '',
+      currents: '',
+      weight: '',
+      weightUnit: defaultUnitSystem,
+      waterTemp: '',
+      temperatureUnit: defaultUnitSystem,
+      visibility: '',
+      equipment: [],
+      wildlife: [],
+      notes: '',
+      cylinderType: '',
+      cylinderSize: '',
+      gasMix: '',
+      nitroxPercent: 32,
+      pressureUnit: defaultUnitSystem,
+      startingPressure: '',
+      endingPressure: '',
+    }),
+    []
+  );
+
+  const { control, setValue, handleSubmit, trigger } = useForm<
+    LogDiveFormData,
+    unknown,
+    LogDiveFormData
+  >({
+    defaultValues,
+    resolver: zodResolver(logDiveSchema),
+    shouldUnregister: false,
   });
 
-  const onChange = <K extends keyof LogDiveFormData>(field: K, value: LogDiveFormData[K]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  // Gate step 1 with schema validation to avoid advancing with invalid inputs.
+  const handleNext = async () => {
+    if (step === 1) {
+      const isValid = await trigger(['date', 'countryCode', 'location', 'maxDepth', 'duration']);
+      if (!isValid) {
+        toast.error('Please complete the required fields first.');
+        return;
+      }
+    }
+    if (step < 4) setStep(step + 1);
   };
 
-  const canProceedStep1 =
-    formData.date &&
-    formData.countryCode &&
-    formData.location &&
-    formData.maxDepth &&
-    formData.duration;
-
-  const handleNext = () => {
-    if (step < 5) setStep(step + 1);
-  };
-
+  // Move back one step in the wizard.
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
   };
 
+  // Exit the flow, preferring history back when available.
   const onCancel = () => {
     if (window.history.length > 1) navigate(-1);
     else navigate('/dashboard');
   };
 
-  const addEquipment = () => {
-    const newEquipment = formData.equipment.filter((item) => item.trim()).concat('');
-    setFormData((prev) => ({ ...prev, equipment: newEquipment }));
-  };
+  // Submit handler: validate, map to payload, then persist.
+  const onSubmit = handleSubmit(
+    (values) => {
+      const { payload, blockingError } = buildNewDivePayload({
+        formData: values,
+      });
+      if (blockingError) {
+        toast.error(blockingError);
+        setStep(1);
+        return;
+      }
 
-  const removeEquipment = (index: number) => {
-    const newEquipment = formData.equipment.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, equipment: newEquipment }));
-  };
-
-  const addWildlife = () => {
-    const newWildlife = formData.wildlife.filter((item) => item.trim()).concat('');
-    setFormData((prev) => ({ ...prev, wildlife: newWildlife }));
-  };
-
-  const removeWildlife = (index: number) => {
-    const newWildlife = formData.wildlife.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, wildlife: newWildlife }));
-  };
-
-  const setEquipmentLastValue = (value: string) => {
-    setFormData((prev) => {
-      if (prev.equipment.length === 0) return { ...prev, equipment: [value] };
-      const next = [...prev.equipment];
-      next[next.length - 1] = value;
-      return { ...prev, equipment: next };
-    });
-  };
-
-  const setWildlifeLastValue = (value: string) => {
-    setFormData((prev) => {
-      if (prev.wildlife.length === 0) return { ...prev, wildlife: [value] };
-      const next = [...prev.wildlife];
-      next[next.length - 1] = value;
-      return { ...prev, wildlife: next };
-    });
-  };
-
-  const handleSubmit = () => {
-    if (!canProceedStep1) {
-      toast.error('Please complete the required fields first.');
-      setStep(1);
-      return;
-    }
-
-    const { payload, blockingError } = buildNewDivePayload({ formData, unitSystem: localUnitSystem });
-    if (blockingError) {
-      toast.error(blockingError);
-      setStep(1);
-      return;
-    }
-
-    mutateAdd(payload, {
-      onSuccess: (created) => {
-        if (!created) {
+      mutateAdd(payload, {
+        onSuccess: (created) => {
+          if (!created) {
+            toast.error('Failed to log dive. Please try again.');
+            return;
+          }
+          toast.success('Dive logged successfully');
+          navigate('/dives');
+        },
+        onError: (err) => {
+          console.error('Failed to log dive:', err);
           toast.error('Failed to log dive. Please try again.');
-          return;
-        }
-        toast.success('Dive logged successfully');
-        navigate('/dives');
-      },
-      onError: (err) => {
-        console.error('Failed to log dive:', err);
-        toast.error('Failed to log dive. Please try again.');
-      },
-    });
-  };
+        },
+      });
+    },
+    (errors) => {
+      const firstError = Object.values(errors)[0];
+      const message =
+        firstError && 'message' in firstError && typeof firstError.message === 'string'
+          ? firstError.message
+          : 'Please complete the required fields first.';
+      toast.error(message);
+      setStep(1);
+    }
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 p-6">
@@ -155,32 +145,12 @@ function LogDivePage() {
               <h1 className="text-4xl font-bold text-foreground mb-2">Log a New Dive</h1>
               <p className="text-muted-foreground">Document your underwater adventure</p>
             </div>
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-              <Button
-                type="button"
-                variant={localUnitSystem === 'metric' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setLocalUnitSystem('metric')}
-                className={localUnitSystem === 'metric' ? 'bg-teal-500 hover:bg-teal-600' : ''}
-              >
-                Metric
-              </Button>
-              <Button
-                type="button"
-                variant={localUnitSystem === 'imperial' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setLocalUnitSystem('imperial')}
-                className={localUnitSystem === 'imperial' ? 'bg-teal-500 hover:bg-teal-600' : ''}
-              >
-                Imperial
-              </Button>
-            </div>
           </div>
         </div>
 
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            {[1, 2, 3, 4, 5].map((s) => (
+            {[1, 2, 3, 4].map((s) => (
               <div key={s} className="flex items-center flex-1">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
@@ -193,7 +163,7 @@ function LogDivePage() {
                 >
                   {s < step ? <Check className="w-5 h-5" /> : s}
                 </div>
-                {s < 5 && (
+                {s < 4 && (
                   <div
                     className={`flex-1 h-1 mx-2 transition-all ${
                       s < step ? 'bg-teal-500' : 'bg-slate-200 dark:bg-slate-700'
@@ -204,19 +174,24 @@ function LogDivePage() {
             ))}
           </div>
           <div className="flex justify-between mt-3 text-xs sm:text-sm">
-            <span className={`${step === 1 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            <span
+              className={`${step === 1 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+            >
               Essentials
             </span>
-            <span className={`${step === 2 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-              Dive Info
+            <span
+              className={`${step === 2 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+            >
+              Dive Details
             </span>
-            <span className={`${step === 3 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            <span
+              className={`${step === 3 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+            >
               Equipment
             </span>
-            <span className={`${step === 4 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-              Conditions
-            </span>
-            <span className={`${step === 5 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            <span
+              className={`${step === 4 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+            >
               Gas Usage
             </span>
           </div>
@@ -225,34 +200,15 @@ function LogDivePage() {
         <Card className="p-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl">
           {step === 1 && (
             <EssentialsStep
-              formData={formData}
-              localUnitSystem={localUnitSystem}
-              onChange={onChange}
+              control={control}
+              setValue={setValue}
               locations={locations}
               isLoadingLocations={isLoadingLocations}
             />
           )}
-          {step === 2 && (
-            <DiveInfoStep formData={formData} localUnitSystem={localUnitSystem} onChange={onChange} />
-          )}
-          {step === 3 && (
-            <EquipmentStep
-              formData={formData}
-              onChange={onChange}
-              addEquipment={addEquipment}
-              removeEquipment={removeEquipment}
-              addWildlife={addWildlife}
-              removeWildlife={removeWildlife}
-              setEquipmentLastValue={setEquipmentLastValue}
-              setWildlifeLastValue={setWildlifeLastValue}
-            />
-          )}
-          {step === 4 && (
-            <ConditionsStep formData={formData} localUnitSystem={localUnitSystem} onChange={onChange} />
-          )}
-          {step === 5 && (
-            <GasUsageStep formData={formData} localUnitSystem={localUnitSystem} onChange={onChange} />
-          )}
+          {step === 2 && <DiveInfoStep control={control} />}
+          {step === 3 && <EquipmentStep control={control} />}
+          {step === 4 && <GasUsageStep control={control} />}
 
           <div className="flex justify-between mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
             <Button
@@ -265,10 +221,10 @@ function LogDivePage() {
               Back
             </Button>
 
-            {step < 5 ? (
+            {step < 4 ? (
               <Button
                 onClick={handleNext}
-                disabled={(step === 1 && !canProceedStep1) || isPending}
+                disabled={isPending}
                 className="px-6 bg-teal-500 hover:bg-teal-600"
               >
                 Next
@@ -276,7 +232,7 @@ function LogDivePage() {
               </Button>
             ) : (
               <Button
-                onClick={handleSubmit}
+                onClick={onSubmit}
                 disabled={isPending}
                 className="px-8 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
               >

@@ -20,7 +20,7 @@ function Profile() {
           <p className="text-muted-foreground mt-1">Your diving profile and achievements</p>
         </div>
       </header>
-      <section className="mt-8 max-w-7xl space-y-8">
+      <section className="mt-8 space-y-8">
         <CarrerStatistics />
         <ProfileInformation
           user={user}

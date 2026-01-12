@@ -28,7 +28,7 @@ export function buildDivesQueryKey(userId: string | undefined, filters?: DiveFil
 export function useGetDives(filters?: DiveFilters, options: UseGetDivesOptions = {}) {
   const { user } = useUser();
   const userId = user?.id;
-  const locations = options.locations ?? [];
+  const locations = options.locations;
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: buildDivesQueryKey(userId, filters),
@@ -38,7 +38,7 @@ export function useGetDives(filters?: DiveFilters, options: UseGetDivesOptions =
   });
 
   const locationsById = useMemo(() => {
-    if (!locations.length) return null;
+    if (!locations?.length) return null;
     return new Map(locations.map((location) => [location.id, location]));
   }, [locations]);
 

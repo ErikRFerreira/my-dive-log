@@ -1,9 +1,9 @@
 import type { NewDiveInput } from '@/features/dives';
 import type { Exposure, Gas } from '@/features/dives/types';
-import type { UnitSystem } from '@/shared/constants';
 import { convertValueBetweenSystems } from '@/shared/utils/units';
 import { COUNTRIES } from '@/shared/data/countries';
-import type { LogDiveFormData, V0Exposure, V0GasMix } from './types';
+import type { LogDiveFormData } from './schema';
+import type { V0Exposure, V0GasMix } from './types';
 
 export function parseFiniteNumber(raw: string): number | null {
   const trimmed = raw.trim();
@@ -37,9 +37,8 @@ export function mapGas(gasMix: V0GasMix): Gas | null {
 
 export function buildNewDivePayload(args: {
   formData: LogDiveFormData;
-  unitSystem: UnitSystem;
 }): { payload: NewDiveInput; blockingError?: string } {
-  const { formData, unitSystem } = args;
+  const { formData } = args;
 
   const country = formData.countryCode
     ? COUNTRIES.find((c) => c.code.toUpperCase() === formData.countryCode.toUpperCase())
@@ -52,7 +51,7 @@ export function buildNewDivePayload(args: {
     return { payload: {} as NewDiveInput, blockingError: 'Depth and duration must be valid numbers.' };
   }
 
-  const depth = convertValueBetweenSystems(depthEntered, 'depth', unitSystem, 'metric');
+  const depth = convertValueBetweenSystems(depthEntered, 'depth', formData.depthUnit, 'metric');
   const duration = Math.round(durationEntered);
 
   const startPressureEntered = parseFiniteNumber(formData.startingPressure);
@@ -60,11 +59,21 @@ export function buildNewDivePayload(args: {
   const start_pressure =
     startPressureEntered === null
       ? null
-      : convertValueBetweenSystems(startPressureEntered, 'pressure', unitSystem, 'metric');
+      : convertValueBetweenSystems(
+          startPressureEntered,
+          'pressure',
+          formData.pressureUnit,
+          'metric'
+        );
   const end_pressure =
     endPressureEntered === null
       ? null
-      : convertValueBetweenSystems(endPressureEntered, 'pressure', unitSystem, 'metric');
+      : convertValueBetweenSystems(
+          endPressureEntered,
+          'pressure',
+          formData.pressureUnit,
+          'metric'
+        );
   const air_usage =
     start_pressure !== null && end_pressure !== null ? Math.max(0, start_pressure - end_pressure) : null;
 
@@ -72,13 +81,18 @@ export function buildNewDivePayload(args: {
   const water_temp =
     waterTempEntered === null
       ? null
-      : convertValueBetweenSystems(waterTempEntered, 'temperature', unitSystem, 'metric');
+      : convertValueBetweenSystems(
+          waterTempEntered,
+          'temperature',
+          formData.temperatureUnit,
+          'metric'
+        );
 
   const weightEntered = parseFiniteNumber(formData.weight);
   const weight =
     weightEntered === null
       ? null
-      : convertValueBetweenSystems(weightEntered, 'weight', unitSystem, 'metric');
+      : convertValueBetweenSystems(weightEntered, 'weight', formData.weightUnit, 'metric');
 
   const equipment = formData.equipment.map((s) => s.trim()).filter(Boolean);
   const wildlife = formData.wildlife.map((s) => s.trim()).filter(Boolean);
@@ -86,6 +100,9 @@ export function buildNewDivePayload(args: {
   const extraNoteLines: string[] = [];
   if (formData.cylinderType) extraNoteLines.push(`Cylinder type: ${formData.cylinderType}`);
   if (formData.cylinderSize) extraNoteLines.push(`Cylinder size: ${formData.cylinderSize}`);
+  if (formData.gasMix === 'nitrox') {
+    extraNoteLines.push(`Nitrox O2: ${formData.nitroxPercent}%`);
+  }
   if (formData.gasMix === 'rebreather') extraNoteLines.push('Gas mix: rebreather');
 
   const notesParts = [formData.notes.trim(), extraNoteLines.join('\n')].filter(Boolean);
@@ -119,4 +136,3 @@ export function buildNewDivePayload(args: {
     },
   };
 }
-

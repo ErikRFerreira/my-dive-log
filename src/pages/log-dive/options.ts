@@ -1,16 +1,15 @@
 import type { DiveType } from '@/features/dives/types';
 import type { V0Exposure, V0GasMix } from './types';
 
-export const DIVE_TYPES: Array<{ value: DiveType; label: string; icon: string }> = [
-  { value: 'reef', label: 'Reef', icon: '🪸' },
-  { value: 'wreck', label: 'Wreck', icon: '🚢' },
-  { value: 'wall', label: 'Wall', icon: '🧗' },
-  { value: 'cave', label: 'Cave', icon: '🕳️' },
-  { value: 'drift', label: 'Drift', icon: '🌊' },
-  { value: 'night', label: 'Night', icon: '🌙' },
-  { value: 'training', label: 'Training', icon: '🎓' },
-  { value: 'lake', label: 'Lake', icon: '🏞️' },
-  { value: 'river', label: 'River', icon: '🛶' },
+export const DIVE_TYPES: Array<{ value: DiveType; label: string }> = [
+  { value: 'reef', label: 'Reef' },
+  { value: 'wreck', label: 'Wreck' },
+  { value: 'wall', label: 'Wall' },
+  { value: 'cave', label: 'Cave' },
+  { value: 'drift', label: 'Drift' },
+  { value: 'night', label: 'Night' },
+  { value: 'training', label: 'Training' },
+  { value: 'lake-river', label: 'Lake/River' },
 ];
 
 export const EXPOSURE_OPTIONS: Array<{ value: V0Exposure; label: string }> = [
@@ -54,4 +53,3 @@ export const CURRENT_OPTIONS = [
   { value: 'moderate', label: 'Moderate' },
   { value: 'strong', label: 'Strong' },
 ] as const;
-

@@ -5,15 +5,27 @@ import { Textarea } from '@/components/ui/textarea';
 import type { UnitSystem } from '@/shared/constants';
 
 import { VISIBILITY_OPTIONS } from '../options';
-import type { LogDiveFormData } from '../types';
+import { useController } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
+
+import type { LogDiveFormData } from '../schema';
 
 type Props = {
-  formData: LogDiveFormData;
+  control: Control<LogDiveFormData, unknown, LogDiveFormData>;
   localUnitSystem: UnitSystem;
-  onChange: <K extends keyof LogDiveFormData>(field: K, value: LogDiveFormData[K]) => void;
 };
 
-export default function ConditionsStep({ formData, localUnitSystem, onChange }: Props) {
+export default function ConditionsStep({ control, localUnitSystem }: Props) {
+  const { field: waterTempField, fieldState: waterTempState } = useController({
+    name: 'waterTemp',
+    control,
+  });
+  const { field: visibilityField } = useController({ name: 'visibility', control });
+  const { field: notesField, fieldState: notesState } = useController({
+    name: 'notes',
+    control,
+  });
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-foreground mb-6">Water Conditions</h2>
@@ -25,11 +37,15 @@ export default function ConditionsStep({ formData, localUnitSystem, onChange }: 
         </label>
         <Input
           type="number"
-          value={formData.waterTemp}
-          onChange={(e) => onChange('waterTemp', e.target.value)}
+          value={waterTempField.value}
+          onChange={(e) => waterTempField.onChange(e.target.value)}
+          onBlur={waterTempField.onBlur}
           placeholder={localUnitSystem === 'metric' ? 'e.g., 24' : 'e.g., 75'}
           className="text-base"
         />
+        {waterTempState.error?.message && (
+          <p className="mt-1 text-sm text-destructive">{waterTempState.error.message}</p>
+        )}
       </div>
 
       <div>
@@ -39,9 +55,9 @@ export default function ConditionsStep({ formData, localUnitSystem, onChange }: 
             <button
               key={option.value}
               type="button"
-              onClick={() => onChange('visibility', option.value)}
+              onClick={() => visibilityField.onChange(option.value)}
               className={`p-4 rounded-lg border-2 transition-all hover:border-teal-400 ${
-                formData.visibility === option.value
+                visibilityField.value === option.value
                   ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
                   : 'border-slate-200 dark:border-slate-700'
               }`}
@@ -56,13 +72,16 @@ export default function ConditionsStep({ formData, localUnitSystem, onChange }: 
         <label className="text-sm font-medium text-foreground mb-2 block">Dive Notes</label>
         <Textarea
           placeholder="Add any notes about your dive experience..."
-          value={formData.notes}
-          onChange={(e) => onChange('notes', e.target.value)}
+          value={notesField.value}
+          onChange={(e) => notesField.onChange(e.target.value)}
+          onBlur={notesField.onBlur}
           rows={6}
           className="text-base"
         />
+        {notesState.error?.message && (
+          <p className="mt-1 text-sm text-destructive">{notesState.error.message}</p>
+        )}
       </div>
     </div>
   );
 }
-

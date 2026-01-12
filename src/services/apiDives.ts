@@ -40,6 +40,31 @@ export async function getDives(filters?: DiveFilters): Promise<{
 } | null> {
   const userId = await getCurrentUserId();
 
+  type FetchLocationPage = (from: number, to: number) => PromiseLike<{
+    data: Array<{ id?: string | null }> | null;
+    error: { message?: string } | null;
+  }>;
+
+  const fetchLocationIds = async (fetchPage: FetchLocationPage): Promise<string[]> => {
+    const pageSize = 1000;
+    const ids: string[] = [];
+    let page = 0;
+
+    while (true) {
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+      const { data, error } = await fetchPage(from, to);
+      if (error) throw error;
+
+      const batch = (data ?? []).map((row: { id?: string | null }) => row.id).filter(Boolean) as string[];
+      ids.push(...batch);
+      if (!data || data.length < pageSize) break;
+      page += 1;
+    }
+
+    return ids;
+  };
+
   let query = supabase
     .from('dives')
     .select('*, locations(id, name, country, country_code, is_favorite)', { count: 'exact' });
@@ -53,16 +78,12 @@ export async function getDives(filters?: DiveFilters): Promise<{
 
   // Apply country filter
   if (filters?.country) {
-    const { data: locationMatches, error: locationError } = await supabase
+    const baseQuery = supabase
       .from('locations')
       .select('id')
       .eq('user_id', userId)
-      .eq('country', filters.country)
-      .limit(1000);
-
-    if (locationError) throw locationError;
-
-    const locationIds = (locationMatches ?? []).map((l) => l.id).filter(Boolean);
+      .eq('country', filters.country);
+    const locationIds = await fetchLocationIds((from, to) => baseQuery.range(from, to));
     if (!locationIds.length) {
       return { dives: [], totalCount: 0 };
     }
@@ -80,16 +101,12 @@ export async function getDives(filters?: DiveFilters): Promise<{
     const raw = filters.searchQuery.trim();
     const searchTerm = raw.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
 
-    const { data: locationMatches, error: locationError } = await supabase
+    const baseQuery = supabase
       .from('locations')
       .select('id')
       .eq('user_id', userId)
-      .or(`name.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`)
-      .limit(1000);
-
-    if (locationError) throw locationError;
-
-    const locationIds = (locationMatches ?? []).map((l) => l.id).filter(Boolean);
+      .or(`name.ilike.%${searchTerm}%,country.ilike.%${searchTerm}%`);
+    const locationIds = await fetchLocationIds((from, to) => baseQuery.range(from, to));
 
     const orParts = [`notes.ilike.%${searchTerm}%`, `summary.ilike.%${searchTerm}%`];
     if (locationIds.length) {
