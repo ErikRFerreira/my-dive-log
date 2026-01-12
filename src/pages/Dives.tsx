@@ -7,7 +7,6 @@ import { useDiveFilterStore } from '@/store/diveFilterStore';
 import { AddDive, DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
 import { Download } from 'lucide-react';
 import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
-import { useMemo } from 'react';
 
 function Dives() {
   const {
@@ -40,23 +39,10 @@ function Dives() {
     searchQuery,
   };
 
-  const { dives, totalCount, isLoading, isFetching, isError, refetch } = useGetDives(filters);
+  const { dives, totalCount, isLoading, isFetching, isError, refetch } = useGetDives(filters, {
+    locations,
+  });
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-
-  // Data is already filtered and sorted by the server
-  const divesWithLocations = useMemo(() => {
-    const sortedDives = dives ?? [];
-    if (!sortedDives.length) return sortedDives;
-    if (!locations.length) return sortedDives;
-
-    const locationsById = new Map(locations.map((l) => [l.id, l]));
-    return sortedDives.map((dive) => {
-      if (dive.locations) return dive;
-      if (!dive.location_id) return dive;
-      const location = locationsById.get(dive.location_id) ?? null;
-      return { ...dive, locations: location };
-    });
-  }, [dives, locations]);
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -73,12 +59,12 @@ function Dives() {
           {isFetching && <InlineSpinner aria-label="Refreshing dives" />}
           <p className="text-muted-foreground mt-1">Browse and manage all your recorded dives</p>
         </div>
-        <div className='flex gap-2'>
-          <Button 
-            onClick={() => exportDivesToCsv(divesWithLocations ?? [])}
-            variant="outline" 
+        <div className="flex gap-2">
+          <Button
+            onClick={() => exportDivesToCsv(dives ?? [])}
+            variant="outline"
             className="gap-2 w-fit bg-transparent"
-            >
+          >
             <Download className="w-4 h-4" />
             Export to Excel
           </Button>
@@ -105,7 +91,7 @@ function Dives() {
               isLoadingLocations={isLoadingLocations}
               showFilters={showFilters}
               onToggleFilters={toggleShowFilters}
-              filteredCount={divesWithLocations.length}
+              filteredCount={dives.length}
               totalCount={totalCount}
               searchQuery={searchQuery}
               onSearchQueryChange={(query) => {
@@ -137,7 +123,7 @@ function Dives() {
           </section>
           <section aria-busy={isFetching}>
             <DiveList
-              dives={divesWithLocations}
+              dives={dives}
               hasActiveFilters={hasActiveFilters}
               currentPage={currentPage}
               totalPages={totalPages}
