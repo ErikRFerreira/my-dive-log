@@ -1,6 +1,6 @@
 import { useUser } from '@/features/authentication';
 import { Navigate } from 'react-router';
-import Loading from '@/components/common/Loading';
+import AuthLoading from '@/components/layout/AuthLoading';
 
 type AuthAwareRedirectProps = {
   authenticatedTo: string;
@@ -10,11 +10,7 @@ type AuthAwareRedirectProps = {
 function AuthAwareRedirect({ authenticatedTo, unauthenticatedTo }: AuthAwareRedirectProps) {
   const { user, isLoading } = useUser();
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loading />
-      </div>
-    );
+    return <AuthLoading />;
   }
 
   return <Navigate to={user ? authenticatedTo : unauthenticatedTo} replace />;

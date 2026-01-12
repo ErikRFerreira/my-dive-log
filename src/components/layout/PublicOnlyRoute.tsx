@@ -1,6 +1,6 @@
 import { useUser } from '@/features/authentication';
 import { Navigate } from 'react-router';
-import Loading from '@/components/common/Loading';
+import AuthLoading from '@/components/layout/AuthLoading';
 
 type PublicOnlyRouteProps = {
   children: React.ReactNode;
@@ -10,11 +10,7 @@ type PublicOnlyRouteProps = {
 function PublicOnlyRoute({ children, redirectTo = '/dashboard' }: PublicOnlyRouteProps) {
   const { user, isLoading } = useUser();
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loading />
-      </div>
-    );
+    return <AuthLoading />;
   }
 
   if (user) return <Navigate to={redirectTo} replace />;

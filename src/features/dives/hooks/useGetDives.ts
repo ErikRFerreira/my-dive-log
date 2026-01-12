@@ -1,7 +1,7 @@
+import { useUser } from '@/features/authentication';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { useUser } from '@/features/authentication';
 import type { Location } from '@/features/locations/types';
 
 import { getDives } from '../../../services/apiDives';
@@ -20,15 +20,18 @@ type UseGetDivesOptions = {
   locations?: Location[];
 };
 
+export function buildDivesQueryKey(userId: string | undefined, filters?: DiveFilters) {
+  const { sortBy, maxDepth, locationId, country, page, pageSize, searchQuery } = filters ?? {};
+  return ['dives', userId, sortBy, maxDepth, locationId, country, page, pageSize, searchQuery];
+}
+
 export function useGetDives(filters?: DiveFilters, options: UseGetDivesOptions = {}) {
   const { user } = useUser();
   const userId = user?.id;
   const locations = options.locations ?? [];
 
-  const { sortBy, maxDepth, locationId, country, page, pageSize, searchQuery } = filters ?? {};
-
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ['dives', userId, sortBy, maxDepth, locationId, country, page, pageSize, searchQuery],
+    queryKey: buildDivesQueryKey(userId, filters),
     enabled: !!userId,
     queryFn: () => getDives(filters),
     placeholderData: keepPreviousData,
