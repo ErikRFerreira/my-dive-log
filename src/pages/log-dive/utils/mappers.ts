@@ -2,7 +2,7 @@ import type { NewDiveInput } from '@/features/dives';
 import type { Exposure, Gas } from '@/features/dives/types';
 import { convertValueBetweenSystems } from '@/shared/utils/units';
 import { COUNTRIES } from '@/shared/data/countries';
-import type { LogDiveFormData } from './schema';
+import type { LogDiveFormData } from '../schema/schema';
 import type { V0Exposure, V0GasMix } from './types';
 
 export function parseFiniteNumber(raw: string): number | null {
@@ -31,7 +31,7 @@ export function mapExposure(exposure: V0Exposure): Exposure | null {
 }
 
 export function mapGas(gasMix: V0GasMix): Gas | null {
-  if (gasMix === '' || gasMix === 'rebreather') return null;
+  if (gasMix === '') return null;
   return gasMix;
 }
 
@@ -103,7 +103,6 @@ export function buildNewDivePayload(args: {
   if (formData.gasMix === 'nitrox') {
     extraNoteLines.push(`Nitrox O2: ${formData.nitroxPercent}%`);
   }
-  if (formData.gasMix === 'rebreather') extraNoteLines.push('Gas mix: rebreather');
 
   const notesParts = [formData.notes.trim(), extraNoteLines.join('\n')].filter(Boolean);
   const notes = notesParts.length ? notesParts.join('\n\n') : null;

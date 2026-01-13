@@ -4,11 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { UnitSystem } from '@/shared/constants';
 
-import { VISIBILITY_OPTIONS } from '../options';
+import { VISIBILITY_OPTIONS } from '../utils/options';
 import { useController } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
 
-import type { LogDiveFormData } from '../schema';
+import type { LogDiveFormData } from '../schema/schema';
 
 type Props = {
   control: Control<LogDiveFormData, unknown, LogDiveFormData>;

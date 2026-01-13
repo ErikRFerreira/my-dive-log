@@ -6,15 +6,15 @@ function AddDive() {
   const navigate = useNavigate();
 
   return (
-    <div>
-      <Button
-        onClick={() => navigate('/log-dive')}
-        className="gap-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700"
-      >
-        <Plus className="w-5 h-5" />
-        Add Dive
-      </Button>
-    </div>
+    <Button
+      onClick={() => navigate('/log-dive')}
+      className="group fixed bottom-8 right-8 z-50 flex items-center justify-center gap-0 bg-primary hover:bg-primary/90 rounded-full w-14 h-14 p-0 shadow-lg transition-all duration-300 hover:w-48 hover:gap-2 hover:px-4 hover:shadow-xl"
+    >
+      <Plus className="w-6 h-6 flex-shrink-0" />
+      <span className="w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 group-hover:w-auto group-hover:opacity-100">
+        Log New Dive
+      </span>
+    </Button>
   );
 }
 

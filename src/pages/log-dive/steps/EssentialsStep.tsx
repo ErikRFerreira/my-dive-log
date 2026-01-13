@@ -14,7 +14,7 @@ import type { Control, UseFormSetValue } from 'react-hook-form';
 import { COUNTRIES } from '@/shared/data/countries';
 import type { Location } from '@/features/locations';
 
-import type { LogDiveFormData } from '../schema';
+import type { LogDiveFormData } from '../schema/schema';
 
 type Props = {
   control: Control<LogDiveFormData, unknown, LogDiveFormData>;
@@ -64,6 +64,7 @@ export default function EssentialsStep({
     name: 'duration',
     control,
   });
+  const todayString = new Date().toISOString().split('T')[0];
 
   const debouncedQuery = useDebouncedValue(countryQuery, 150);
 
@@ -116,11 +117,12 @@ export default function EssentialsStep({
 
       <div>
         <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-          <Calendar className="w-4 h-4 text-teal-500" />
+          <Calendar className="w-4 h-4 text-primary" />
           Dive Date
         </label>
         <Input
           type="date"
+          max={todayString}
           value={dateField.value}
           onChange={(e) => dateField.onChange(e.target.value)}
           onBlur={dateField.onBlur}
@@ -133,7 +135,7 @@ export default function EssentialsStep({
 
       <div>
         <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-teal-500" />
+          <MapPin className="w-4 h-4 text-primary" />
           Dive Site Location
         </label>
         <Input
@@ -164,13 +166,10 @@ export default function EssentialsStep({
 
       <div>
         <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-teal-500" />
+          <MapPin className="w-4 h-4 text-primary" />
           Country
         </label>
-        <Select
-          value={countryField.value}
-          onValueChange={(value) => countryField.onChange(value)}
-        >
+        <Select value={countryField.value} onValueChange={(value) => countryField.onChange(value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
@@ -217,7 +216,7 @@ export default function EssentialsStep({
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Waves className="w-4 h-4 text-cyan-500" />
+              <Waves className="w-4 h-4 text-primary" />
               Max Depth ({depthUnitField.value === 'metric' ? 'm' : 'ft'})
             </label>
             <div className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -226,7 +225,7 @@ export default function EssentialsStep({
                 onClick={() => depthUnitField.onChange('metric')}
                 className={`px-2 py-1 text-xs ${
                   depthUnitField.value === 'metric'
-                    ? 'bg-teal-500 text-white'
+                    ? 'bg-primary text-black'
                     : 'bg-transparent text-muted-foreground'
                 }`}
               >
@@ -237,7 +236,7 @@ export default function EssentialsStep({
                 onClick={() => depthUnitField.onChange('imperial')}
                 className={`px-2 py-1 text-xs ${
                   depthUnitField.value === 'imperial'
-                    ? 'bg-teal-500 text-white'
+                    ? 'bg-primary text-black'
                     : 'bg-transparent text-muted-foreground'
                 }`}
               >
@@ -249,8 +248,21 @@ export default function EssentialsStep({
             type="number"
             placeholder={depthUnitField.value === 'metric' ? 'e.g., 30' : 'e.g., 100'}
             value={maxDepthField.value}
-            onChange={(e) => maxDepthField.onChange(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') {
+                maxDepthField.onChange(val);
+                return;
+              }
+              const num = Number(val);
+              if (Number.isNaN(num)) {
+                maxDepthField.onChange(val);
+                return;
+              }
+              maxDepthField.onChange(num < 1 ? '1' : val);
+            }}
             onBlur={maxDepthField.onBlur}
+            min={1}
             className="text-base"
           />
           {maxDepthState.error?.message && (
@@ -259,15 +271,28 @@ export default function EssentialsStep({
         </div>
         <div>
           <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-            <Calendar className="w-4 h-4 text-cyan-500" />
+            <Calendar className="w-4 h-4 text-primary" />
             Duration (min)
           </label>
           <Input
             type="number"
             placeholder="e.g., 45"
             value={durationField.value}
-            onChange={(e) => durationField.onChange(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') {
+                durationField.onChange(val);
+                return;
+              }
+              const num = Number(val);
+              if (Number.isNaN(num)) {
+                durationField.onChange(val);
+                return;
+              }
+              durationField.onChange(num < 1 ? '1' : val);
+            }}
             onBlur={durationField.onBlur}
+            min={1}
             className="text-base"
           />
           {durationState.error?.message && (

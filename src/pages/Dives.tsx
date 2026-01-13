@@ -4,7 +4,7 @@ import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
 import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
 import { useDiveFilterStore } from '@/store/diveFilterStore';
-import { AddDive, DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
+import { DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
 import { Download } from 'lucide-react';
 import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
 
@@ -68,7 +68,6 @@ function Dives() {
             <Download className="w-4 h-4" />
             Export to Excel
           </Button>
-          <AddDive />
         </div>
       </header>
 

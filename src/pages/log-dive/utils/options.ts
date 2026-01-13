@@ -2,14 +2,14 @@ import type { DiveType } from '@/features/dives/types';
 import type { V0Exposure, V0GasMix } from './types';
 
 export const DIVE_TYPES: Array<{ value: DiveType; label: string }> = [
-  { value: 'reef', label: 'Reef' },
-  { value: 'wreck', label: 'Wreck' },
-  { value: 'wall', label: 'Wall' },
   { value: 'cave', label: 'Cave' },
   { value: 'drift', label: 'Drift' },
-  { value: 'night', label: 'Night' },
-  { value: 'training', label: 'Training' },
   { value: 'lake-river', label: 'Lake/River' },
+  { value: 'night', label: 'Night' },
+  { value: 'reef', label: 'Reef' },
+  { value: 'training', label: 'Training' },
+  { value: 'wall', label: 'Wall' },
+  { value: 'wreck', label: 'Wreck' },
 ];
 
 export const EXPOSURE_OPTIONS: Array<{ value: V0Exposure; label: string }> = [
@@ -36,8 +36,6 @@ export const CYLINDER_SIZES = [
 export const GAS_OPTIONS: Array<{ value: V0GasMix; label: string }> = [
   { value: 'air', label: 'Air' },
   { value: 'nitrox', label: 'Nitrox' },
-  { value: 'trimix', label: 'Trimix' },
-  { value: 'rebreather', label: 'Rebreather' },
 ];
 
 export const VISIBILITY_OPTIONS = [

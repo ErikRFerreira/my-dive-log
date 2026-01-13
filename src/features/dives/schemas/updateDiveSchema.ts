@@ -15,7 +15,7 @@ const diveTypeSchema = z.enum([
 ]);
 const waterTypeSchema = z.enum(['salt', 'fresh']);
 const exposureSchema = z.enum(['wet-2mm', 'wet-5mm', 'wet-7mm', 'semi-dry', 'dry']);
-const gasSchema = z.enum(['air', 'nitrox', 'trimix']);
+const gasSchema = z.enum(['air', 'nitrox']);
 
 // helpers
 const emptyStringToNull = z.preprocess(

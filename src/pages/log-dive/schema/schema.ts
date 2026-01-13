@@ -16,8 +16,17 @@ const WATER_TYPES = ['', 'salt', 'fresh'] as const;
 const EXPOSURE_TYPES = ['', '3mm', '5mm', '7mm', 'semi-dry', 'drysuit', 'other'] as const;
 const CURRENTS = ['', 'calm', 'mild', 'moderate', 'strong'] as const;
 const VISIBILITY = ['', 'poor', 'fair', 'good', 'excellent'] as const;
-const GAS_MIX = ['', 'air', 'nitrox', 'trimix', 'rebreather'] as const;
+const GAS_MIX = ['', 'air', 'nitrox'] as const;
 const UNIT_SYSTEMS = ['metric', 'imperial'] as const;
+
+const isFutureDate = (value: string) => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed > today;
+};
 
 const requiredNumberString = (label: string) =>
   z
@@ -34,7 +43,10 @@ const optionalNumberString = (label: string) =>
     );
 
 export const logDiveSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+    .refine((value) => !isFutureDate(value), 'Dive date cannot be in the future'),
   countryCode: z.string().length(2, 'Select a country'),
   location: z.string().min(1, 'Location is required').trim(),
   maxDepth: requiredNumberString('Max depth'),

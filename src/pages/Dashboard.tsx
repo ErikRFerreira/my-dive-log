@@ -1,4 +1,4 @@
-import { AddDive, DiveList, useGetDives } from '@/features/dives';
+import { DiveList, useGetDives } from '@/features/dives';
 import Loading from '@/components/common/Loading';
 import Button from '@/components/ui/button';
 import StatsList from '@/features/dashboard/components/StatsList';
@@ -25,7 +25,6 @@ function Dashboard() {
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">Overview of your diving activities</p>
         </div>
-        <AddDive />
       </header>
 
       {isLoading ? (

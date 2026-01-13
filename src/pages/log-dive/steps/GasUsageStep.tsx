@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-import { GAS_OPTIONS } from '../options';
+import { GAS_OPTIONS } from '../utils/options';
 import { useController } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
 
-import type { LogDiveFormData } from '../schema';
+import type { LogDiveFormData } from '../schema/schema';
 import { Input } from '@/components/ui/input';
 import { convertValueBetweenSystems } from '@/shared/utils/units';
 type Props = {

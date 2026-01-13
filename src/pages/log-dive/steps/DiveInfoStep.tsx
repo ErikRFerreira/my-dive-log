@@ -1,4 +1,16 @@
-import { Droplet, Plus, Thermometer, Wind, X } from 'lucide-react';
+import {
+  Droplet,
+  Plus,
+  Thermometer,
+  Wind,
+  X,
+  Anchor,
+  Star,
+  Map,
+  Moon,
+  Award,
+  MapPin,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useController, useFieldArray, useWatch } from 'react-hook-form';
 import type { Control } from 'react-hook-form';
@@ -6,9 +18,9 @@ import type { Control } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-import { CURRENT_OPTIONS, DIVE_TYPES, VISIBILITY_OPTIONS } from '../options';
+import { CURRENT_OPTIONS, DIVE_TYPES, VISIBILITY_OPTIONS } from '../utils/options';
 
-import type { LogDiveFormData } from '../schema';
+import type { LogDiveFormData } from '../schema/schema';
 
 type Props = {
   control: Control<LogDiveFormData, unknown, LogDiveFormData>;
@@ -22,15 +34,9 @@ export default function DiveInfoStep({ control }: Props) {
     name: 'waterTemp',
     control,
   });
-  const { field: temperatureUnitField } = useController({
-    name: 'temperatureUnit',
-    control,
-  });
+  const { field: temperatureUnitField } = useController({ name: 'temperatureUnit', control });
   const { field: visibilityField } = useController({ name: 'visibility', control });
-  const { field: notesField, fieldState: notesState } = useController({
-    name: 'notes',
-    control,
-  });
+  const { field: notesField, fieldState: notesState } = useController({ name: 'notes', control });
 
   const {
     fields: wildlifeFields,
@@ -46,7 +52,7 @@ export default function DiveInfoStep({ control }: Props) {
   const addWildlife = () => {
     const value = wildlifeInput.trim();
     if (!value) return;
-    appendWildlife(value);
+    appendWildlife(value as any);
     setWildlifeInput('');
   };
 
@@ -55,7 +61,10 @@ export default function DiveInfoStep({ control }: Props) {
       <h2 className="text-2xl font-bold text-foreground mb-6">Dive Information</h2>
 
       <div>
-        <label className="text-sm font-medium text-foreground mb-3 block">Dive Type</label>
+        <label className="text-sm font-medium text-foreground mb-3 block">
+          <MapPin className="w-4 h-4 inline mr-2 text-teal-500" />
+          Dive Type
+        </label>
         <div className="grid grid-cols-4 gap-3">
           {DIVE_TYPES.map((type) => (
             <button

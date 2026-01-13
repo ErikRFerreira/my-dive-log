@@ -6,8 +6,8 @@ import type { Control } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { CYLINDER_SIZES, CYLINDER_TYPES, EXPOSURE_OPTIONS } from '../options';
-import type { LogDiveFormData } from '../schema';
+import { CYLINDER_SIZES, CYLINDER_TYPES, EXPOSURE_OPTIONS } from '../utils/options';
+import type { LogDiveFormData } from '../schema/schema';
 
 type Props = {
   control: Control<LogDiveFormData, unknown, LogDiveFormData>;

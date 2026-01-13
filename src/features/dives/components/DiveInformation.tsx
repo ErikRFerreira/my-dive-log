@@ -146,7 +146,6 @@ function DiveInformation({
                 <SelectContent>
                   <SelectItem value="air">Air</SelectItem>
                   <SelectItem value="nitrox">Nitrox</SelectItem>
-                  <SelectItem value="trimix">Trimix</SelectItem>
                 </SelectContent>
               </Select>
             ) : (

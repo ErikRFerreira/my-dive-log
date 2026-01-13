@@ -24,7 +24,7 @@ function StatCard({
   return (
     <Card className="bg-[#233C48] border-[#2a3845] p-5 rounded-2xl col-span-1 relative overflow-hidden flex flex-col justify-center gap-3 min-h-[140px]">
       {icon && (
-        <div className="absolute -top-2 -right-12 w-32 h-32 text-white/5 rotate-12">{icon}</div>
+        <div className="absolute -top-2 -right-4 w-42 h-42 text-white/5 rotate-12">{icon}</div>
       )}
       <p className="text-gray-400 text-xs uppercase mb-2 relative z-10">{title}</p>
       <p className="text-white text-4xl font-bold relative z-10">{value}</p>

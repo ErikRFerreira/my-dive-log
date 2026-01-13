@@ -1,5 +1,5 @@
 import type { Dive } from '@/features/dives';
-import { TrendingDown, MapPin, Waves } from 'lucide-react';
+import { TrendingDown, MapPin, Waves, Clock } from 'lucide-react';
 import StatCard from '../../../components/common/StatCard';
 import { useMemo } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -68,26 +68,26 @@ function StatsList({ dives, totalDives }: StatsListProps) {
         title="Total Dives"
         value={totalDives}
         description={`+ ${totalThisMonth} this month`}
-        icon={<Waves className="w-24 h-24" />}
+        icon={<Waves className="w-42 h-42" />}
         descriptionColor={totalThisMonth === 0 ? 'red' : 'green'}
       />
       <StatCard
         title={`Deepest Dive (${getUnitLabel('depth', unitSystem)})`}
         value={formatValue(deepestDive, 'depth', unitSystem)}
         description={`at ${deepestDiveLocation}`}
-        icon={<TrendingDown className="w-24 h-24" />}
+        icon={<TrendingDown className="w-42 h-42" />}
       />
       <StatCard
         title="Average Duration (min)"
         value={averageDuration.toFixed(1)}
         description="Across all dives"
-        icon={<MapPin className="w-24 h-24" />}
+        icon={<Clock className="w-42 h-42" />}
       />
       <StatCard
         title="Favorite Location"
         value={`${favoriteLocation}, ${favorteLocationCountry}`}
         description={`${favoriteLocationCount} dives`}
-        icon={<Waves className="w-24 h-24" />}
+        icon={<MapPin className="w-42 h-42" />}
       />
     </section>
   );
