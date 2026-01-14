@@ -31,7 +31,7 @@ function Dives() {
   // Fetch dives with server-side filtering and pagination
   const filters = {
     sortBy,
-    maxDepth,
+    maxDepth: maxDepth < DEFAULT_MAX_DEPTH ? maxDepth : undefined,
     locationId: locationId ?? undefined,
     country: country ?? undefined,
     page: currentPage,

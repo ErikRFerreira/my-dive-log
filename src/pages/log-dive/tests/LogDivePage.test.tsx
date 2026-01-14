@@ -74,6 +74,12 @@ describe('LogDivePage', () => {
             locationCountryCode: 'PH',
             duration: 45,
             gas: 'nitrox',
+            gas_mix: 'nitrox',
+            nitrox_percent: 36,
+            depth_unit: 'ft',
+            temperature_unit: 'f',
+            weight_unit: 'lb',
+            pressure_unit: 'psi',
           })
         );
         // Unit conversions: UI inputs are imperial here but payload should be metric.

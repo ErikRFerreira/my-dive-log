@@ -12,7 +12,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useAddDive } from '@/features/dives/hooks/useAddDive';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 
-import type { LogDiveFormData } from './schema/schema';
+import type { LogDiveFormData, LogDiveFormInput } from './schema/schema';
 import { logDiveSchema } from './schema/schema';
 import { buildNewDivePayload } from './utils/mappers';
 import EssentialsStep from './steps/EssentialsStep';
@@ -33,7 +33,7 @@ function LogDivePage() {
   const hasRestoredDraftRef = useRef(false);
 
   // Stable defaults for form state and field arrays.
-  const defaultValues = useMemo<LogDiveFormData>(() => {
+  const defaultValues = useMemo<LogDiveFormInput>(() => {
     return {
       date: new Date().toISOString().split('T')[0],
       countryCode: '',
@@ -58,13 +58,13 @@ function LogDivePage() {
       gasMix: '',
       nitroxPercent: 32,
       pressureUnit: defaultUnitSystem,
-      startingPressure: '',
-      endingPressure: '',
+      startingPressure: '0',
+      endingPressure: '0',
     };
   }, [defaultUnitSystem]);
 
   const { control, setValue, handleSubmit, trigger, reset, watch } = useForm<
-    LogDiveFormData,
+    LogDiveFormInput,
     unknown,
     LogDiveFormData
   >({
@@ -83,7 +83,7 @@ function LogDivePage() {
     }
 
     try {
-      const parsed = JSON.parse(raw) as Partial<LogDiveFormData>;
+      const parsed = JSON.parse(raw) as Partial<LogDiveFormInput>;
       reset({ ...defaultValues, ...parsed });
       setStep(1);
     } catch {

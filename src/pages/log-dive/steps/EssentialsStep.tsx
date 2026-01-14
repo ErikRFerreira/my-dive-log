@@ -14,11 +14,11 @@ import type { Control, UseFormSetValue } from 'react-hook-form';
 import { COUNTRIES } from '@/shared/data/countries';
 import type { Location } from '@/features/locations';
 
-import type { LogDiveFormData } from '../schema/schema';
+import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
 
 type Props = {
-  control: Control<LogDiveFormData, unknown, LogDiveFormData>;
-  setValue: UseFormSetValue<LogDiveFormData>;
+  control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
+  setValue: UseFormSetValue<LogDiveFormInput>;
   locations: Location[];
   isLoadingLocations: boolean;
 };
@@ -65,6 +65,7 @@ export default function EssentialsStep({
     control,
   });
   const todayString = new Date().toISOString().split('T')[0];
+  const maxDepthLimit = depthUnitField.value === 'imperial' ? 164 : 50;
 
   const debouncedQuery = useDebouncedValue(countryQuery, 150);
 
@@ -116,29 +117,41 @@ export default function EssentialsStep({
       <h2 className="text-2xl font-bold text-foreground mb-6">Essential Information</h2>
 
       <div>
-        <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-          <Calendar className="w-4 h-4 text-primary" />
+        <label
+          htmlFor="dive-date"
+          className="text-sm font-medium text-foreground flex items-center gap-2 mb-2"
+        >
+          <Calendar className="w-4 h-4 text-primary" aria-hidden="true" />
           Dive Date
         </label>
         <Input
+          id="dive-date"
           type="date"
           max={todayString}
           value={dateField.value}
           onChange={(e) => dateField.onChange(e.target.value)}
           onBlur={dateField.onBlur}
+          aria-invalid={Boolean(dateState.error?.message)}
+          aria-describedby={dateState.error?.message ? 'dive-date-error' : undefined}
           className="text-base"
         />
         {dateState.error?.message && (
-          <p className="mt-1 text-sm text-destructive">{dateState.error.message}</p>
+          <p id="dive-date-error" className="mt-1 text-sm text-destructive">
+            {dateState.error.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-primary" />
+        <label
+          htmlFor="dive-location"
+          className="text-sm font-medium text-foreground flex items-center gap-2 mb-2"
+        >
+          <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
           Dive Site Location
         </label>
         <Input
+          id="dive-location"
           type="text"
           placeholder="e.g., Blue Hole"
           value={locationField.value}
@@ -150,12 +163,16 @@ export default function EssentialsStep({
             locationField.onBlur();
             tryAutofillCountryByLocationName(e.target.value);
           }}
+          aria-invalid={Boolean(locationState.error?.message)}
+          aria-describedby={locationState.error?.message ? 'dive-location-error' : undefined}
           className="text-base"
           list="location-suggestions"
           disabled={isLoadingLocations}
         />
         {locationState.error?.message && (
-          <p className="mt-1 text-sm text-destructive">{locationState.error.message}</p>
+          <p id="dive-location-error" className="mt-1 text-sm text-destructive">
+            {locationState.error.message}
+          </p>
         )}
         <datalist id="location-suggestions">
           {locations.map((l) => (
@@ -165,12 +182,19 @@ export default function EssentialsStep({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-primary" />
+        <label
+          id="country-label"
+          className="text-sm font-medium text-foreground flex items-center gap-2 mb-2"
+        >
+          <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
           Country
         </label>
         <Select value={countryField.value} onValueChange={(value) => countryField.onChange(value)}>
-          <SelectTrigger>
+          <SelectTrigger
+            id="country-trigger"
+            aria-labelledby="country-label"
+            aria-describedby={countryState.error?.message ? 'country-error' : undefined}
+          >
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
           <SelectContent className="max-h-64">
@@ -179,6 +203,7 @@ export default function EssentialsStep({
                 placeholder="Search countries..."
                 value={countryQuery}
                 onChange={(e) => setCountryQuery(e.target.value)}
+                aria-label="Search countries"
                 className="h-8"
               />
             </div>
@@ -208,21 +233,32 @@ export default function EssentialsStep({
           </SelectContent>
         </Select>
         {countryState.error?.message && (
-          <p className="mt-1 text-sm text-destructive">{countryState.error.message}</p>
+          <p id="country-error" className="mt-1 text-sm text-destructive">
+            {countryState.error.message}
+          </p>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Waves className="w-4 h-4 text-primary" />
+            <label
+              htmlFor="max-depth"
+              className="text-sm font-medium text-foreground flex items-center gap-2"
+            >
+              <Waves className="w-4 h-4 text-primary" aria-hidden="true" />
               Max Depth ({depthUnitField.value === 'metric' ? 'm' : 'ft'})
             </label>
-            <div className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div
+              className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
+              role="radiogroup"
+              aria-label="Depth unit"
+            >
               <button
                 type="button"
                 onClick={() => depthUnitField.onChange('metric')}
+                role="radio"
+                aria-checked={depthUnitField.value === 'metric'}
                 className={`px-2 py-1 text-xs ${
                   depthUnitField.value === 'metric'
                     ? 'bg-primary text-black'
@@ -234,6 +270,8 @@ export default function EssentialsStep({
               <button
                 type="button"
                 onClick={() => depthUnitField.onChange('imperial')}
+                role="radio"
+                aria-checked={depthUnitField.value === 'imperial'}
                 className={`px-2 py-1 text-xs ${
                   depthUnitField.value === 'imperial'
                     ? 'bg-primary text-black'
@@ -245,6 +283,7 @@ export default function EssentialsStep({
             </div>
           </div>
           <Input
+            id="max-depth"
             type="number"
             placeholder={depthUnitField.value === 'metric' ? 'e.g., 30' : 'e.g., 100'}
             value={maxDepthField.value}
@@ -263,18 +302,27 @@ export default function EssentialsStep({
             }}
             onBlur={maxDepthField.onBlur}
             min={1}
+            max={maxDepthLimit}
+            aria-invalid={Boolean(maxDepthState.error?.message)}
+            aria-describedby={maxDepthState.error?.message ? 'max-depth-error' : undefined}
             className="text-base"
           />
           {maxDepthState.error?.message && (
-            <p className="mt-1 text-sm text-destructive">{maxDepthState.error.message}</p>
+            <p id="max-depth-error" className="mt-1 text-sm text-destructive">
+              {maxDepthState.error.message}
+            </p>
           )}
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-            <Calendar className="w-4 h-4 text-primary" />
+          <label
+            htmlFor="dive-duration"
+            className="text-sm font-medium text-foreground flex items-center gap-2 mb-2"
+          >
+            <Calendar className="w-4 h-4 text-primary" aria-hidden="true" />
             Duration (min)
           </label>
           <Input
+            id="dive-duration"
             type="number"
             placeholder="e.g., 45"
             value={durationField.value}
@@ -293,10 +341,14 @@ export default function EssentialsStep({
             }}
             onBlur={durationField.onBlur}
             min={1}
+            aria-invalid={Boolean(durationState.error?.message)}
+            aria-describedby={durationState.error?.message ? 'dive-duration-error' : undefined}
             className="text-base"
           />
           {durationState.error?.message && (
-            <p className="mt-1 text-sm text-destructive">{durationState.error.message}</p>
+            <p id="dive-duration-error" className="mt-1 text-sm text-destructive">
+              {durationState.error.message}
+            </p>
           )}
         </div>
       </div>

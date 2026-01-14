@@ -198,26 +198,36 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     }
   })();
 
+  // Insert the new dive record
   const insertPayload = {
     user_id: userId,
     date: diveData.date,
     depth: diveData.depth,
+    depth_unit: diveData.depth_unit ?? null,
     duration: diveData.duration,
     notes: diveData.notes ?? null,
     location_id: locationId,
     water_temp: diveData.water_temp ?? null,
+    temperature_unit: diveData.temperature_unit ?? null,
     visibility: diveData.visibility ?? null,
     start_pressure: diveData.start_pressure ?? null,
     end_pressure: diveData.end_pressure ?? null,
     air_usage: diveData.air_usage ?? null,
+    pressure_unit: diveData.pressure_unit ?? null,
     equipment: diveData.equipment ?? null,
     wildlife: diveData.wildlife ?? null,
     dive_type: diveData.dive_type ?? null,
     water_type: diveData.water_type ?? null,
     exposure: diveData.exposure ?? null,
     gas: diveData.gas ?? null,
+    gas_mix: diveData.gas_mix ?? null,
+    nitrox_percent: diveData.nitrox_percent ?? null,
     currents: diveData.currents ?? null,
     weight: diveData.weight ?? null,
+    weight_unit: diveData.weight_unit ?? null,
+    cylinder_type: diveData.cylinder_type ?? null,
+    cylinder_size: diveData.cylinder_size ?? null,
+    cylinder_size_unit: diveData.cylinder_size_unit ?? null,
   };
 
   const { data, error } = await supabase

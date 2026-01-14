@@ -18,6 +18,14 @@ const CURRENTS = ['', 'calm', 'mild', 'moderate', 'strong'] as const;
 const VISIBILITY = ['', 'poor', 'fair', 'good', 'excellent'] as const;
 const GAS_MIX = ['', 'air', 'nitrox'] as const;
 const UNIT_SYSTEMS = ['metric', 'imperial'] as const;
+const WATER_TEMP_LIMITS = {
+  metric: { min: -2, max: 40 },
+  imperial: { min: 28, max: 104 },
+} as const;
+const DEPTH_LIMITS = {
+  metric: 50,
+  imperial: 164,
+} as const;
 
 const isFutureDate = (value: string) => {
   const parsed = new Date(value);
@@ -42,35 +50,79 @@ const optionalNumberString = (label: string) =>
       `${label} must be a number`
     );
 
-export const logDiveSchema = z.object({
-  date: z
+const optionalPositiveIntegerString = (label: string) =>
+  z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
-    .refine((value) => !isFutureDate(value), 'Dive date cannot be in the future'),
-  countryCode: z.string().length(2, 'Select a country'),
-  location: z.string().min(1, 'Location is required').trim(),
-  maxDepth: requiredNumberString('Max depth'),
-  depthUnit: z.enum(UNIT_SYSTEMS).default('metric'),
-  duration: requiredNumberString('Duration'),
-  diveType: z.enum(DIVE_TYPES),
-  waterType: z.enum(WATER_TYPES),
-  exposure: z.enum(EXPOSURE_TYPES),
-  currents: z.enum(CURRENTS),
-  weight: optionalNumberString('Weight'),
-  waterTemp: optionalNumberString('Water temperature'),
-  temperatureUnit: z.enum(UNIT_SYSTEMS).default('metric'),
-  visibility: z.enum(VISIBILITY),
-  equipment: z.array(z.string()).default([]),
-  wildlife: z.array(z.string()).default([]),
-  notes: z.string().max(2000, 'Notes must be 2000 characters or less'),
-  cylinderType: z.string(),
-  cylinderSize: z.string(),
-  gasMix: z.enum(GAS_MIX),
-  nitroxPercent: z.number().min(21).max(100).default(32),
-  weightUnit: z.enum(UNIT_SYSTEMS).default('metric'),
-  pressureUnit: z.enum(UNIT_SYSTEMS).default('metric'),
-  startingPressure: optionalNumberString('Starting pressure'),
-  endingPressure: optionalNumberString('Ending pressure'),
-});
+    .refine((value) => {
+      const trimmed = value.trim();
+      if (!trimmed) return true;
+      const parsed = Number(trimmed);
+      return Number.isFinite(parsed) && parsed > 0 && Number.isInteger(parsed);
+    }, `${label} must be a whole number greater than 0`);
 
-export type LogDiveFormData = z.infer<typeof logDiveSchema>;
+export const logDiveSchema = z
+  .object({
+    date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
+      .refine((value) => !isFutureDate(value), 'Dive date cannot be in the future'),
+    countryCode: z.string().length(2, 'Select a country'),
+    location: z.string().min(1, 'Location is required').trim(),
+    maxDepth: requiredNumberString('Max depth'),
+    depthUnit: z.enum(UNIT_SYSTEMS).default('metric'),
+    duration: requiredNumberString('Duration'),
+    diveType: z.enum(DIVE_TYPES),
+    waterType: z.enum(WATER_TYPES),
+    exposure: z.enum(EXPOSURE_TYPES),
+    currents: z.enum(CURRENTS),
+    weight: optionalPositiveIntegerString('Weight'),
+    waterTemp: optionalNumberString('Water temperature'),
+    temperatureUnit: z.enum(UNIT_SYSTEMS).default('metric'),
+    visibility: z.enum(VISIBILITY),
+    equipment: z.array(z.string()).default([]),
+    wildlife: z.array(z.string()).default([]),
+    notes: z.string().max(2000, 'Notes must be 2000 characters or less'),
+    cylinderType: z.string(),
+    cylinderSize: z.string(),
+    gasMix: z.enum(GAS_MIX),
+    nitroxPercent: z.number().min(21).max(100).default(32),
+    weightUnit: z.enum(UNIT_SYSTEMS).default('metric'),
+    pressureUnit: z.enum(UNIT_SYSTEMS).default('metric'),
+    startingPressure: optionalNumberString('Starting pressure'),
+    endingPressure: optionalNumberString('Ending pressure'),
+  })
+  .superRefine((data, ctx) => {
+    const trimmed = data.waterTemp.trim();
+    if (!trimmed) return;
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) return;
+    const limits =
+      data.temperatureUnit === 'imperial' ? WATER_TEMP_LIMITS.imperial : WATER_TEMP_LIMITS.metric;
+    if (parsed < limits.min || parsed > limits.max) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['waterTemp'],
+        message: `Water temperature must be between ${limits.min} and ${limits.max} ${
+          data.temperatureUnit === 'imperial' ? 'F' : 'C'
+        }.`,
+      });
+    }
+
+    const depthTrimmed = data.maxDepth.trim();
+    if (!depthTrimmed) return;
+    const depthParsed = Number(depthTrimmed);
+    if (!Number.isFinite(depthParsed)) return;
+    const depthLimit = data.depthUnit === 'imperial' ? DEPTH_LIMITS.imperial : DEPTH_LIMITS.metric;
+    if (depthParsed > depthLimit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['maxDepth'],
+        message: `Max depth must be ${depthLimit} ${
+          data.depthUnit === 'imperial' ? 'ft' : 'm'
+        } or less.`,
+      });
+    }
+  });
+
+export type LogDiveFormInput = z.input<typeof logDiveSchema>;
+export type LogDiveFormData = z.output<typeof logDiveSchema>;
