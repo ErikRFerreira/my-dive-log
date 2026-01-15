@@ -25,7 +25,7 @@ function DiveSummary({
   onGenerateSummary,
 }: DiveSummaryProps) {
   return (
-    <Card className="bg-card border-slate-200 dark:border-slate-700">
+    <Card className="bg-card border-border/60">
       <CardHeader className="border-b border-border flex flex-row items-center justify-between">
         <CardTitle className="text-foreground">Dive Summary</CardTitle>
         {isEditMode && (

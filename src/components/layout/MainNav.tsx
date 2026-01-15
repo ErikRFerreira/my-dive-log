@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 
 function MainNav() {
   return (
-    <nav className="flex-1 p-4 space-y-1">
+    <nav className="flex-1 flex flex-col mt-4 p-4 space-y-2">
       <NavLink to="/dashboard">
         {({ isActive }) => (
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 rounded-xl transition-all h-12 ${
+            className={`w-full justify-start gap-3 rounded-lg transition-all h-12 ${
               isActive
-                ? 'bg-[#1e3a45] text-white font-medium hover:bg-[#1e3a45]'
-                : 'text-gray-400 hover:text-white hover:bg-[#1a2028]'
+                ? 'bg-[#1e3a45] text-primary font-medium hover:bg-[#1e3a45] hover:text-primary border border-primary/40'
+                : 'text-gray-400 hover:text-primary hover:bg-[#1a2028]'
             }`}
           >
             <BarChart3 className="w-5 h-5" />
@@ -25,10 +25,10 @@ function MainNav() {
         {({ isActive }) => (
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 rounded-xl transition-all h-12 ${
+            className={`w-full justify-start gap-3 rounded-lg transition-all h-12 ${
               isActive
-                ? 'bg-[#1e3a45] text-white font-medium hover:bg-[#1e3a45]'
-                : 'text-gray-400 hover:text-white hover:bg-[#1a2028]'
+                ? 'bg-[#1e3a45] text-primary font-medium hover:bg-[#1e3a45] hover:text-primary border border-primary/40'
+                : 'text-gray-400 hover:text-primary hover:bg-[#1a2028]'
             }`}
           >
             <ChartSpline className="w-5 h-5" />
@@ -41,10 +41,10 @@ function MainNav() {
         {({ isActive }) => (
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 rounded-xl transition-all h-12 ${
+            className={`w-full justify-start gap-3 rounded-lg transition-all h-12 ${
               isActive
-                ? 'bg-[#1e3a45] text-white font-medium hover:bg-[#1e3a45]'
-                : 'text-gray-400 hover:text-white hover:bg-[#1a2028]'
+                ? 'bg-[#1e3a45] text-primary font-medium hover:bg-[#1e3a45] hover:text-primary border border-primary/40'
+                : 'text-gray-400 hover:text-primary hover:bg-[#1a2028]'
             }`}
           >
             <MapPin className="w-5 h-5" />
@@ -57,10 +57,10 @@ function MainNav() {
         {({ isActive }) => (
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 rounded-xl transition-all h-12 ${
+            className={`w-full justify-start gap-3 rounded-lg transition-all h-12 ${
               isActive
-                ? 'bg-[#1e3a45] text-white font-medium hover:bg-[#1e3a45]'
-                : 'text-gray-400 hover:text-white hover:bg-[#1a2028]'
+                ? 'bg-[#1e3a45] text-primary font-medium hover:bg-[#1e3a45] hover:text-primary border border-primary/40'
+                : 'text-gray-400 hover:text-primary hover:bg-[#1a2028]'
             }`}
           >
             <User className="w-5 h-5" />
@@ -73,10 +73,10 @@ function MainNav() {
         {({ isActive }) => (
           <Button
             variant="ghost"
-            className={`w-full justify-start gap-3 rounded-xl transition-all h-12 ${
+            className={`w-full justify-start gap-3 rounded-lg transition-all h-12 ${
               isActive
-                ? 'bg-[#1e3a45] text-white font-medium hover:bg-[#1e3a45]'
-                : 'text-gray-400 hover:text-white hover:bg-[#1a2028]'
+                ? 'bg-[#1e3a45] text-primary font-medium hover:bg-[#1e3a45] hover:text-primary border border-primary/40'
+                : 'text-gray-400 hover:text-primary hover:bg-[#1a2028]'
             }`}
           >
             <Settings className="w-5 h-5" />

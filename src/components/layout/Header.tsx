@@ -43,7 +43,7 @@ function Header() {
   const showSpinner = !!user && !isError && (isPending || imageStatus === 'loading');
 
   return (
-    <header className="col-start-2 row-start-1 h-20 border-b border-border bg-card flex items-center justify-between px-8 shadow-sm">
+    <header className="col-start-2 row-start-1 h-20 border-b border-[#1e2936] bg-[#0f1419] flex items-center justify-between px-8 shadow-sm">
       <p className="text-muted-foreground mt-1">Track, explore, and master your dives</p>
       <div className="flex items-center gap-4">
         <DarkModeToggle />

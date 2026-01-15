@@ -1,16 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, Fragment } from 'react';
-import { useForm } from 'react-hook-form';
-
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router';
-
-import { useSettingsStore } from '@/store/settingsStore';
 import { useAddDive } from '@/features/dives/hooks/useAddDive';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
+import { useSettingsStore } from '@/store/settingsStore';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router';
 
 import type { LogDiveFormData, LogDiveFormInput } from './schema/schema';
 import { logDiveSchema } from './schema/schema';
@@ -20,35 +18,59 @@ import DiveInfoStep from './steps/DiveInfoStep';
 import EquipmentStep from './steps/EquipmentStep';
 import GasUsageStep from './steps/GasUsageStep';
 
-// Multi-step log dive flow: RHF stores form state; step UI uses controlled values.
+/**
+ * Multi-step dive logging wizard component.
+ *
+ * Manages a 4-step form flow using React Hook Form for state management.
+ * Persists draft data to localStorage to prevent data loss on page refresh.
+ *
+ * Flow:
+ * 1. Essentials - Date, location, depth, duration (required fields)
+ * 2. Dive Details - Water conditions, equipment, wildlife
+ * 3. Equipment - Dive gear used
+ * 4. Gas Usage - Cylinder and gas mix information
+ *
+ * Features:
+ * - Step validation before advancing
+ * - Draft persistence in localStorage
+ * - Ability to save and log another dive
+ * - Cancel navigation with fallback to dashboard
+ */
 function LogDivePage() {
   const navigate = useNavigate();
   const defaultUnitSystem = useSettingsStore((s) => s.unitSystem);
+  const setUnitSystem = useSettingsStore((s) => s.setUnitSystem);
   const { mutateAdd, isPending } = useAddDive();
   const { locations, isLoading: isLoadingLocations } = useGetLocations();
 
+  // localStorage key for persisting draft dive data
   const DRAFT_KEY = 'logDiveDraft';
+  // Current step in the 4-step wizard (1-4)
   const [step, setStep] = useState(1);
+  // Tracks user's submit intent: navigate away or log another dive
   const submitIntentRef = useRef<'save' | 'saveAnother'>('save');
+  // Prevents draft persistence during initial restoration
   const hasRestoredDraftRef = useRef(false);
 
-  // Stable defaults for form state and field arrays.
+  /**
+   * Stable default values for the form.
+   * Memoized to prevent unnecessary re-renders and form resets.
+   * Uses user's preferred unit system from settings.
+   */
   const defaultValues = useMemo<LogDiveFormInput>(() => {
     return {
       date: new Date().toISOString().split('T')[0],
       countryCode: '',
       location: '',
       maxDepth: '',
-      depthUnit: defaultUnitSystem,
       duration: '',
       diveType: '',
       waterType: '',
       exposure: '',
       currents: '',
       weight: '',
-      weightUnit: defaultUnitSystem,
       waterTemp: '',
-      temperatureUnit: defaultUnitSystem,
+      unitSystem: defaultUnitSystem,
       visibility: '',
       equipment: [],
       wildlife: [],
@@ -57,12 +79,13 @@ function LogDivePage() {
       cylinderSize: '',
       gasMix: '',
       nitroxPercent: 32,
-      pressureUnit: defaultUnitSystem,
-      startingPressure: '0',
-      endingPressure: '0',
+      startingPressure: '',
+      endingPressure: '',
     };
   }, [defaultUnitSystem]);
 
+  // React Hook Form setup with Zod validation
+  // shouldUnregister: false preserves data when switching steps
   const { control, setValue, handleSubmit, trigger, reset, watch } = useForm<
     LogDiveFormInput,
     unknown,
@@ -73,7 +96,11 @@ function LogDivePage() {
     shouldUnregister: false,
   });
 
-  // Restore any persisted draft once defaults are ready.
+  /**
+   * Restore draft from localStorage on mount.
+   * Only runs once after defaultValues are ready.
+   * Merges draft data with defaults to handle schema changes.
+   */
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const raw = window.localStorage.getItem(DRAFT_KEY);
@@ -84,6 +111,9 @@ function LogDivePage() {
 
     try {
       const parsed = JSON.parse(raw) as Partial<LogDiveFormInput>;
+      if (parsed.unitSystem) {
+        setUnitSystem(parsed.unitSystem);
+      }
       reset({ ...defaultValues, ...parsed });
       setStep(1);
     } catch {
@@ -91,19 +121,28 @@ function LogDivePage() {
     } finally {
       hasRestoredDraftRef.current = true;
     }
-  }, [defaultValues, reset]);
+  }, [defaultValues, reset, setUnitSystem]);
 
-  // Persist draft state as the user types to prevent data loss on refresh/back.
+  /**
+   * Auto-save form data to localStorage as user types.
+   * Prevents data loss from page refresh, navigation, or browser close.
+   * Only persists after initial draft restoration to avoid race conditions.
+   */
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Don't start watching until restoration is complete
+    if (!hasRestoredDraftRef.current) return;
+
     const subscription = watch((value) => {
-      if (!hasRestoredDraftRef.current) return;
       window.localStorage.setItem(DRAFT_KEY, JSON.stringify(value));
     });
     return () => subscription.unsubscribe();
-  }, [watch]);
+  }, [watch, hasRestoredDraftRef]);
 
-  // Gate step 1 with schema validation to avoid advancing with invalid inputs.
+  /**
+   * Advances to the next step in the wizard.
+   * Step 1 requires validation of required fields before advancing.
+   * Shows error toast if validation fails.
+   */
   const handleNext = async () => {
     if (step === 1) {
       const isValid = await trigger(['date', 'countryCode', 'location', 'maxDepth', 'duration']);
@@ -115,18 +154,38 @@ function LogDivePage() {
     if (step < 4) setStep(step + 1);
   };
 
-  // Move back one step in the wizard.
+  /**
+   * Navigates to the previous step in the wizard.
+   * Draft data is preserved when moving backward.
+   */
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  // Exit the flow, preferring history back when available.
+  /**
+   * Cancels the dive logging process.
+   * Uses browser back navigation if available, otherwise redirects to dashboard.
+   * Draft data remains in localStorage for future sessions.
+   */
   const onCancel = () => {
     if (window.history.length > 1) navigate(-1);
     else navigate('/dashboard');
   };
 
-  // Submit handler: validate, map to payload, then persist.
+  /**
+   * Form submission handler.
+   *
+   * Flow:
+   * 1. Validates all form data against schema
+   * 2. Maps form data to API payload format
+   * 3. Submits to backend via mutation
+   * 4. On success: clears draft, optionally resets form or navigates
+   * 5. On error: shows toast and returns to step 1
+   *
+   * Respects submitIntentRef to determine post-save behavior:
+   * - 'save': Navigate to dashboard
+   * - 'saveAnother': Reset form and stay on page
+   */
   const onSubmit = handleSubmit(
     (values) => {
       const { payload, blockingError } = buildNewDivePayload({
@@ -140,14 +199,17 @@ function LogDivePage() {
 
       mutateAdd(payload, {
         onSuccess: (created) => {
+          // Handle successful dive creation
           if (!created) {
             toast.error('Failed to log dive. Please try again.');
             return;
           }
           toast.success('Dive logged successfully');
+          // Clear draft from localStorage after successful save
           if (typeof window !== 'undefined') {
             window.localStorage.removeItem(DRAFT_KEY);
           }
+          // User clicked "Save & Log Another" - reset form with fresh date
           if (submitIntentRef.current === 'saveAnother') {
             reset({
               ...defaultValues,
@@ -164,6 +226,7 @@ function LogDivePage() {
         },
       });
     },
+    // Validation error handler - extracts first error message and returns to step 1
     (errors) => {
       const firstError = Object.values(errors)[0];
       const message =

@@ -1,11 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { useController } from 'react-hook-form';
 
 import { GAS_OPTIONS } from '../utils/options';
-import { useController } from 'react-hook-form';
+
 import type { Control } from 'react-hook-form';
 
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
-import { convertValueBetweenSystems } from '@/shared/utils/units';
+import type { UnitSystem } from '@/shared/constants';
+import NitroxMod from '@/components/common/NitroxMod';
+import {
+  clampPressure,
+  coercePressureValue,
+  nitroxTrack,
+  parsePressureInput,
+  sliderTrack,
+} from '@/shared/utils/pressure';
 type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
@@ -21,12 +30,11 @@ export default function GasUsageStep({ control }: Props) {
     name: 'endingPressure',
     control,
   });
-  const { field: pressureUnitField } = useController({ name: 'pressureUnit', control });
-  const { field: depthUnitField } = useController({ name: 'depthUnit', control });
-  const pressureUnit = pressureUnitField.value === 'imperial' ? 'imperial' : 'metric';
+  const { field: unitSystemField } = useController({ name: 'unitSystem', control });
+  const pressureUnit: UnitSystem =
+    unitSystemField.value === 'imperial' ? 'imperial' : 'metric';
   const pressureMax = pressureUnit === 'metric' ? 240 : 3500;
   const pressureStep = pressureUnit === 'metric' ? 10 : 100;
-  const prevPressureUnitRef = useRef(pressureUnit);
   const startingPressureValue = coercePressureValue(
     startingPressureField.value,
     pressureMax,
@@ -39,29 +47,16 @@ export default function GasUsageStep({ control }: Props) {
   );
 
   useEffect(() => {
-    const prevUnit = prevPressureUnitRef.current;
-    if (prevUnit === pressureUnit) return;
-
     const startParsed = parsePressureInput(startingPressureField.value);
     if (startParsed !== null) {
-      const converted = convertValueBetweenSystems(startParsed, 'pressure', prevUnit, pressureUnit);
-      startingPressureField.onChange(String(clampPressure(converted, pressureMax, pressureStep)));
+      startingPressureField.onChange(String(clampPressure(startParsed, pressureMax, pressureStep)));
     }
 
     const endParsed = parsePressureInput(endingPressureField.value);
     if (endParsed !== null) {
-      const converted = convertValueBetweenSystems(endParsed, 'pressure', prevUnit, pressureUnit);
-      endingPressureField.onChange(String(clampPressure(converted, pressureMax, pressureStep)));
+      endingPressureField.onChange(String(clampPressure(endParsed, pressureMax, pressureStep)));
     }
-
-    prevPressureUnitRef.current = pressureUnit;
-  }, [
-    pressureUnit,
-    pressureMax,
-    pressureStep,
-    startingPressureField,
-    endingPressureField,
-  ]);
+  }, [pressureMax, pressureStep, startingPressureField, endingPressureField]);
 
   return (
     <div className="space-y-6">
@@ -94,10 +89,7 @@ export default function GasUsageStep({ control }: Props) {
       {gasMixField.value === 'nitrox' && (
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <label
-              htmlFor="nitrox-percent-range"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="nitrox-percent-range" className="text-sm font-medium text-foreground">
               Oxygen (O2)
             </label>
             <span className="text-2xl font-bold text-teal-500">{nitroxPercentField.value}%</span>
@@ -121,7 +113,7 @@ export default function GasUsageStep({ control }: Props) {
           </div>
           <NitroxMod
             nitroxPercent={Number(nitroxPercentField.value)}
-            depthUnit={depthUnitField.value === 'imperial' ? 'imperial' : 'metric'}
+            depthUnit={unitSystemField.value === 'imperial' ? 'imperial' : 'metric'}
           />
         </div>
       )}
@@ -129,41 +121,12 @@ export default function GasUsageStep({ control }: Props) {
       <div className="grid grid-cols-1 gap-4">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="starting-pressure-range" className="text-sm font-medium text-foreground">
+            <label
+              htmlFor="starting-pressure-range"
+              className="text-sm font-medium text-foreground"
+            >
               Starting Pressure ({pressureUnit === 'metric' ? 'bar' : 'psi'})
             </label>
-            <div
-              className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
-              role="radiogroup"
-              aria-label="Pressure unit"
-            >
-              <button
-                type="button"
-                onClick={() => pressureUnitField.onChange('metric')}
-                role="radio"
-                aria-checked={pressureUnit === 'metric'}
-                className={`px-2 py-1 text-xs ${
-                  pressureUnit === 'metric'
-                    ? 'bg-teal-500 text-white'
-                    : 'bg-transparent text-muted-foreground'
-                }`}
-              >
-                bar
-              </button>
-              <button
-                type="button"
-                onClick={() => pressureUnitField.onChange('imperial')}
-                role="radio"
-                aria-checked={pressureUnit === 'imperial'}
-                className={`px-2 py-1 text-xs ${
-                  pressureUnit === 'imperial'
-                    ? 'bg-teal-500 text-white'
-                    : 'bg-transparent text-muted-foreground'
-                }`}
-              >
-                psi
-              </button>
-            </div>
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
             <span>0</span>
@@ -201,7 +164,10 @@ export default function GasUsageStep({ control }: Props) {
           )}
         </div>
         <div>
-          <label htmlFor="ending-pressure-range" className="text-sm font-medium text-foreground mb-2 block">
+          <label
+            htmlFor="ending-pressure-range"
+            className="text-sm font-medium text-foreground mb-2 block"
+          >
             Ending Pressure ({pressureUnit === 'metric' ? 'bar' : 'psi'})
           </label>
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
@@ -221,7 +187,9 @@ export default function GasUsageStep({ control }: Props) {
             onChange={(e) => endingPressureField.onChange(String(Number(e.target.value)))}
             onBlur={endingPressureField.onBlur}
             aria-invalid={Boolean(endingPressureState.error?.message)}
-            aria-describedby={endingPressureState.error?.message ? 'ending-pressure-error' : undefined}
+            aria-describedby={
+              endingPressureState.error?.message ? 'ending-pressure-error' : undefined
+            }
             className="w-full h-2 rounded-full appearance-none range-track"
             style={{
               ['--range-track' as string]: sliderTrack(
@@ -240,71 +208,4 @@ export default function GasUsageStep({ control }: Props) {
       </div>
     </div>
   );
-}
-
-function NitroxMod({
-  nitroxPercent,
-  depthUnit,
-}: {
-  nitroxPercent: number;
-  depthUnit: 'metric' | 'imperial';
-}) {
-  const fraction = Math.max(0.21, Math.min(1, nitroxPercent / 100));
-  const maxPpo2 = 1.4;
-  const depthMeters = Math.max(0, (maxPpo2 / fraction - 1) * 10);
-  const depth = depthUnit === 'metric' ? depthMeters : depthMeters * 3.28084;
-  const depthLabel = depthUnit === 'metric' ? 'meters' : 'feet';
-
-  return (
-    <div className="rounded-lg border border-teal-200/60 dark:border-teal-900/60 bg-teal-50/60 dark:bg-teal-950/40 px-4 py-3">
-      <p className="text-xs uppercase tracking-wide text-teal-600 dark:text-teal-300">
-        Max Operating Depth (MOD)
-      </p>
-      <p className="text-lg font-semibold text-foreground">
-        {depth.toFixed(1)} {depthLabel} <span className="text-muted-foreground">@ 1.4 ppO2</span>
-      </p>
-    </div>
-  );
-}
-
-function coercePressureValue(value: unknown, maxValue: number, step: number) {
-  const parsed = parsePressureInput(value);
-  if (parsed !== null) return clampPressure(parsed, maxValue, step);
-  return 0;
-}
-
-function clampPressure(value: number, maxValue: number, step: number) {
-  return Math.max(0, Math.min(maxValue, Math.round(value / step) * step));
-}
-
-function parsePressureInput(value: unknown) {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
-}
-
-function pressureColor(value: number, unit: 'metric' | 'imperial') {
-  const barToPsi = 14.5038;
-  const low = unit === 'metric' ? 50 : 50 * barToPsi;
-  const warn = unit === 'metric' ? 70 : 70 * barToPsi;
-  if (value <= low) return '#ef4444';
-  if (value <= warn) return '#f97316';
-  return '#0ea5a4';
-}
-
-function sliderTrack(value: number, maxValue: number, unit: 'metric' | 'imperial') {
-  const percent = (value / maxValue) * 100;
-  const color = pressureColor(value, unit);
-  const base = '#1f2937';
-  return `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${base} ${percent}%, ${base} 100%)`;
-}
-
-function nitroxTrack(value: number) {
-  const percent = ((value - 21) / (100 - 21)) * 100;
-  const color = '#0ea5a4';
-  const base = '#1f2937';
-  return `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${base} ${percent}%, ${base} 100%)`;
 }

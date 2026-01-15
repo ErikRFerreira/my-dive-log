@@ -45,7 +45,7 @@ export default function DivesFilterPanel({
   if (!show) return null;
 
   return (
-    <Card className="bg-card border-slate-200 dark:border-slate-700 p-4 space-y-4">
+    <Card className="bg-card border-border/60 p-4 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label className="text-sm font-semibold text-foreground block mb-2">Sort By</label>

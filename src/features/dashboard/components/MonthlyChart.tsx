@@ -63,7 +63,7 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
   }, [dives, selectedYear]);
 
   return (
-    <Card className="bg-card border-slate-200 dark:border-slate-700">
+    <Card className="bg-card border-border/60">
       <CardHeader className="border-b border-border">
         <div className="flex items-center justify-between">
           <CardTitle className="text-foreground">Monthly Activity</CardTitle>

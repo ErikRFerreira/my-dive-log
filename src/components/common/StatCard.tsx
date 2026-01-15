@@ -22,7 +22,7 @@ function StatCard({
   }[descriptionColor];
 
   return (
-    <Card className="bg-[#233C48] border-[#2a3845] p-5 rounded-2xl col-span-1 relative overflow-hidden flex flex-col justify-center gap-3 min-h-[140px]">
+    <Card className="app-card col-span-1 relative overflow-hidden flex flex-col justify-center gap-3 min-h-[140px]">
       {icon && (
         <div className="absolute -top-2 -right-4 w-42 h-42 text-white/5 rotate-12">{icon}</div>
       )}

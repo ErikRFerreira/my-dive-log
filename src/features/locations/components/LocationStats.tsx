@@ -26,7 +26,7 @@ function LocationStats({ dives }: LocationStatsProps) {
   }, [dives]);
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <StatCard
         title="Total Locations"
         value={totalLocations}

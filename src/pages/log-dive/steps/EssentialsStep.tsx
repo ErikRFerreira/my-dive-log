@@ -13,6 +13,7 @@ import type { Control, UseFormSetValue } from 'react-hook-form';
 
 import { COUNTRIES } from '@/shared/data/countries';
 import type { Location } from '@/features/locations';
+import { useSettingsStore } from '@/store/settingsStore';
 
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
 
@@ -23,6 +24,14 @@ type Props = {
   isLoadingLocations: boolean;
 };
 
+/**
+ * Custom hook that debounces a value by a specified delay.
+ * Prevents excessive updates during rapid user input (e.g., search queries).
+ *
+ * @param value - The value to debounce
+ * @param delayMs - Delay in milliseconds before updating
+ * @returns The debounced value
+ */
 function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -34,14 +43,33 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
   return debouncedValue;
 }
 
+/**
+ * Step 1 of dive logging wizard: Essential dive information.
+ *
+ * Collects required fields:
+ * - Date: When the dive occurred (max: today)
+ * - Location: Name of dive site with autocomplete from previous locations
+ * - Country: Country selection with virtual scrolling for performance
+ * - Max Depth: Maximum depth reached with unit conversion (m/ft)
+ * - Duration: Total dive time in minutes
+ *
+ * Features:
+ * - Auto-fills country when matching location is selected
+ * - Debounced country search for smooth filtering
+ * - Virtual scrolling for large country list
+ * - Real-time validation on required fields
+ */
 export default function EssentialsStep({
   control,
   setValue,
   locations,
   isLoadingLocations,
 }: Props) {
+  // Country search filter input
   const [countryQuery, setCountryQuery] = useState('');
+  // Scroll position for virtual scrolling optimization
   const [scrollTop, setScrollTop] = useState(0);
+  // Reference to scrollable country list container
   const listRef = useRef<HTMLDivElement | null>(null);
   const { field: dateField, fieldState: dateState } = useController({ name: 'date', control });
   const { field: locationField, fieldState: locationState } = useController({
@@ -56,19 +84,25 @@ export default function EssentialsStep({
     name: 'maxDepth',
     control,
   });
-  const { field: depthUnitField } = useController({
-    name: 'depthUnit',
+  const { field: unitSystemField } = useController({
+    name: 'unitSystem',
     control,
   });
   const { field: durationField, fieldState: durationState } = useController({
     name: 'duration',
     control,
   });
+  const setUnitSystem = useSettingsStore((s) => s.setUnitSystem);
   const todayString = new Date().toISOString().split('T')[0];
-  const maxDepthLimit = depthUnitField.value === 'imperial' ? 164 : 50;
+  const maxDepthLimit = unitSystemField.value === 'imperial' ? 164 : 50;
 
+  // Debounce search query to reduce re-renders during typing
   const debouncedQuery = useDebouncedValue(countryQuery, 150);
 
+  /**
+   * Attempts to auto-fill country when user selects or types a location name.
+   * Matches against previously logged locations to reduce manual data entry.
+   */
   const tryAutofillCountryByLocationName = (locationName: string) => {
     const normalizedInput = locationName.replace(/\s+/g, ' ').trim().toLowerCase();
     if (!normalizedInput) return;
@@ -84,6 +118,7 @@ export default function EssentialsStep({
     }
   };
 
+  // Filter countries by search query (name or code)
   const filteredCountries = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     if (!q) return COUNTRIES;
@@ -91,17 +126,24 @@ export default function EssentialsStep({
       (c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
     );
   }, [debouncedQuery]);
+  // Resolve currently selected country from code for display
   const selectedCountry = useMemo(() => {
     const code = countryField.value?.toUpperCase();
     if (!code) return null;
     return COUNTRIES.find((c) => c.code.toUpperCase() === code) ?? null;
   }, [countryField.value]);
 
+  // Reset scroll position when search query changes
   useEffect(() => {
     setScrollTop(0);
     if (listRef.current) listRef.current.scrollTop = 0;
   }, [debouncedQuery]);
 
+  /**
+   * Virtual scrolling implementation for country list.
+   * Only renders visible items plus small buffer to improve performance.
+   * Spacer divs maintain proper scroll height for non-rendered items.
+   */
   const ITEM_HEIGHT = 36;
   const LIST_HEIGHT = 240;
   const totalCount = filteredCountries.length;
@@ -114,7 +156,50 @@ export default function EssentialsStep({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground mb-6">Essential Information</h2>
+      <div className="flex justify-between">
+        <h2 className="text-2xl font-bold text-foreground mb-6">Essential Information</h2>
+        <div>
+          <label className="text-sm font-medium text-foreground mb-2 block">Units</label>
+          <div
+            className="inline-flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
+            role="radiogroup"
+            aria-label="Unit system"
+          >
+            <button
+              type="button"
+              onClick={() => {
+                unitSystemField.onChange('metric');
+                setUnitSystem('metric');
+              }}
+              role="radio"
+              aria-checked={unitSystemField.value === 'metric'}
+              className={`px-3 py-1 text-xs ${
+                unitSystemField.value === 'metric'
+                  ? 'bg-primary text-black'
+                  : 'bg-transparent text-muted-foreground'
+              }`}
+            >
+              Metric
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                unitSystemField.onChange('imperial');
+                setUnitSystem('imperial');
+              }}
+              role="radio"
+              aria-checked={unitSystemField.value === 'imperial'}
+              className={`px-3 py-1 text-xs ${
+                unitSystemField.value === 'imperial'
+                  ? 'bg-primary text-black'
+                  : 'bg-transparent text-muted-foreground'
+              }`}
+            >
+              Imperial
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div>
         <label
@@ -247,45 +332,13 @@ export default function EssentialsStep({
               className="text-sm font-medium text-foreground flex items-center gap-2"
             >
               <Waves className="w-4 h-4 text-primary" aria-hidden="true" />
-              Max Depth ({depthUnitField.value === 'metric' ? 'm' : 'ft'})
+              Max Depth ({unitSystemField.value === 'metric' ? 'm' : 'ft'})
             </label>
-            <div
-              className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
-              role="radiogroup"
-              aria-label="Depth unit"
-            >
-              <button
-                type="button"
-                onClick={() => depthUnitField.onChange('metric')}
-                role="radio"
-                aria-checked={depthUnitField.value === 'metric'}
-                className={`px-2 py-1 text-xs ${
-                  depthUnitField.value === 'metric'
-                    ? 'bg-primary text-black'
-                    : 'bg-transparent text-muted-foreground'
-                }`}
-              >
-                m
-              </button>
-              <button
-                type="button"
-                onClick={() => depthUnitField.onChange('imperial')}
-                role="radio"
-                aria-checked={depthUnitField.value === 'imperial'}
-                className={`px-2 py-1 text-xs ${
-                  depthUnitField.value === 'imperial'
-                    ? 'bg-primary text-black'
-                    : 'bg-transparent text-muted-foreground'
-                }`}
-              >
-                ft
-              </button>
-            </div>
           </div>
           <Input
             id="max-depth"
             type="number"
-            placeholder={depthUnitField.value === 'metric' ? 'e.g., 30' : 'e.g., 100'}
+            placeholder={unitSystemField.value === 'metric' ? 'e.g., 30' : 'e.g., 100'}
             value={maxDepthField.value}
             onChange={(e) => {
               const val = e.target.value;

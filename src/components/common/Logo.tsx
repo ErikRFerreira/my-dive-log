@@ -1,12 +1,14 @@
-import { Waves } from 'lucide-react';
+import diverIcon from '../../assets/icons/diver.svg?raw';
 
 function Logo() {
   return (
-    <div className="p-6 border-b border-slate-700">
-      <div className="flex items-center gap-3">
-        <Waves className="w-8 h-8 text-white" />
-        <h2 className="text-xl font-bold text-white">Dive Master</h2>
-      </div>
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden="true"
+        className="flex h-8 w-8 items-center justify-center text-primary [&>svg]:h-8 [&>svg]:w-8"
+        dangerouslySetInnerHTML={{ __html: diverIcon }}
+      />
+      <h2 className="text-xl font-bold text-white">Dive Master</h2>
     </div>
   );
 }

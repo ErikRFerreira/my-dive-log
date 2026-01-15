@@ -71,6 +71,7 @@ const router = createBrowserRouter([
         <LogDive />
       </ProtectedRoutes>
     ),
+    errorElement: <Error />,
   },
   /* Public only routes */
   {

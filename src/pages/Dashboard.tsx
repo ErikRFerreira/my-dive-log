@@ -42,13 +42,13 @@ function Dashboard() {
           <StatsList dives={dives} totalDives={totalCount} />
 
           {/* Recent dives */}
-          <DiveList title="Recent Dives" dives={lastThreeDives} />
+          <DiveList title="Recent Dives" variant="simple" dives={lastThreeDives} />
 
           {/* Charts Section  - we need at least 2 dives to make sense */}
           {dives.length > 1 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DepthChart dives={dives} />
               <MonthlyChart dives={dives} />
+              <DepthChart dives={dives} />
             </div>
           )}
         </>

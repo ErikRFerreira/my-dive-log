@@ -14,7 +14,7 @@
   --background: 210 33% 98%; /* near-white with cool tint */
   --foreground: 215 25% 12%; /* deep charcoal text */
 
-  --card: 210 30% 96%;
+  --card: 210 30% 97%;
   --card-foreground: 215 25% 12%;
 
   --popover: 210 30% 97%;
@@ -121,6 +121,8 @@
   --background-dark: var(--background);
   --surface-dark: var(--card);
   --primary-solid: var(--primary);
+  --card-dark: 200 34% 16%;
+  --border-dark: 210 20% 18%;
 }
 
 @theme inline {
@@ -174,6 +176,12 @@
   --color-background-dark: hsl(var(--background-dark));
   --color-surface-dark: hsl(var(--surface-dark));
   --color-primary-solid: hsl(var(--primary-solid));
+  --color-card-dark: hsl(var(--card-dark));
+  --color-border-dark: hsl(var(--border-dark));
+}
+
+.app-card {
+  @apply bg-gradient-to-br from-[#1e3a45] to-[#152d38] border border-border-dark rounded-2xl p-4;
 }
 
 @layer base {

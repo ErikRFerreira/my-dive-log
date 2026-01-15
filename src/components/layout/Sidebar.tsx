@@ -16,7 +16,7 @@ function Sidebar() {
 
   return (
     <aside className="col-start-1 row-start-1 row-span-2 bg-[#0f1419] border-r border-[#1e2936] flex flex-col">
-      <div className="p-6 border-b border-[#1e2936]">
+      <div className="p-6">
         <Logo />
       </div>
       <MainNav />

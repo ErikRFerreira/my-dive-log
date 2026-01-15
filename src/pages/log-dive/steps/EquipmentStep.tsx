@@ -14,6 +14,21 @@ type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
 
+/**
+ * Step 3 of dive logging wizard: Equipment and exposure protection.
+ *
+ * Collects gear-related information:
+ * - Exposure Protection: Wetsuit, drysuit, shorty, or skin
+ * - Cylinder Type: Aluminum or steel
+ * - Cylinder Size: Common tank sizes (80, 100, etc. cu ft)
+ * - Weight: Amount of lead used with unit conversion (kg/lbs)
+ * - Equipment List: Custom tags for additional gear
+ *
+ * Features:
+ * - Dynamic equipment tag management (add/remove)
+ * - Weight validation with unit-appropriate maximums
+ * - Keyboard support (Enter key) for adding equipment
+ */
 export default function EquipmentStep({ control }: Props) {
   const { field: exposureField } = useController({ name: 'exposure', control });
   const { field: cylinderTypeField } = useController({ name: 'cylinderType', control });
@@ -22,18 +37,25 @@ export default function EquipmentStep({ control }: Props) {
     name: 'weight',
     control,
   });
-  const { field: weightUnitField } = useController({
-    name: 'weightUnit',
+  const { field: unitSystemField } = useController({
+    name: 'unitSystem',
     control,
   });
 
+  // Equipment list management
   const { field: equipmentField } = useController({ name: 'equipment', control });
+  // Ensure equipment is always an array (form may initialize as undefined)
   const equipment: NonNullable<LogDiveFormInput['equipment']> = Array.isArray(equipmentField.value)
     ? equipmentField.value
     : [];
 
+  // Temporary input for adding new equipment items
   const [equipmentInput, setEquipmentInput] = useState('');
 
+  /**
+   * Adds an equipment item to the list.
+   * Validates input is non-empty and clears input field after adding.
+   */
   const addEquipment = () => {
     const value = equipmentInput.trim();
     if (!value) return;
@@ -141,40 +163,8 @@ export default function EquipmentStep({ control }: Props) {
             className="text-sm font-medium text-foreground flex items-center gap-2"
           >
             <Weight className="w-4 h-4 text-slate-500" aria-hidden="true" />
-            Weight ({weightUnitField.value === 'metric' ? 'kg' : 'lbs'})
+            Weight ({unitSystemField.value === 'metric' ? 'kg' : 'lbs'})
           </label>
-          <div
-            className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
-            role="radiogroup"
-            aria-label="Weight unit"
-          >
-            <button
-              type="button"
-              onClick={() => weightUnitField.onChange('metric')}
-              role="radio"
-              aria-checked={weightUnitField.value === 'metric'}
-              className={`px-2 py-1 text-xs ${
-                weightUnitField.value === 'metric'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-transparent text-muted-foreground'
-              }`}
-            >
-              kg
-            </button>
-            <button
-              type="button"
-              onClick={() => weightUnitField.onChange('imperial')}
-              role="radio"
-              aria-checked={weightUnitField.value === 'imperial'}
-              className={`px-2 py-1 text-xs ${
-                weightUnitField.value === 'imperial'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-transparent text-muted-foreground'
-              }`}
-            >
-              lbs
-            </button>
-          </div>
         </div>
         <Input
           id="dive-weight"
@@ -182,13 +172,19 @@ export default function EquipmentStep({ control }: Props) {
           value={weightField.value}
           onChange={(e) => weightField.onChange(e.target.value)}
           onBlur={weightField.onBlur}
-          placeholder={weightUnitField.value === 'metric' ? 'e.g., 6' : 'e.g., 13'}
+          placeholder={unitSystemField.value === 'metric' ? 'e.g., 6' : 'e.g., 13'}
           min={1}
+          max={unitSystemField.value === 'metric' ? 20 : 44}
           step="1"
           aria-invalid={Boolean(weightState.error?.message)}
           aria-describedby={weightState.error?.message ? 'dive-weight-error' : undefined}
           className="text-base"
         />
+        {!weightState.error?.message && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Max {unitSystemField.value === 'metric' ? '20 kg' : '44.1 lbs'}.
+          </p>
+        )}
         {weightState.error?.message && (
           <p id="dive-weight-error" className="mt-1 text-sm text-destructive">
             {weightState.error.message}

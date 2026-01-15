@@ -1,7 +1,9 @@
 import DiveCard from './DiveCard';
+import DiveCardFull from './DiveCardFull';
 import { type Dive } from '@/features/dives';
 import NoResults from '@/components/layout/NoResults';
 import Pagination from '@/components/layout/Pagination';
+import { Link } from 'react-router';
 
 type DiveListProps = {
   dives: Dive[];
@@ -10,6 +12,7 @@ type DiveListProps = {
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  variant?: 'simple' | 'full';
 };
 
 function DiveList({
@@ -19,9 +22,8 @@ function DiveList({
   currentPage = 1,
   totalPages = 1,
   onPageChange,
+  variant = 'full',
 }: DiveListProps) {
-  
-  
   if (dives.length === 0) {
     if (hasActiveFilters) {
       return (
@@ -36,11 +38,26 @@ function DiveList({
 
   return (
     <>
-      <section aria-label="List of dives" role="list" className="space-y-4">
-        {title && <h2 className="text-xl font-bold text-foreground">{title}</h2>}
-        {dives.map((dive) => (
-          <DiveCard key={dive.id} dive={dive} />
-        ))}
+      <section aria-label="List of dives" role="list">
+        {title && (
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground">{title}</h2>
+            <Link to="/dives" className="text-sm font-medium text-primary hover:underline">
+              See all dives
+            </Link>
+          </div>
+        )}
+        <div
+          className={variant === 'simple' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-3 gap-6'}
+        >
+          {dives.map((dive) =>
+            variant === 'simple' ? (
+              <DiveCard key={dive.id} dive={dive} />
+            ) : (
+              <DiveCardFull key={dive.id} dive={dive} />
+            )
+          )}
+        </div>
       </section>
       {totalPages > 1 && onPageChange && (
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />

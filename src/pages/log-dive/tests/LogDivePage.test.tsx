@@ -7,6 +7,7 @@ import LogDivePage from '../LogDivePage';
 // triggering real navigation or network requests.
 const navigateMock = vi.fn();
 const mutateAddMock = vi.fn();
+const setUnitSystemMock = vi.fn();
 
 // Mock routing to avoid changing test URLs and to verify post-submit redirects.
 vi.mock('react-router', () => ({
@@ -16,8 +17,13 @@ vi.mock('react-router', () => ({
 // Force the settings store into a known unit system (metric) so conversions
 // are deterministic for assertions.
 vi.mock('@/store/settingsStore', () => ({
-  useSettingsStore: (selector: (state: { unitSystem: 'metric' | 'imperial' }) => unknown) =>
-    selector({ unitSystem: 'metric' }),
+  useSettingsStore: (
+    selector: (state: {
+      unitSystem: 'metric' | 'imperial';
+      setUnitSystem: (unitSystem: 'metric' | 'imperial') => void;
+    }) => unknown
+  ) =>
+    selector({ unitSystem: 'metric', setUnitSystem: setUnitSystemMock }),
 }));
 
 // Mock the create-dive hook so we can intercept the payload and emulate success.
@@ -55,6 +61,7 @@ describe('LogDivePage', () => {
     vi.setSystemTime(new Date('2025-01-02T00:00:00Z'));
     mutateAddMock.mockReset();
     navigateMock.mockReset();
+    setUnitSystemMock.mockReset();
   });
 
   afterEach(() => {
@@ -62,24 +69,18 @@ describe('LogDivePage', () => {
     vi.useRealTimers();
   });
 
-  it('submits a dive with per-field units and nitrox settings', async () => {
+  it('submits a dive with single unit system and nitrox settings', async () => {
     // Intercept submission so we can assert conversions and derived values.
     mutateAddMock.mockImplementation(
       (payload, options: { onSuccess?: (created: { id: string } | null) => void }) => {
         // Base fields should serialize as expected.
         expect(payload).toEqual(
           expect.objectContaining({
-            date: '2025-01-03',
+            date: '2025-01-02',
             locationName: 'Malapascua',
             locationCountryCode: 'PH',
             duration: 45,
             gas: 'nitrox',
-            gas_mix: 'nitrox',
-            nitrox_percent: 36,
-            depth_unit: 'ft',
-            temperature_unit: 'f',
-            weight_unit: 'lb',
-            pressure_unit: 'psi',
           })
         );
         // Unit conversions: UI inputs are imperial here but payload should be metric.
@@ -102,8 +103,10 @@ describe('LogDivePage', () => {
     render(<LogDivePage />);
 
     // Step 1: essentials.
+    fireEvent.click(screen.getByRole('radio', { name: /imperial/i }));
+
     fireEvent.change(screen.getByDisplayValue('2025-01-02'), {
-      target: { value: '2025-01-03' },
+      target: { value: '2025-01-02' },
     });
 
     fireEvent.change(screen.getByPlaceholderText(/e\.g\., blue hole/i), {
@@ -113,8 +116,6 @@ describe('LogDivePage', () => {
     // Location auto-fill should select the correct country.
     expect(screen.getByText(/philippines/i)).toBeInTheDocument();
 
-    // Switch to imperial for depth, then enter values.
-    fireEvent.click(screen.getByRole('button', { name: 'ft' }));
     fireEvent.change(screen.getByPlaceholderText(/e\.g\., 100/i), {
       target: { value: '100' },
     });
@@ -126,9 +127,8 @@ describe('LogDivePage', () => {
     await vi.runAllTimersAsync();
 
     // Step 2: dive details (conditions + wildlife).
-    fireEvent.click(screen.getByRole('button', { name: /reef/i }));
-    fireEvent.click(screen.getByRole('button', { name: /saltwater/i }));
-    fireEvent.click(screen.getByRole('button', { name: 'F' }));
+    fireEvent.click(screen.getByRole('radio', { name: /reef/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /saltwater/i }));
     fireEvent.change(screen.getByPlaceholderText(/e\.g\., 75/i), {
       target: { value: '80' },
     });
@@ -142,7 +142,6 @@ describe('LogDivePage', () => {
     await vi.runAllTimersAsync();
 
     // Step 3: equipment.
-    fireEvent.click(screen.getByRole('button', { name: /lbs/i }));
     fireEvent.change(screen.getByPlaceholderText(/e\.g\., 13/i), {
       target: { value: '20' },
     });
@@ -156,13 +155,10 @@ describe('LogDivePage', () => {
     await vi.runAllTimersAsync();
 
     // Step 4: gas usage.
-    fireEvent.click(screen.getByRole('button', { name: /nitrox/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /nitrox/i }));
 
     const sliders = screen.getAllByRole('slider');
     fireEvent.change(sliders[0], { target: { value: '36' } });
-
-    // Switch to PSI and adjust pressures; values will be converted on submit.
-    fireEvent.click(screen.getByRole('button', { name: /psi/i }));
 
     const updatedSliders = screen.getAllByRole('slider');
     fireEvent.change(updatedSliders[1], { target: { value: '3000' } });

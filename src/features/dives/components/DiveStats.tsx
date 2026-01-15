@@ -51,7 +51,7 @@ function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveSta
                 : `${val} ${unit}`
             : 'N/A';
         return (
-          <Card key={key} className="bg-card border-slate-200 dark:border-slate-700">
+          <Card key={key} className="bg-card border-border/60">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Icon className="w-5 h-5 text-teal-600" />
@@ -81,7 +81,7 @@ function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveSta
       })}
 
       {/* Visibility Card */}
-      <Card className="bg-card border-slate-200 dark:border-slate-700">
+      <Card className="bg-card border-border/60">
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <Eye className="w-5 h-5 text-teal-600" />

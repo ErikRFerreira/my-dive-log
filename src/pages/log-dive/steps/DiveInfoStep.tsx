@@ -15,6 +15,23 @@ type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
 
+/**
+ * Step 2 of dive logging wizard: Detailed dive information.
+ *
+ * Collects environmental and observational data:
+ * - Dive Type: Shore, boat, wreck, or drift dive
+ * - Water Type: Saltwater or freshwater
+ * - Currents: None, mild, moderate, or strong
+ * - Water Temperature: With unit conversion (C/F)
+ * - Visibility: Poor, fair, good, or excellent
+ * - Wildlife: Tags for observed marine life
+ * - Notes: Free-form text for dive experience
+ *
+ * Features:
+ * - Dynamic wildlife tag management (add/remove)
+ * - Temperature validation based on selected unit
+ * - Accessible radio button groups for selections
+ */
 export default function DiveInfoStep({ control }: Props) {
   const { field: diveTypeField } = useController({ name: 'diveType', control });
   const { field: waterTypeField } = useController({ name: 'waterType', control });
@@ -23,20 +40,26 @@ export default function DiveInfoStep({ control }: Props) {
     name: 'waterTemp',
     control,
   });
-  const { field: temperatureUnitField } = useController({ name: 'temperatureUnit', control });
+  const { field: unitSystemField } = useController({ name: 'unitSystem', control });
   const { field: visibilityField } = useController({ name: 'visibility', control });
   const { field: notesField, fieldState: notesState } = useController({ name: 'notes', control });
+  // Temperature validation ranges based on unit (C: -2 to 40, F: 28 to 104)
   const temperatureLimits =
-    temperatureUnitField.value === 'metric' ? { min: -2, max: 40 } : { min: 28, max: 104 };
+    unitSystemField.value === 'metric' ? { min: -2, max: 40 } : { min: 28, max: 104 };
 
+  // Wildlife observation management
   const { field: wildlifeField } = useController({ name: 'wildlife', control });
-  const wildlife: NonNullable<LogDiveFormInput['wildlife']> = Array.isArray(
-    wildlifeField.value
-  )
+  // Ensure wildlife is always an array (form may initialize as undefined)
+  const wildlife: NonNullable<LogDiveFormInput['wildlife']> = Array.isArray(wildlifeField.value)
     ? wildlifeField.value
     : [];
+  // Temporary input for adding new wildlife tags
   const [wildlifeInput, setWildlifeInput] = useState('');
 
+  /**
+   * Adds a wildlife observation to the list.
+   * Validates input is non-empty and clears input field after adding.
+   */
   const addWildlife = () => {
     const value = wildlifeInput.trim();
     if (!value) return;
@@ -67,6 +90,11 @@ export default function DiveInfoStep({ control }: Props) {
                   : 'border-slate-200 dark:border-slate-700'
               }`}
             >
+              <div
+                aria-hidden="true"
+                className="mx-auto mb-2 flex h-10 w-10 items-center justify-center text-primary [&>svg]:h-10 [&>svg]:w-10"
+                dangerouslySetInnerHTML={{ __html: type.icon }}
+              />
               <div className="text-sm font-medium">{type.label}</div>
             </button>
           ))}
@@ -137,40 +165,8 @@ export default function DiveInfoStep({ control }: Props) {
             className="text-sm font-medium text-foreground flex items-center gap-2"
           >
             <Thermometer className="w-4 h-4 text-teal-500" aria-hidden="true" />
-            Water Temperature ({temperatureUnitField.value === 'metric' ? 'C' : 'F'})
+            Water Temperature ({unitSystemField.value === 'metric' ? 'C' : 'F'})
           </label>
-          <div
-            className="flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
-            role="radiogroup"
-            aria-label="Temperature unit"
-          >
-            <button
-              type="button"
-              onClick={() => temperatureUnitField.onChange('metric')}
-              role="radio"
-              aria-checked={temperatureUnitField.value === 'metric'}
-              className={`px-2 py-1 text-xs ${
-                temperatureUnitField.value === 'metric'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-transparent text-muted-foreground'
-              }`}
-            >
-              C
-            </button>
-            <button
-              type="button"
-              onClick={() => temperatureUnitField.onChange('imperial')}
-              role="radio"
-              aria-checked={temperatureUnitField.value === 'imperial'}
-              className={`px-2 py-1 text-xs ${
-                temperatureUnitField.value === 'imperial'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-transparent text-muted-foreground'
-              }`}
-            >
-              F
-            </button>
-          </div>
         </div>
         <Input
           id="water-temperature"
@@ -178,7 +174,7 @@ export default function DiveInfoStep({ control }: Props) {
           value={waterTempField.value}
           onChange={(e) => waterTempField.onChange(e.target.value)}
           onBlur={waterTempField.onBlur}
-          placeholder={temperatureUnitField.value === 'metric' ? 'e.g., 24' : 'e.g., 75'}
+          placeholder={unitSystemField.value === 'metric' ? 'e.g., 24' : 'e.g., 75'}
           min={temperatureLimits.min}
           max={temperatureLimits.max}
           aria-invalid={Boolean(waterTempState.error?.message)}

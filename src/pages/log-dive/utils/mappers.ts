@@ -73,36 +73,6 @@ export function mapGas(gasMix: V0GasMix): Gas | null {
 }
 
 /**
- * Parses a cylinder size string into a numeric size and unit.
- * 
- * Expects format like "12l" or "80cuft". Returns null values if the format
- * is invalid, empty, or "other".
- * 
- * @param value - The cylinder size string to parse (e.g., "12l", "80cuft")
- * @returns An object containing the numeric size and unit, or nulls if invalid
- * 
- * @example
- * parseCylinderSize("12l") // { size: 12, unit: "l" }
- * parseCylinderSize("80cuft") // { size: 80, unit: "cuft" }
- * parseCylinderSize("other") // { size: null, unit: null }
- * parseCylinderSize("invalid") // { size: null, unit: null }
- */
-function parseCylinderSize(value: string): { size: number | null; unit: 'l' | 'cuft' | null } {
-  const trimmed = value.trim();
-  if (!trimmed || trimmed.toLowerCase() === 'other') return { size: null, unit: null };
-
-  const match = trimmed.match(/^(\d+(?:\.\d+)?)([a-zA-Z]+)$/);
-  if (!match) return { size: null, unit: null };
-
-  const size = Number(match[1]);
-  if (!Number.isFinite(size)) return { size: null, unit: null };
-
-  const unitRaw = match[2].toLowerCase();
-  const unit = unitRaw === 'l' ? 'l' : unitRaw === 'cuft' ? 'cuft' : null;
-  return { size, unit };
-}
-
-/**
  * Transforms dive log form data into the payload format expected by the API.
  * 
  * This function performs the following operations:
@@ -147,7 +117,7 @@ export function buildNewDivePayload(args: {
   }
 
   // Convert depth to metric (meters) and round duration
-  const depth = convertValueBetweenSystems(depthEntered, 'depth', formData.depthUnit, 'metric');
+  const depth = convertValueBetweenSystems(depthEntered, 'depth', formData.unitSystem, 'metric');
   const duration = Math.round(durationEntered);
 
   // Parse and convert pressure values, calculate air usage
@@ -156,21 +126,11 @@ export function buildNewDivePayload(args: {
   const start_pressure =
     startPressureEntered === null
       ? null
-      : convertValueBetweenSystems(
-          startPressureEntered,
-          'pressure',
-          formData.pressureUnit,
-          'metric'
-        );
+      : convertValueBetweenSystems(startPressureEntered, 'pressure', formData.unitSystem, 'metric');
   const end_pressure =
     endPressureEntered === null
       ? null
-      : convertValueBetweenSystems(
-          endPressureEntered,
-          'pressure',
-          formData.pressureUnit,
-          'metric'
-        );
+      : convertValueBetweenSystems(endPressureEntered, 'pressure', formData.unitSystem, 'metric');
   const air_usage =
     start_pressure !== null && end_pressure !== null ? Math.max(0, start_pressure - end_pressure) : null;
 
@@ -179,19 +139,14 @@ export function buildNewDivePayload(args: {
   const water_temp =
     waterTempEntered === null
       ? null
-      : convertValueBetweenSystems(
-          waterTempEntered,
-          'temperature',
-          formData.temperatureUnit,
-          'metric'
-        );
+      : convertValueBetweenSystems(waterTempEntered, 'temperature', formData.unitSystem, 'metric');
 
   // Parse and convert weight
   const weightEntered = parseFiniteNumber(formData.weight);
   const weight =
     weightEntered === null
       ? null
-      : convertValueBetweenSystems(weightEntered, 'weight', formData.weightUnit, 'metric');
+      : convertValueBetweenSystems(weightEntered, 'weight', formData.unitSystem, 'metric');
 
   // Process equipment and wildlife lists
   const equipment = formData.equipment.map((s) => s.trim()).filter(Boolean);
@@ -211,15 +166,6 @@ export function buildNewDivePayload(args: {
   // Map exposure and gas types
   const exposure = mapExposure(formData.exposure);
   const gas = mapGas(formData.gasMix);
-  const { size: cylinder_size, unit: cylinder_size_unit } = parseCylinderSize(formData.cylinderSize);
-  
-  // Determine unit types for storage
-  const depth_unit = formData.depthUnit === 'imperial' ? 'ft' : 'm';
-  const weight_unit = formData.weightUnit === 'imperial' ? 'lb' : 'kg';
-  const temperature_unit = formData.temperatureUnit === 'imperial' ? 'f' : 'c';
-  const pressure_unit = formData.pressureUnit === 'imperial' ? 'psi' : 'bar';
-  const gas_mix = formData.gasMix || null;
-  const nitrox_percent = formData.gasMix === 'nitrox' ? formData.nitroxPercent : null;
 
   return {
     payload: {
@@ -228,30 +174,21 @@ export function buildNewDivePayload(args: {
       locationCountry: country.name,
       locationCountryCode: country.code.toUpperCase(),
       depth,
-      depth_unit,
       duration,
       notes,
       water_temp,
-      temperature_unit,
       visibility: formData.visibility || null,
       start_pressure,
       end_pressure,
       air_usage,
-      pressure_unit,
       equipment: equipment.length ? equipment : null,
       wildlife: wildlife.length ? wildlife : null,
       dive_type: formData.diveType || null,
       water_type: formData.waterType || null,
       exposure,
       gas,
-      gas_mix,
-      nitrox_percent,
       currents: formData.currents || null,
       weight,
-      weight_unit,
-      cylinder_type: formData.cylinderType || null,
-      cylinder_size,
-      cylinder_size_unit,
     },
   };
 }

@@ -16,7 +16,7 @@ function Modal({ children, title, closeModal }: ModalProps) {
       onClick={closeModal}
     >
       <Card
-        className="w-full max-w-md bg-card border-slate-200 dark:border-slate-700"
+        className="w-full max-w-md bg-card border-border/60"
         onClick={(e) => e.stopPropagation()}
       >
         <CardHeader className="flex flex-row items-center justify-between border-b border-border ">

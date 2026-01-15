@@ -31,7 +31,7 @@ function DepthChart({ dives }: DepthChartProps) {
   });
 
   return (
-    <Card className="bg-card border-slate-200 dark:border-slate-700">
+    <Card className="bg-card border-border/60">
       <CardHeader className="border-b border-border">
         <CardTitle className="text-foreground">Depth/Time Progression</CardTitle>
       </CardHeader>
