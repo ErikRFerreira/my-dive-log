@@ -355,10 +355,10 @@ function LogDivePage() {
                     onSubmit();
                   }}
                   disabled={isPending}
-                  className="px-8 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
+                  className="px-8 bg-primary hover:bg-primary/90"
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Save to Dashboard
+                  Save
                 </Button>
               </div>
             )}

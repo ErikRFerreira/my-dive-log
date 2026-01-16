@@ -32,6 +32,7 @@ model dives {
   gas            gas_enum?
   currents       currents_enum?
   weight         Decimal?         @db.Decimal
+  nitrox_percent Int?
   location_id    String?          @db.Uuid
   locations      locations?       @relation(fields: [location_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 

@@ -1,20 +1,16 @@
 import { Card, CardContent } from '@/components/ui/card';
 import type { Dive } from '@/features/dives';
-import { Area, AreaChart, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useSettingsStore } from '@/store/settingsStore';
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { useMemo, useState } from 'react';
-import { convertValue, getUnitLabel } from '@/shared/utils/units';
 
-type DepthChartProps = {
+type DurationChartProps = {
   dives: Dive[];
 };
 
-function DepthChart({ dives }: DepthChartProps) {
-  const unitSystem = useSettingsStore((s) => s.unitSystem);
-
+function DurationChart({ dives }: DurationChartProps) {
   const [viewMode, setViewMode] = useState<'last10' | 'month'>('last10');
 
-  const { chartData, averageDepth, changeLabel, changePositive, labels, comparisonLabel } =
+  const { chartData, averageDuration, changeLabel, changePositive, labels, comparisonLabel } =
     useMemo(() => {
     const sortedDives = [...dives].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -22,11 +18,10 @@ function DepthChart({ dives }: DepthChartProps) {
 
     if (sortedDives.length === 0) {
       return {
-        chartData: [] as Array<{ index: number; depth: number; label: string }>,
-        averageDepth: 0,
+        chartData: [] as Array<{ index: number; duration: number; label: string }>,
+        averageDuration: 0,
         changeLabel: 0,
         changePositive: true,
-        totalCountLabel: '0 Dives',
         labels: [] as string[],
       };
     }
@@ -62,38 +57,32 @@ function DepthChart({ dives }: DepthChartProps) {
       return {
         index: index + 1,
         label,
-        depth: convertValue(dive.depth, 'depth', unitSystem),
+        duration: dive.duration,
       };
     });
 
-    const averageDepth =
-      chartData.reduce((sum, item) => sum + item.depth, 0) / (chartData.length || 1);
+    const averageDuration =
+      chartData.reduce((sum, item) => sum + item.duration, 0) / (chartData.length || 1);
     const comparisonAvg =
-      comparisonDives.reduce(
-        (sum, dive) => sum + convertValue(dive.depth, 'depth', unitSystem),
-        0
-      ) / (comparisonDives.length || 1);
+      comparisonDives.reduce((sum, dive) => sum + dive.duration, 0) /
+      (comparisonDives.length || 1);
     const changePercent =
-      comparisonDives.length > 0 ? ((averageDepth - comparisonAvg) / comparisonAvg) * 100 : 0;
+      comparisonDives.length > 0 ? ((averageDuration - comparisonAvg) / comparisonAvg) * 100 : 0;
     const changeLabel = Number.isFinite(changePercent) ? Math.round(changePercent) : 0;
     const changePositive = changeLabel >= 0;
-
-    const totalCountLabel =
-      viewMode === 'month' ? `${chartData.length} Dives` : `Last ${chartData.length} Dives`;
     const labels = chartData.map((item) => item.label);
 
     const comparisonLabel = viewMode === 'month' ? 'vs last month' : 'vs last 10 dives';
 
     return {
       chartData,
-      averageDepth,
+      averageDuration,
       changeLabel,
       changePositive,
-      totalCountLabel,
       labels,
       comparisonLabel,
     };
-  }, [dives, unitSystem, viewMode]);
+  }, [dives, viewMode]);
 
   const isMonthView = viewMode === 'month';
 
@@ -101,15 +90,15 @@ function DepthChart({ dives }: DepthChartProps) {
     <Card className="border-border/60 bg-[#0f1c23]">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-white">Depth Trend</h2>
+          <h2 className="text-2xl font-bold text-white">Duration Trend</h2>
           <div className="flex items-center gap-3 text-sm">
             <button
               type="button"
               onClick={() => setViewMode('last10')}
               className={`px-4 py-1 rounded-full font-semibold transition-colors ${
                 viewMode === 'last10'
-                  ? 'bg-[#0f3a52] text-primary'
-                  : 'text-muted-foreground hover:text-primary'
+                  ? 'bg-[#3b1a1a] text-[#ff6b6b]'
+                  : 'text-muted-foreground hover:text-[#ff6b6b]'
               }`}
             >
               Last dives
@@ -119,8 +108,8 @@ function DepthChart({ dives }: DepthChartProps) {
               onClick={() => setViewMode('month')}
               className={`px-3 py-1 rounded-full font-semibold transition-colors ${
                 isMonthView
-                  ? 'bg-[#0f3a52] text-primary'
-                  : 'text-muted-foreground hover:text-primary'
+                  ? 'bg-[#3b1a1a] text-[#ff6b6b]'
+                  : 'text-muted-foreground hover:text-[#ff6b6b]'
               }`}
             >
               Month
@@ -131,10 +120,12 @@ function DepthChart({ dives }: DepthChartProps) {
         <div className="rounded-2xl border border-[#2a3b44] bg-[#1f3440] px-6 py-5">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm text-slate-300">Average Depth</p>
+              <p className="text-sm text-slate-300">Average Duration</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-white">{Math.round(averageDepth)}</span>
-                <span className="text-slate-300 text-sm">{getUnitLabel('depth', unitSystem)}</span>
+                <span className="text-4xl font-bold text-white">
+                  {Math.round(averageDuration)}
+                </span>
+                <span className="text-slate-300 text-sm">min</span>
               </div>
             </div>
             <div className="text-right">
@@ -143,7 +134,7 @@ function DepthChart({ dives }: DepthChartProps) {
                   changePositive ? 'text-emerald-400' : 'text-red-400'
                 }`}
               >
-                <span>{changePositive ? '↗' : '↘'}</span>
+                <span>{changePositive ? '▲' : '▼'}</span>
                 <span>{Math.abs(changeLabel)}%</span>
               </div>
               <p className="text-xs text-slate-400">{comparisonLabel}</p>
@@ -154,9 +145,9 @@ function DepthChart({ dives }: DepthChartProps) {
             <ResponsiveContainer width="100%" height="100%" minHeight={220} minWidth={0}>
               <AreaChart data={chartData} margin={{ left: 24, right: 24, top: 8 }}>
                 <defs>
-                  <linearGradient id="depthFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1aa7ff" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#1aa7ff" stopOpacity={0} />
+                  <linearGradient id="durationFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ff6b6b" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#ff6b6b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis
@@ -189,19 +180,16 @@ function DepthChart({ dives }: DepthChartProps) {
                     color: '#e2e8f0',
                   }}
                   labelFormatter={() => ''}
-                  formatter={(value) => [
-                    `${Math.round(Number(value))} ${getUnitLabel('depth', unitSystem)}`,
-                    'Depth',
-                  ]}
+                  formatter={(value) => [`${Math.round(Number(value))} min`, 'Duration']}
                 />
                 <Area
                   type="monotone"
-                  dataKey="depth"
-                  stroke="#1aa7ff"
+                  dataKey="duration"
+                  stroke="#ff6b6b"
                   strokeWidth={4}
-                  fill="url(#depthFill)"
+                  fill="url(#durationFill)"
                   dot={{ r: 4, strokeWidth: 3, stroke: '#ffffff', fill: '#0f1c23' }}
-                  activeDot={{ r: 5, strokeWidth: 3, stroke: '#ffffff', fill: '#1aa7ff' }}
+                  activeDot={{ r: 5, strokeWidth: 3, stroke: '#ffffff', fill: '#ff6b6b' }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -212,4 +200,4 @@ function DepthChart({ dives }: DepthChartProps) {
   );
 }
 
-export default DepthChart;
+export default DurationChart;

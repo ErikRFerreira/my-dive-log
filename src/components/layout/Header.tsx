@@ -42,11 +42,12 @@ function Header() {
 
   const showSpinner = !!user && !isError && (isPending || imageStatus === 'loading');
 
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Diver';
+  const certLevel = profile?.cert_level;
+
   return (
-    <header className="col-start-2 row-start-1 h-20 border-b border-[#1e2936] bg-[#0f1419] flex items-center justify-between px-8 shadow-sm">
-      <p className="text-muted-foreground mt-1">Track, explore, and master your dives</p>
-      <div className="flex items-center gap-4">
-        <DarkModeToggle />
+    <header className="col-start-2 row-start-1 h-20 border-b border-[#1e2936] bg-[#0f1419]/20 backdrop-blur-[20px] flex items-center justify-between px-8 shadow-sm relative z-20">
+      <div className="flex items-center gap-3">
         <Avatar className="w-10 h-10">
           <AvatarImage
             src={avatarUrl || undefined}
@@ -67,6 +68,13 @@ function Header() {
             )}
           </AvatarFallback>
         </Avatar>
+        <div className="flex flex-col">
+          <p className="text-foreground font-medium">{userName}</p>
+          {certLevel && <p className="text-xs text-muted-foreground">{certLevel}</p>}
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <DarkModeToggle />
         <Button
           variant="ghost"
           size="icon"

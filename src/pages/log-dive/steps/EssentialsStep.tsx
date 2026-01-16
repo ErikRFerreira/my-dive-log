@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import {
   Select,
   SelectContent,
@@ -335,9 +336,8 @@ export default function EssentialsStep({
               Max Depth ({unitSystemField.value === 'metric' ? 'm' : 'ft'})
             </label>
           </div>
-          <Input
+          <NumberInput
             id="max-depth"
-            type="number"
             placeholder={unitSystemField.value === 'metric' ? 'e.g., 30' : 'e.g., 100'}
             value={maxDepthField.value}
             onChange={(e) => {
@@ -374,9 +374,8 @@ export default function EssentialsStep({
             <Calendar className="w-4 h-4 text-primary" aria-hidden="true" />
             Duration (min)
           </label>
-          <Input
+          <NumberInput
             id="dive-duration"
-            type="number"
             placeholder="e.g., 45"
             value={durationField.value}
             onChange={(e) => {
@@ -390,10 +389,15 @@ export default function EssentialsStep({
                 durationField.onChange(val);
                 return;
               }
-              durationField.onChange(num < 1 ? '1' : val);
+              if (num < 1) {
+                durationField.onChange('1');
+                return;
+              }
+              durationField.onChange(num > 200 ? '200' : val);
             }}
             onBlur={durationField.onBlur}
             min={1}
+            max={200}
             aria-invalid={Boolean(durationState.error?.message)}
             aria-describedby={durationState.error?.message ? 'dive-duration-error' : undefined}
             className="text-base"

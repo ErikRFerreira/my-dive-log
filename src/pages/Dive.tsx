@@ -4,6 +4,7 @@ import {
   AirUsage,
   DeleteDiveModal,
   DiveEquipment,
+  DiveGallery,
   DiveHeader,
   DiveInformation,
   DiveNotes,
@@ -15,6 +16,7 @@ import {
   useGetDive,
   useUpdateDive,
 } from '@/features/dives';
+import DiveBackground from '@/features/dives/components/DiveBackground';
 
 import type { Dive as DiveType, UpdateDivePatch } from '@/features/dives/types';
 import { useState } from 'react';
@@ -32,7 +34,7 @@ type SelectField = keyof Pick<
 >;
 
 function Dive() {
-  const { dive, isLoading, error } = useGetDive();
+  const { dive, isLoading, error, coverPhotoUrl } = useGetDive();
   const { mutateAsync: deleteDive, isPending: isDeleting } = useDeleteDive();
   const { mutateAsync: updateDive, isPending: isUpdating } = useUpdateDive();
 
@@ -257,75 +259,95 @@ function Dive() {
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <DiveHeader
-        dive={currentDive}
-        isEditMode={isEditMode}
-        isUpdating={isUpdating}
-        locationName={locationNameDraft}
-        onLocationNameChange={setLocationNameDraft}
-        onDateChange={handleDateChange}
-        onStartEdit={startEdit}
-        onSaveEdit={handleSaveEdit}
-        onCancelEdit={handleCancelEdit}
-        onOpenDeleteModal={() => setIsModalOpen(true)}
-      />
+    <div className="mt-8">
+      {/* Background */}
+      {coverPhotoUrl && <DiveBackground coverPhotoUrl={coverPhotoUrl} />}
 
-      <DiveStats
-        dive={currentDive}
-        isEditMode={isEditMode}
-        onNumberChange={handleNumberChange}
-        onSelectChange={handleSelectChange}
-      />
-
-      <DiveInformation
-        dive={currentDive}
-        isEditMode={isEditMode}
-        onNumberChange={handleNumberChange}
-        onSelectChange={handleSelectChange}
-      />
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <DiveSummary
+      <div className="relative z-10 p-8 space-y-6">
+        {/* Header */}
+        <DiveHeader
           dive={currentDive}
           isEditMode={isEditMode}
-          isGenerating={isGenerating}
-          onTextChange={handleTextChange}
-          onGenerateSummary={handleGenerateAISummary}
+          isUpdating={isUpdating}
+          locationName={locationNameDraft}
+          onLocationNameChange={setLocationNameDraft}
+          onDateChange={handleDateChange}
+          onStartEdit={startEdit}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={handleCancelEdit}
+          onOpenDeleteModal={() => setIsModalOpen(true)}
         />
 
-        <AirUsage dive={currentDive} isEditMode={isEditMode} onNumberChange={handleNumberChange} />
+        {/* Stats */}
+        <DiveStats
+          dive={currentDive}
+          isEditMode={isEditMode}
+          onNumberChange={handleNumberChange}
+          onSelectChange={handleSelectChange}
+        />
+
+        {/* Gallery */}
+        <DiveGallery diveId={currentDive.id} />
+
+        {/* Information */}
+        <DiveInformation
+          dive={currentDive}
+          isEditMode={isEditMode}
+          onNumberChange={handleNumberChange}
+          onSelectChange={handleSelectChange}
+        />
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Summary */}
+          <DiveSummary
+            dive={currentDive}
+            isEditMode={isEditMode}
+            isGenerating={isGenerating}
+            onTextChange={handleTextChange}
+            onGenerateSummary={handleGenerateAISummary}
+          />
+          {/* Air Usage */}
+          <AirUsage
+            dive={currentDive}
+            isEditMode={isEditMode}
+            onNumberChange={handleNumberChange}
+          />
+        </div>
+
+        {/* Notes */}
+        <DiveNotes dive={currentDive} isEditMode={isEditMode} onTextChange={handleTextChange} />
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Equipment */}
+          <DiveEquipment
+            dive={currentDive}
+            isEditMode={isEditMode}
+            newEquipment={newEquipment}
+            onNewEquipmentChange={setNewEquipment}
+            onAddEquipment={addEquipment}
+            onRemoveEquipment={removeEquipment}
+          />
+
+          {/* Wildlife */}
+          <DiveWildlife
+            dive={currentDive}
+            isEditMode={isEditMode}
+            newWildlife={newWildlife}
+            onNewWildlifeChange={setNewWildlife}
+            onAddWildlife={addWildlife}
+            onRemoveWildlife={removeWildlife}
+          />
+        </div>
+
+        {/* Delete Dive Modal */}
+        <DeleteDiveModal
+          isOpen={isModalOpen}
+          location={currentDive.locations?.name ?? 'N/A'}
+          isPending={isDeleting}
+          onCancel={onCancelDelete}
+          onConfirm={onConfirmDeletion}
+        />
       </div>
-
-      <DiveNotes dive={currentDive} isEditMode={isEditMode} onTextChange={handleTextChange} />
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <DiveEquipment
-          dive={currentDive}
-          isEditMode={isEditMode}
-          newEquipment={newEquipment}
-          onNewEquipmentChange={setNewEquipment}
-          onAddEquipment={addEquipment}
-          onRemoveEquipment={removeEquipment}
-        />
-
-        <DiveWildlife
-          dive={currentDive}
-          isEditMode={isEditMode}
-          newWildlife={newWildlife}
-          onNewWildlifeChange={setNewWildlife}
-          onAddWildlife={addWildlife}
-          onRemoveWildlife={removeWildlife}
-        />
-      </div>
-
-      <DeleteDiveModal
-        isOpen={isModalOpen}
-        location={currentDive.locations?.name ?? 'N/A'}
-        isPending={isDeleting}
-        onCancel={onCancelDelete}
-        onConfirm={onConfirmDeletion}
-      />
     </div>
   );
 }

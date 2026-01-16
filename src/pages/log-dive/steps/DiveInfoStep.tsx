@@ -1,10 +1,11 @@
-import { Droplet, MapPin, Plus, Thermometer, Wind, X } from 'lucide-react';
+import { Droplet, Eye, Fish, FileText, MapPin, Plus, Thermometer, Wind, X } from 'lucide-react';
 import { useState } from 'react';
 import { useController } from 'react-hook-form';
 
 import type { Control } from 'react-hook-form';
 
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
 
 import { CURRENT_OPTIONS, DIVE_TYPES, VISIBILITY_OPTIONS } from '../utils/options';
@@ -168,9 +169,8 @@ export default function DiveInfoStep({ control }: Props) {
             Water Temperature ({unitSystemField.value === 'metric' ? 'C' : 'F'})
           </label>
         </div>
-        <Input
+        <NumberInput
           id="water-temperature"
-          type="number"
           value={waterTempField.value}
           onChange={(e) => waterTempField.onChange(e.target.value)}
           onBlur={waterTempField.onBlur}
@@ -190,6 +190,7 @@ export default function DiveInfoStep({ control }: Props) {
 
       <div>
         <label id="visibility-label" className="text-sm font-medium text-foreground mb-3 block">
+          <Eye className="w-4 h-4 inline mr-2 text-cyan-500" aria-hidden="true" />
           Visibility
         </label>
         <div
@@ -218,6 +219,7 @@ export default function DiveInfoStep({ control }: Props) {
 
       <div>
         <label htmlFor="wildlife-input" className="text-sm font-medium text-foreground mb-2 block">
+          <Fish className="w-4 h-4 inline mr-2 text-blue-500" aria-hidden="true" />
           Wildlife Observed
         </label>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -268,6 +270,7 @@ export default function DiveInfoStep({ control }: Props) {
 
       <div>
         <label htmlFor="dive-notes" className="text-sm font-medium text-foreground mb-2 block">
+          <FileText className="w-4 h-4 inline mr-2 text-slate-500" aria-hidden="true" />
           Dive Notes
         </label>
         <Textarea

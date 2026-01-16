@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import type { Dive } from '@/features/dives';
 import { useEffect, useMemo, useState } from 'react';
@@ -63,15 +63,15 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
   }, [dives, selectedYear]);
 
   return (
-    <Card className="bg-card border-border/60">
-      <CardHeader className="border-b border-border">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-foreground">Monthly Activity</CardTitle>
+    <Card className="border-border/60 bg-[#0f1c23]">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-2xl font-bold text-white">Monthly Activity</h2>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[120px] bg-[#0f1c23] border border-[#2a3b44] text-white">
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#0f1c23] border border-[#2a3b44] text-white">
               {availableYears.map((year) => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
@@ -80,45 +80,56 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
             </SelectContent>
           </Select>
         </div>
-      </CardHeader>
-      <CardContent className="p-6">
-        {monthlyActivityData.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-            No dives logged for {selectedYear}.
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlyActivityData} barSize={60}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis
-                dataKey="month"
-                stroke="var(--chart-text)"
-                tick={{ fill: 'var(--chart-text)' }}
-              />
-              <YAxis
-                stroke="var(--chart-text)"
-                tick={{ fill: 'var(--chart-text)' }}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  color: 'var(--chart-text)',
-                }}
-                labelStyle={{ color: 'var(--chart-text)' }}
-                itemStyle={{ color: 'var(--chart-text)' }}
-              />
-              <Bar
-                dataKey="dives"
-                fill="hsl(174, 62%, 55%)"
-                radius={[8, 8, 0, 0]}
-                name="Number of Dives"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+
+        <div className="rounded-2xl border border-[#2a3b44] bg-[#1f3440] px-6 py-5">
+          {monthlyActivityData.length === 0 ? (
+            <div className="flex h-[300px] items-center justify-center text-sm text-slate-300">
+              No dives logged for {selectedYear}.
+            </div>
+          ) : (
+            <div className="h-[300px] min-h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={0}>
+                <BarChart data={monthlyActivityData} barSize={48} margin={{ left: -20 }}>
+                  <defs>
+                    <linearGradient id="monthlyBarFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: '#6b7a86', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: '#6b7a86', fontSize: 12, fontWeight: 600 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{
+                      backgroundColor: '#0b1218',
+                      border: '1px solid #2a3b44',
+                      borderRadius: '12px',
+                      color: '#e2e8f0',
+                    }}
+                    labelStyle={{ color: '#e2e8f0' }}
+                    itemStyle={{ color: '#e2e8f0' }}
+                  />
+                  <Bar
+                    dataKey="dives"
+                    fill="url(#monthlyBarFill)"
+                    radius={[10, 10, 6, 6]}
+                    name="Dives"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { Calendar } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
+import { useCoverPhotoUrl } from '../hooks/useCoverPhotoUrl';
 
 type DiveCardProps = {
   dive: Dive;
@@ -37,6 +38,9 @@ function DiveCard({ dive }: DiveCardProps) {
   const fullLocation = diveCountry ? `${diveLocation}, ${diveCountry}` : diveLocation;
   const diveLocationDisplay = fullLocation || 'Unknown Location';
   const diveIcon = dive.dive_type ? diveTypeIcons[dive.dive_type] : diverIcon;
+  const { coverPhotoUrl } = useCoverPhotoUrl(dive.cover_photo_path, {
+    transform: { width: 200, height: 200, resize: 'cover' },
+  });
 
   const formattedDate = new Date(dive.date).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -54,11 +58,20 @@ function DiveCard({ dive }: DiveCardProps) {
       onClick={() => navigate(`/dives/${dive.id}`)}
     >
       <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-xl bg-[#0f1419] flex items-center justify-center text-primary flex-shrink-0">
+        <div
+          className="w-24 h-24 rounded-xl bg-[#0f1419] relative overflow-hidden flex items-center justify-center text-primary flex-shrink-0 bg-cover bg-center"
+          style={coverPhotoUrl ? { backgroundImage: `url('${coverPhotoUrl}')` } : undefined}
+        >
+          {coverPhotoUrl && (
+            <>
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f2e] via-transparent to-transparent" />
+            </>
+          )}
           {diveIcon && (
             <span
               aria-hidden="true"
-              className="flex h-6 w-6 items-center justify-center [&>svg]:h-10 [&>svg]:w-10"
+              className="relative z-10 flex h-6 w-6 items-center justify-center [&>svg]:h-10 [&>svg]:w-10"
               dangerouslySetInnerHTML={{ __html: diveIcon }}
             />
           )}

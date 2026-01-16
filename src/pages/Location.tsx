@@ -89,29 +89,21 @@ function Location() {
         </div>
       </header>
       <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Dives"
-          value={totalDives}
-          icon={<Waves className="w-6 h-6" />}
-          color="from-teal-500 to-teal-700"
-        />
+        <StatCard title="Total Dives" value={totalDives} icon={<Waves className="w-42 h-42" />} />
         <StatCard
           title="Average Depth"
           value={formatValueWithUnit(averageDepth, 'depth', unitSystem)}
-          icon={<Zap className="w-6 h-6" />}
-          color="from-cyan-500 to-cyan-700"
+          icon={<Zap className="w-42 h-42" />}
         />
         <StatCard
           title="Deepest Dive"
           value={formatValueWithUnit(deepestDive, 'depth', unitSystem)}
-          icon={<TrendingUp className="w-6 h-6" />}
-          color="from-blue-500 to-blue-700"
+          icon={<TrendingUp className="w-42 h-42" />}
         />
         <StatCard
           title="Last Dive"
           value={lastDiveDate}
-          icon={<Calendar className="w-6 h-6" />}
-          color="from-purple-500 to-purple-700"
+          icon={<Calendar className="w-42 h-42" />}
         />
       </section>
 

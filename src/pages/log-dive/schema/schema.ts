@@ -26,6 +26,7 @@ const DEPTH_LIMITS = {
   metric: 50,
   imperial: 164,
 } as const;
+const DURATION_LIMIT = 200;
 const NITROX_CONFIG = {
   MIN_O2_PERCENT: 21,  // Air
   MAX_O2_PERCENT: 100, // Pure O2
@@ -139,6 +140,18 @@ export const logDiveSchema = z
           data.unitSystem === 'imperial'
             ? `Weight must be ${maxWeight.toFixed(1)} lbs or less.`
             : `Weight must be ${maxKg} kg or less.`,
+      });
+    }
+
+    const durationTrimmed = data.duration.trim();
+    if (!durationTrimmed) return;
+    const durationParsed = Number(durationTrimmed);
+    if (!Number.isFinite(durationParsed)) return;
+    if (durationParsed > DURATION_LIMIT) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['duration'],
+        message: `Duration must be ${DURATION_LIMIT} minutes or less.`,
       });
     }
   });

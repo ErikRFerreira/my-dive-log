@@ -238,3 +238,47 @@ input[type='range']::-moz-range-thumb {
   border: 2px solid #0ea5a4;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
+/* Custom Number input spinners */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  opacity: 1;
+  width: 20px;
+  height: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  position: relative;
+  margin: 0;
+}
+
+input[type='number']::-webkit-inner-spin-button:hover,
+input[type='number']::-webkit-outer-spin-button:hover {
+  background: hsl(var(--primary) / 0.8);
+}
+
+input[type='number']::-webkit-inner-spin-button::before,
+input[type='number']::-webkit-outer-spin-button::before {
+  content: '▲';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: white;
+}
+
+input[type='number']::-webkit-inner-spin-button::after,
+input[type='number']::-webkit-outer-spin-button::after {
+  content: '▼';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: white;
+}

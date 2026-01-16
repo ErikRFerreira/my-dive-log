@@ -1,4 +1,4 @@
-import { Gauge, Plus, Shield, Weight, X } from 'lucide-react';
+import { ChevronsUpDown, Gauge, Plus, Shield, Weight, Wrench, X } from 'lucide-react';
 import { useState } from 'react';
 import { useController } from 'react-hook-form';
 
@@ -6,6 +6,7 @@ import type { Control } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 
 import { CYLINDER_SIZES, CYLINDER_TYPES, EXPOSURE_OPTIONS } from '../utils/options';
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
@@ -130,6 +131,7 @@ export default function EquipmentStep({ control }: Props) {
 
       <div>
         <label id="cylinder-size-label" className="text-sm font-medium text-foreground mb-3 block">
+          <ChevronsUpDown className="w-4 h-4 inline mr-2 text-teal-500" aria-hidden="true" />
           Cylinder Size
         </label>
         <div
@@ -166,9 +168,8 @@ export default function EquipmentStep({ control }: Props) {
             Weight ({unitSystemField.value === 'metric' ? 'kg' : 'lbs'})
           </label>
         </div>
-        <Input
+        <NumberInput
           id="dive-weight"
-          type="number"
           value={weightField.value}
           onChange={(e) => weightField.onChange(e.target.value)}
           onBlur={weightField.onBlur}
@@ -194,6 +195,7 @@ export default function EquipmentStep({ control }: Props) {
 
       <div>
         <label htmlFor="equipment-input" className="text-sm font-medium text-foreground mb-2 block">
+          <Wrench className="w-4 h-4 inline mr-2 text-slate-500" aria-hidden="true" />
           Equipment Used
         </label>
         <div className="flex flex-wrap gap-2 mb-3">

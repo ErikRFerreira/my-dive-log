@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useController } from 'react-hook-form';
+import { Gauge as GaugeIcon, Sparkles, Wind } from 'lucide-react';
 
 import { GAS_OPTIONS } from '../utils/options';
 
@@ -31,8 +32,7 @@ export default function GasUsageStep({ control }: Props) {
     control,
   });
   const { field: unitSystemField } = useController({ name: 'unitSystem', control });
-  const pressureUnit: UnitSystem =
-    unitSystemField.value === 'imperial' ? 'imperial' : 'metric';
+  const pressureUnit: UnitSystem = unitSystemField.value === 'imperial' ? 'imperial' : 'metric';
   const pressureMax = pressureUnit === 'metric' ? 240 : 3500;
   const pressureStep = pressureUnit === 'metric' ? 10 : 100;
   const startingPressureValue = coercePressureValue(
@@ -64,6 +64,7 @@ export default function GasUsageStep({ control }: Props) {
 
       <div>
         <label id="gas-mix-label" className="text-sm font-medium text-foreground mb-3 block">
+          <Wind className="w-4 h-4 inline mr-2 text-teal-500" aria-hidden="true" />
           Gas Mix
         </label>
         <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="gas-mix-label">
@@ -90,6 +91,7 @@ export default function GasUsageStep({ control }: Props) {
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-4 space-y-4">
           <div className="flex items-center justify-between">
             <label htmlFor="nitrox-percent-range" className="text-sm font-medium text-foreground">
+              <Sparkles className="w-4 h-4 inline mr-2 text-yellow-500" aria-hidden="true" />
               Oxygen (O2)
             </label>
             <span className="text-2xl font-bold text-teal-500">{nitroxPercentField.value}%</span>
@@ -125,6 +127,7 @@ export default function GasUsageStep({ control }: Props) {
               htmlFor="starting-pressure-range"
               className="text-sm font-medium text-foreground"
             >
+              <GaugeIcon className="w-4 h-4 inline mr-2 text-orange-500" aria-hidden="true" />
               Starting Pressure ({pressureUnit === 'metric' ? 'bar' : 'psi'})
             </label>
           </div>
@@ -168,6 +171,7 @@ export default function GasUsageStep({ control }: Props) {
             htmlFor="ending-pressure-range"
             className="text-sm font-medium text-foreground mb-2 block"
           >
+            <GaugeIcon className="w-4 h-4 inline mr-2 text-red-500" aria-hidden="true" />
             Ending Pressure ({pressureUnit === 'metric' ? 'bar' : 'psi'})
           </label>
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">

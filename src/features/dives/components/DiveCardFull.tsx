@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { MapPin, Wind } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
+import { useCoverPhotoUrl } from '../hooks/useCoverPhotoUrl';
 
 type DiveCardFullProps = {
   dive: Dive;
@@ -28,6 +29,9 @@ const waterTypeLabels: Record<NonNullable<Dive['water_type']>, string> = {
 function DiveCardFull({ dive }: DiveCardFullProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
   const navigate = useNavigate();
+  const { coverPhotoUrl } = useCoverPhotoUrl(dive.cover_photo_path, {
+    transform: { width: 800, height: 320, resize: 'cover' },
+  });
 
   const diveLocation = dive.locations?.name || 'Unknown Location';
   const diveCountry = dive.locations?.country || '';
@@ -54,14 +58,25 @@ function DiveCardFull({ dive }: DiveCardFullProps) {
       onClick={() => navigate(`/dives/${dive.id}`)}
     >
       {/* Image Section with Gradient Fallback */}
-      <div className="h-40 w-full relative bg-gradient-to-br from-[#1a3a4a] via-[#0f2838] to-[#0a1f2e]">
+      <div
+        className="h-40 w-full relative bg-gradient-to-br from-[#1a3a4a] via-[#0f2838] to-[#0a1f2e] bg-cover bg-center"
+        style={coverPhotoUrl ? { backgroundImage: `url('${coverPhotoUrl}')` } : undefined}
+      >
+        {/* Darken Overlay */}
+        <div className="absolute inset-0 bg-black/35" />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f2e] via-transparent to-transparent" />
 
         {/* Gas Type Badge */}
         <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1">
-          <Wind className="w-3.5 h-3.5 text-white" />
-          <span className="text-xs font-bold text-white uppercase tracking-wide">{gasLabel}</span>
+          <Wind
+            className={`w-3.5 h-3.5 ${dive.gas === 'nitrox' ? 'text-green-400' : 'text-white'}`}
+          />
+          <span
+            className={`text-xs font-bold uppercase tracking-wide ${dive.gas === 'nitrox' ? 'text-green-400' : 'text-white'}`}
+          >
+            {gasLabel}
+          </span>
         </div>
 
         {/* Location Info */}

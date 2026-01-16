@@ -1,6 +1,7 @@
-import { Thermometer } from 'lucide-react';
+import { Eye, FileText, Thermometer } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
 import type { UnitSystem } from '@/shared/constants';
 
@@ -40,9 +41,8 @@ export default function ConditionsStep({ control, localUnitSystem }: Props) {
           <Thermometer className="w-4 h-4 text-teal-500" aria-hidden="true" />
           Water Temperature ({localUnitSystem === 'metric' ? '°C' : '°F'})
         </label>
-        <Input
+        <NumberInput
           id="conditions-water-temperature"
-          type="number"
           value={waterTempField.value}
           onChange={(e) => waterTempField.onChange(e.target.value)}
           onBlur={waterTempField.onBlur}
@@ -67,6 +67,7 @@ export default function ConditionsStep({ control, localUnitSystem }: Props) {
           id="conditions-visibility-label"
           className="text-sm font-medium text-foreground mb-3 block"
         >
+          <Eye className="w-4 h-4 inline mr-2 text-cyan-500" aria-hidden="true" />
           Visibility
         </label>
         <div
@@ -94,7 +95,11 @@ export default function ConditionsStep({ control, localUnitSystem }: Props) {
       </div>
 
       <div>
-        <label htmlFor="conditions-notes" className="text-sm font-medium text-foreground mb-2 block">
+        <label
+          htmlFor="conditions-notes"
+          className="text-sm font-medium text-foreground mb-2 block"
+        >
+          <FileText className="w-4 h-4 inline mr-2 text-slate-500" aria-hidden="true" />
           Dive Notes
         </label>
         <Textarea

@@ -8,7 +8,7 @@ function Logo() {
         className="flex h-8 w-8 items-center justify-center text-primary [&>svg]:h-8 [&>svg]:w-8"
         dangerouslySetInnerHTML={{ __html: diverIcon }}
       />
-      <h2 className="text-xl font-bold text-white">Dive Master</h2>
+      <h2 className="text-xl font-bold text-white">Dive Log</h2>
     </div>
   );
 }

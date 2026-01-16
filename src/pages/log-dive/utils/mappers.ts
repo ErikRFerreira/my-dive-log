@@ -25,7 +25,8 @@ import type { V0Exposure, V0GasMix } from './types';
  * parseFiniteNumber("abc") // null
  * parseFiniteNumber("Infinity") // null
  */
-export function parseFiniteNumber(raw: string): number | null {
+export function parseFiniteNumber(raw: string | null | undefined): number | null {
+  if (raw === null || raw === undefined) return null;
   const trimmed = raw.trim();
   if (!trimmed) return null;
   const n = Number(trimmed);
@@ -152,16 +153,19 @@ export function buildNewDivePayload(args: {
   const equipment = formData.equipment.map((s) => s.trim()).filter(Boolean);
   const wildlife = formData.wildlife.map((s) => s.trim()).filter(Boolean);
 
-  // Aggregate notes with technical details
-  const extraNoteLines: string[] = [];
-  if (formData.cylinderType) extraNoteLines.push(`Cylinder type: ${formData.cylinderType}`);
-  if (formData.cylinderSize) extraNoteLines.push(`Cylinder size: ${formData.cylinderSize}`);
-  if (formData.gasMix === 'nitrox') {
-    extraNoteLines.push(`Nitrox O2: ${formData.nitroxPercent}%`);
-  }
+  // Process notes
+  const notes = formData.notes.trim() || null;
 
-  const notesParts = [formData.notes.trim(), extraNoteLines.join('\n')].filter(Boolean);
-  const notes = notesParts.length ? notesParts.join('\n\n') : null;
+  // Set nitrox_percent: use form value for nitrox, default to 21 for air, null for other gases
+  const nitrox_percent = formData.gasMix === 'nitrox' ? formData.nitroxPercent : formData.gasMix === 'air' ? 21 : null;
+
+  // Parse cylinder size from string format like "10L" to number
+  const cylinder_size = (() => {
+    const sizeStr = formData.cylinderSize?.trim();
+    if (!sizeStr || sizeStr === 'other') return null;
+    const parsed = parseFiniteNumber(sizeStr.replace(/[^\d.]/g, ''));
+    return parsed;
+  })();
 
   // Map exposure and gas types
   const exposure = mapExposure(formData.exposure);
@@ -189,6 +193,9 @@ export function buildNewDivePayload(args: {
       gas,
       currents: formData.currents || null,
       weight,
+      nitrox_percent,
+      cylinder_type: formData.cylinderType || null,
+      cylinder_size,
     },
   };
 }

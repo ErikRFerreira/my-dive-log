@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { getDiveById } from '../../../services/apiDives';
 import { useUser } from '@/features/authentication';
+import { useCoverPhotoUrl } from './useCoverPhotoUrl';
 
 export function useGetDive() {
   const { id } = useParams<{ id: string }>();
@@ -19,5 +20,7 @@ export function useGetDive() {
     retry: false,
   });
 
-  return { dive, isLoading, error };
+  const { coverPhotoUrl } = useCoverPhotoUrl(dive?.cover_photo_path);
+
+  return { dive, isLoading, error, coverPhotoUrl };
 }
