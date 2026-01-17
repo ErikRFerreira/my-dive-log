@@ -184,6 +184,24 @@
   @apply bg-gradient-to-br from-[#1e3a45] to-[#152d38] border border-border-dark rounded-2xl p-4;
 }
 
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.skeleton-card {
+  background: linear-gradient(120deg, #172f39 0%, #1e3a45 50%, #152d38 100%);
+  background-size: 200% 200%;
+  animation: skeleton-shimmer 2.2s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

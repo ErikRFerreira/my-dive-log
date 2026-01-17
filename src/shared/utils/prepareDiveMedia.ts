@@ -111,6 +111,10 @@ export async function prepareDiveMedia(
   const outputType = getOutputType(baseFile);
   const outputName = getOutputName(baseFile.name, outputType);
 
+  if (baseFile.size <= maxBytes) {
+    return baseFile;
+  }
+
   // Try compression with progressively lower quality if needed
   const qualitySteps = [0.95, 0.85, 0.75, 0.65, 0.5];
   let compressed: Blob | File | undefined;
@@ -128,6 +132,9 @@ export async function prepareDiveMedia(
     
     // If under limit, use this version
     if (testFile.size <= maxBytes) {
+      if (testFile.size >= baseFile.size) {
+        return baseFile;
+      }
       return testFile;
     }
   }

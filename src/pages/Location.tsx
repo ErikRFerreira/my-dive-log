@@ -3,12 +3,12 @@ import Loading from '@/components/common/Loading';
 import StatCard from '@/components/common/StatCard';
 import NoResults from '@/components/layout/NoResults';
 import GoBack from '@/components/ui/GoBack';
-import { useGetLocationDives, LocationMap, LocationRecentDives } from '@/features/locations';
+import { LocationMap, LocationRecentDives, useGetLocationDives } from '@/features/locations';
 import { useToggleLocationFavorite } from '@/features/locations/hooks/useToggleLocationFavorite';
 import { useUpdateLocation } from '@/features/locations/hooks/useUpdateLocation';
-import { Calendar, MapPin, Star, TrendingUp, Waves, Zap } from 'lucide-react';
-import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
+import { useSettingsStore } from '@/store/settingsStore';
+import { Calendar, MapPin, Star, TrendingUp, Waves, Zap } from 'lucide-react';
 
 function Location() {
   const { dives, isLoading, isError } = useGetLocationDives();
@@ -60,7 +60,7 @@ function Location() {
     <>
       <header>
         <GoBack />
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">{name}</h1>
             <p className="text-muted-foreground mt-1 flex items-center gap-1">

@@ -4,12 +4,25 @@ import { useGetDives } from '@/features/dives';
 import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
+import SkeletonCard from '@/components/common/SkeletonCard';
 
 function CarrerStatistics() {
   const { dives, isLoading: divesLoading, isError: divesError } = useGetDives();
   const unitSystem = useSettingsStore((s) => s.unitSystem);
 
-  if (divesLoading) return <Loading />;
+  // Show loading skeletons while fetching data
+  if (divesLoading)
+    return (
+      <>
+        <h2 className="text-xl font-semibold text-foreground mb-4">Career Statistics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+      </>
+    );
+
   if (divesError || !dives) return <div>Error loading career statistics.</div>;
 
   const totalDives = dives.length;

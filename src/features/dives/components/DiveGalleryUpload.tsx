@@ -9,6 +9,10 @@ import { useUploadDivePhoto } from '../hooks/useUploadDivePhoto';
 import { prepareDiveMedia } from '@/shared/utils/prepareDiveMedia';
 import toast from 'react-hot-toast';
 
+/**
+ * Represents a media file processed and ready for upload.
+ * Contains original and compressed sizes and a preview URL.
+ */
 interface ProcessedMedia {
   id: string;
   file: File;
@@ -21,6 +25,18 @@ interface DiveGalleryUploadProps {
   diveId: string;
 }
 
+/**
+ * Upload widget for adding a single photo to a dive.
+ *
+ * Features:
+ * - Toggleable upload UI with progress feedback
+ * - Client-side processing/compression with preview
+ * - Restricts to one photo at a time to simplify flow
+ * - Uploads via `useUploadDivePhoto` and resets state on success
+ *
+ * @param {DiveGalleryUploadProps} props - Component props
+ * @returns {JSX.Element} Rendered upload UI
+ */
 export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
   const [showMediaUpload, setShowMediaUpload] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<ProcessedMedia[]>([]);
@@ -30,6 +46,12 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
 
   const uploadPhotoMutation = useUploadDivePhoto();
 
+  /**
+   * Handles file selection and prepares the image for upload.
+   * - Enforces single-photo selection
+   * - Processes/compresses the image and generates a preview URL
+   * - Updates progress state during processing
+   */
   const handleMediaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -75,6 +97,10 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
     }
   };
 
+  /**
+   * Removes a selected media item and revokes its preview URL
+   * to avoid memory leaks.
+   */
   const removeMedia = (id: string) => {
     setSelectedMedia((prev) => {
       const media = prev.find((m) => m.id === id);
@@ -85,12 +111,22 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
     });
   };
 
+  /**
+   * Converts a byte count into a human-readable size string.
+   * @param {number} bytes - Raw byte count
+   * @returns {string} Formatted size (e.g., "1.2 MB")
+   */
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  /**
+   * Uploads the currently selected (single) photo to the server.
+   * On success, cleans up preview URLs, resets state, and hides
+   * the upload UI.
+   */
   const handleUploadPhoto = async () => {
     if (selectedMedia.length === 0) return;
 
@@ -219,7 +255,7 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
                       <span>{formatFileSize(selectedMedia[0].originalSize)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Compressed:</span>
+                      <span>Processed:</span>
                       <span className="text-green-600 dark:text-green-400">
                         {formatFileSize(selectedMedia[0].compressedSize)}
                       </span>

@@ -96,6 +96,90 @@ export async function uploadDivePhotoToBucket(
 }
 
 /**
+ * Deletes a dive photo by ID, including its storage object.
+ *
+ * @param {string} photoId - Dive photo primary key.
+ * @returns {Promise<boolean>} True when delete succeeds.
+ * @throws {Error} When Supabase returns an error.
+ */
+export async function deleteDivePhoto(photoId: string): Promise<boolean> {
+  const userId = await getCurrentUserId();
+
+  const { data: photo, error: fetchError } = await supabase
+    .from('dive_photos')
+    .select('storage_path, dive_id')
+    .eq('id', photoId)
+    .eq('user_id', userId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  if (!photo) throw new Error('Photo not found');
+
+  // If the photo is the cover photo, clear the cover_photo_path field
+  const { error: coverError } = await supabase
+    .from('dives')
+    .update({ cover_photo_path: null })
+    .eq('id', photo.dive_id)
+    .eq('user_id', userId)
+    .eq('cover_photo_path', photo.storage_path);
+
+  if (coverError) throw coverError;
+
+  // Delete the database record
+  const { error: deleteError } = await supabase
+    .from('dive_photos')
+    .delete()
+    .eq('id', photoId)
+    .eq('user_id', userId);
+
+  if (deleteError) throw deleteError;
+
+  const { error: storageError } = await supabase.storage
+    .from('dive-photos')
+    .remove([photo.storage_path]);
+
+  if (storageError) {
+    console.warn('Failed to delete photo from storage:', storageError);
+  }
+
+  return true;
+}
+
+/**
+ * Sets a dive photo as the cover photo for its dive.
+ * 
+ * @param {string} photoId - Dive photo primary key.
+ * @param {string} diveId - Dive primary key.
+ * @returns {Promise<boolean>} True when update succeeds.
+ * @throws {Error} When Supabase returns an error.
+ */
+export async function setDiveCoverPhoto(photoId: string, diveId: string): Promise<boolean> {
+  const userId = await getCurrentUserId();
+
+  // Fetch the photo to get its storage_path
+  const { data: photo, error: fetchError } = await supabase
+    .from('dive_photos')
+    .select('storage_path')
+    .eq('id', photoId)
+    .eq('user_id', userId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  if (!photo) throw new Error('Photo not found');
+
+  // Update the dive's cover_photo_path
+  const { error: updateError } = await supabase
+    .from('dives')
+    .update({ cover_photo_path: photo.storage_path })
+    .eq('id', diveId)
+    .eq('user_id', userId);
+
+  if (updateError) throw updateError;
+
+  return true;
+}
+
+/**
  * Fetches all photos for a given dive, generating signed URLs for access.
  * Signed URLs mean the photos can be accessed securely for a limited time.
  * 
@@ -132,3 +216,5 @@ export async function fetchDivePhotos(diveId: string): Promise<DivePhoto[]> {
 
   return signed;
 }
+
+

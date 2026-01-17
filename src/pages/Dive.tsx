@@ -287,7 +287,7 @@ function Dive() {
         />
 
         {/* Gallery */}
-        <DiveGallery diveId={currentDive.id} />
+        <DiveGallery diveId={currentDive.id} coverPhotoPath={currentDive.cover_photo_path} />
 
         {/* Information */}
         <DiveInformation

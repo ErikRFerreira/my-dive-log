@@ -1,14 +1,11 @@
 import { Card } from '@/components/ui/card';
+
 import type { Dive } from '../types';
 import { useNavigate } from 'react-router';
 import { Calendar } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
 import { useCoverPhotoUrl } from '../hooks/useCoverPhotoUrl';
-
-type DiveCardProps = {
-  dive: Dive;
-};
 
 import caveIcon from '../../../assets/icons/cave.svg?raw';
 import driftIcon from '../../../assets/icons/drift.svg?raw';
@@ -19,6 +16,10 @@ import trainingIcon from '../../../assets/icons/training.svg?raw';
 import wallIcon from '../../../assets/icons/wall.svg?raw';
 import wreckIcon from '../../../assets/icons/wreck.svg?raw';
 import diverIcon from '../../../assets/icons/diver.svg?raw';
+
+type DiveCardProps = {
+  dive: Dive;
+};
 
 const diveTypeIcons: Partial<Record<NonNullable<Dive['dive_type']>, string>> = {
   cave: caveIcon,

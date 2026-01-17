@@ -1,9 +1,11 @@
-import DiveCard from './DiveCard';
-import DiveCardFull from './DiveCardFull';
-import { type Dive } from '@/features/dives';
 import NoResults from '@/components/layout/NoResults';
 import Pagination from '@/components/layout/Pagination';
+
+import type { Dive } from '@/features/dives';
 import { Link } from 'react-router';
+
+import DiveCard from './DiveCard';
+import DiveCardFull from './DiveCardFull';
 
 type DiveListProps = {
   dives: Dive[];

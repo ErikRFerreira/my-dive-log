@@ -1,4 +1,3 @@
-import type { DivePhoto } from '@/services/apiDivePhotos';
 import { DiveGalleryCarousel } from './DiveGalleryCarousel';
 import { DiveGalleryUpload } from './DiveGalleryUpload';
 import InlineSpinner from '@/components/common/InlineSpinner';
@@ -6,11 +5,10 @@ import { useGetDivePhotos } from '../hooks/useGetDivePhotos';
 
 interface DiveGalleryProps {
   diveId: string;
-  photos?: DivePhoto[];
-  isLoadingPhotos?: boolean;
+  coverPhotoPath?: string | null;
 }
 
-export function DiveGallery({ diveId }: DiveGalleryProps) {
+export function DiveGallery({ diveId, coverPhotoPath }: DiveGalleryProps) {
   const { gallery, isLoadingGallery } = useGetDivePhotos(diveId);
 
   // Loading state
@@ -23,7 +21,7 @@ export function DiveGallery({ diveId }: DiveGalleryProps) {
 
   // Render carousel mode when we have photos
   if (hasPhotos) {
-    return <DiveGalleryCarousel photos={gallery} diveId={diveId} />;
+    return <DiveGalleryCarousel photos={gallery} diveId={diveId} coverPhotoPath={coverPhotoPath} />;
   }
 
   // Render upload mode when we have no photos
