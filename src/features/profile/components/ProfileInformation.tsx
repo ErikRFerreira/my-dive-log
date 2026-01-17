@@ -195,11 +195,7 @@ function ProfileInformation({ user, profile, isLoading, isSaving, onUpsert }: Pr
           </div>
         </div>
 
-        <Button
-          disabled={isLoading || isSaving}
-          className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700"
-          onClick={handleSave}
-        >
+        <Button disabled={isLoading || isSaving} className="w-full" onClick={handleSave}>
           {isSaving ? 'Saving…' : 'Save Changes'}
         </Button>
       </CardContent>

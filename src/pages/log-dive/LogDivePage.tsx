@@ -1,11 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAddDive } from '@/features/dives/hooks/useAddDive';
-import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { useSettingsStore } from '@/store/settingsStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
@@ -41,16 +40,18 @@ function LogDivePage() {
   const defaultUnitSystem = useSettingsStore((s) => s.unitSystem);
   const setUnitSystem = useSettingsStore((s) => s.setUnitSystem);
   const { mutateAdd, isPending } = useAddDive();
-  const { locations, isLoading: isLoadingLocations } = useGetLocations();
 
   // localStorage key for persisting draft dive data
-  const DRAFT_KEY = 'logDiveDraft';
+  const DRAFT_KEY = 'dive-log:logDiveDraft';
   // Current step in the 4-step wizard (1-4)
   const [step, setStep] = useState(1);
   // Tracks user's submit intent: navigate away or log another dive
   const submitIntentRef = useRef<'save' | 'saveAnother'>('save');
   // Prevents draft persistence during initial restoration
   const hasRestoredDraftRef = useRef(false);
+  const hasInitializedDraftRef = useRef(false);
+  const draftSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestDraftRef = useRef<LogDiveFormInput | null>(null);
 
   /**
    * Stable default values for the form.
@@ -102,6 +103,8 @@ function LogDivePage() {
    * Merges draft data with defaults to handle schema changes.
    */
   useEffect(() => {
+    if (hasInitializedDraftRef.current) return;
+    hasInitializedDraftRef.current = true;
     if (typeof window === 'undefined') return;
     const raw = window.localStorage.getItem(DRAFT_KEY);
     if (!raw) {
@@ -124,6 +127,31 @@ function LogDivePage() {
   }, [defaultValues, reset, setUnitSystem]);
 
   /**
+   * Immediately saves the latest draft to localStorage.
+   * Used when unmounting or cancelling to ensure data is saved.
+   * Also called by the debounced scheduler.
+   */
+  const flushDraftSave = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (!latestDraftRef.current) return;
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(latestDraftRef.current));
+  }, [DRAFT_KEY]);
+
+  /**
+   * Schedules a draft save after a short delay.
+   * Resets the timer if called again within the delay period.
+   * Prevents excessive localStorage writes during rapid input.
+   */
+  const scheduleDraftSave = useCallback(() => {
+    if (draftSaveTimeoutRef.current) {
+      clearTimeout(draftSaveTimeoutRef.current);
+    }
+    draftSaveTimeoutRef.current = setTimeout(() => {
+      flushDraftSave();
+    }, 400);
+  }, [flushDraftSave]);
+
+  /**
    * Auto-save form data to localStorage as user types.
    * Prevents data loss from page refresh, navigation, or browser close.
    * Only persists after initial draft restoration to avoid race conditions.
@@ -133,10 +161,17 @@ function LogDivePage() {
     if (!hasRestoredDraftRef.current) return;
 
     const subscription = watch((value) => {
-      window.localStorage.setItem(DRAFT_KEY, JSON.stringify(value));
+      latestDraftRef.current = value as LogDiveFormInput;
+      scheduleDraftSave();
     });
-    return () => subscription.unsubscribe();
-  }, [watch, hasRestoredDraftRef]);
+    return () => {
+      subscription.unsubscribe();
+      if (draftSaveTimeoutRef.current) {
+        clearTimeout(draftSaveTimeoutRef.current);
+      }
+      flushDraftSave();
+    };
+  }, [watch, scheduleDraftSave, flushDraftSave]);
 
   /**
    * Advances to the next step in the wizard.
@@ -266,7 +301,7 @@ function LogDivePage() {
                   />
                 )}
                 <div
-                  className={`w-10 h-10 mx-3 rounded-full flex items-center justify-center font-semibold transition-all flex-shrink-0 ${
+                  className={`relative w-10 h-10 mx-3 rounded-full flex items-center justify-center font-semibold transition-all flex-shrink-0 ${
                     s < step
                       ? 'bg-primary text-black'
                       : s === step
@@ -274,6 +309,12 @@ function LogDivePage() {
                         : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
                   }`}
                 >
+                  {s === step && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -inset-3 rounded-full border-[3px] border-primary/80 dark:border-primary/80 animate-[pulse-ring_1.6s_ease-out_infinite]"
+                    />
+                  )}
                   {s < step ? <Check className="w-5 h-5" /> : s}
                 </div>
               </Fragment>
@@ -304,14 +345,7 @@ function LogDivePage() {
         </div>
 
         <Card className="p-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl">
-          {step === 1 && (
-            <EssentialsStep
-              control={control}
-              setValue={setValue}
-              locations={locations}
-              isLoadingLocations={isLoadingLocations}
-            />
-          )}
+          {step === 1 && <EssentialsStep control={control} setValue={setValue} />}
           {step === 2 && <DiveInfoStep control={control} />}
           {step === 3 && <EquipmentStep control={control} />}
           {step === 4 && <GasUsageStep control={control} />}

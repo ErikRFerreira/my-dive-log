@@ -196,6 +196,21 @@
   }
 }
 
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
 .skeleton-card {
   background: linear-gradient(120deg, #172f39 0%, #1e3a45 50%, #152d38 100%);
   background-size: 200% 200%;

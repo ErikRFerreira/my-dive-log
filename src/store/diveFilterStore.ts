@@ -2,6 +2,19 @@ import { DEFAULT_MAX_DEPTH } from '@/shared/constants';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+const STORAGE_KEY = 'dive-log:dive-filter';
+
+const createNamespacedStorage = (name: string) =>
+  createJSONStorage(() => ({
+    getItem: (key) => {
+      return localStorage.getItem(key);
+    },
+    setItem: (key, value) => localStorage.setItem(key, value),
+    removeItem: (key) => {
+      localStorage.removeItem(key);
+    },
+  }));
+
 export type SortBy = 'date' | 'depth' | 'duration';
 interface DiveFilterState {
   showFilters: boolean;
@@ -55,9 +68,9 @@ export const useDiveFilterStore = create<DiveFilterState>()(
         })),
     }),
     {
-      name: 'dive-filter',
+      name: STORAGE_KEY,
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: createNamespacedStorage(STORAGE_KEY),
       partialize: (s) => ({
         sortBy: s.sortBy,
         maxDepth: s.maxDepth,

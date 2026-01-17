@@ -15,6 +15,9 @@ type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
 
+const EQUIPMENT_LIMIT = 20;
+const EQUIPMENT_ITEM_LIMIT = 40;
+
 /**
  * Step 3 of dive logging wizard: Equipment and exposure protection.
  *
@@ -52,6 +55,7 @@ export default function EquipmentStep({ control }: Props) {
 
   // Temporary input for adding new equipment items
   const [equipmentInput, setEquipmentInput] = useState('');
+  const canAddEquipment = equipment.length < EQUIPMENT_LIMIT;
 
   /**
    * Adds an equipment item to the list.
@@ -59,7 +63,7 @@ export default function EquipmentStep({ control }: Props) {
    */
   const addEquipment = () => {
     const value = equipmentInput.trim();
-    if (!value) return;
+    if (!value || !canAddEquipment) return;
     equipmentField.onChange([...equipment, value]);
     setEquipmentInput('');
   };
@@ -194,10 +198,15 @@ export default function EquipmentStep({ control }: Props) {
       </div>
 
       <div>
-        <label htmlFor="equipment-input" className="text-sm font-medium text-foreground mb-2 block">
-          <Wrench className="w-4 h-4 inline mr-2 text-slate-500" aria-hidden="true" />
-          Equipment Used
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="equipment-input" className="text-sm font-medium text-foreground">
+            <Wrench className="w-4 h-4 inline mr-2 text-slate-500" aria-hidden="true" />
+            Equipment Used
+          </label>
+          <span className="text-xs text-muted-foreground">
+            {equipment.length}/{EQUIPMENT_LIMIT}
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2 mb-3">
           {equipment.map((item, index) => (
             <span
@@ -223,6 +232,7 @@ export default function EquipmentStep({ control }: Props) {
             id="equipment-input"
             type="text"
             placeholder="Add equipment (e.g., BCD, Regulator)"
+            maxLength={EQUIPMENT_ITEM_LIMIT}
             value={equipmentInput}
             onChange={(e) => setEquipmentInput(e.target.value)}
             onKeyDown={(e) => {
@@ -232,12 +242,26 @@ export default function EquipmentStep({ control }: Props) {
               }
             }}
             className="text-base"
+            disabled={!canAddEquipment}
           />
-          <Button type="button" onClick={addEquipment} className="bg-teal-500 hover:bg-teal-600">
+          <Button
+            type="button"
+            onClick={addEquipment}
+            className="bg-teal-500 hover:bg-teal-600"
+            disabled={!canAddEquipment}
+          >
             <Plus className="w-4 h-4" aria-hidden="true" />
             Add
           </Button>
         </div>
+        {!canAddEquipment && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Limit {EQUIPMENT_LIMIT} items. Remove one to add more.
+          </p>
+        )}
+        <p className="mt-1 text-xs text-muted-foreground">
+          Max {EQUIPMENT_ITEM_LIMIT} characters per item.
+        </p>
       </div>
     </div>
   );

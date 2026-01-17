@@ -27,6 +27,8 @@ const DEPTH_LIMITS = {
   imperial: 164,
 } as const;
 const DURATION_LIMIT = 200;
+const TAG_LIST_LIMIT = 20;
+const TAG_ITEM_LIMIT = 40;
 const NITROX_CONFIG = {
   MIN_O2_PERCENT: 21,  // Air
   MAX_O2_PERCENT: 100, // Pure O2
@@ -84,8 +86,14 @@ export const logDiveSchema = z
     waterTemp: optionalNumberString('Water temperature'),
     unitSystem: z.enum(UNIT_SYSTEMS).default('metric'),
     visibility: z.enum(VISIBILITY),
-    equipment: z.array(z.string()).default([]),
-    wildlife: z.array(z.string()).default([]),
+    equipment: z
+      .array(z.string().max(TAG_ITEM_LIMIT, `Equipment items must be ${TAG_ITEM_LIMIT} characters or less.`))
+      .max(TAG_LIST_LIMIT, `Equipment can have up to ${TAG_LIST_LIMIT} items.`)
+      .default([]),
+    wildlife: z
+      .array(z.string().max(TAG_ITEM_LIMIT, `Wildlife items must be ${TAG_ITEM_LIMIT} characters or less.`))
+      .max(TAG_LIST_LIMIT, `Wildlife can have up to ${TAG_LIST_LIMIT} items.`)
+      .default([]),
     notes: z.string().max(2000, 'Notes must be 2000 characters or less'),
     cylinderType: z.string(),
     cylinderSize: z.string(),

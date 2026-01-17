@@ -91,11 +91,7 @@ function Certification({ profile, isLoading, isSaving, onUpsert }: Certification
               </select>
             </div>
           </div>
-          <Button
-            type="submit"
-            disabled={isSaving}
-            className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700"
-          >
+          <Button type="submit" disabled={isSaving} className="w-full">
             {isSaving ? (
               <>
                 saving... <InlineSpinner />

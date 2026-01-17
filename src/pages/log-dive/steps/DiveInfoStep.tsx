@@ -16,6 +16,9 @@ type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
 
+const WILDLIFE_LIMIT = 20;
+const WILDLIFE_ITEM_LIMIT = 40;
+
 /**
  * Step 2 of dive logging wizard: Detailed dive information.
  *
@@ -56,6 +59,7 @@ export default function DiveInfoStep({ control }: Props) {
     : [];
   // Temporary input for adding new wildlife tags
   const [wildlifeInput, setWildlifeInput] = useState('');
+  const canAddWildlife = wildlife.length < WILDLIFE_LIMIT;
 
   /**
    * Adds a wildlife observation to the list.
@@ -63,7 +67,7 @@ export default function DiveInfoStep({ control }: Props) {
    */
   const addWildlife = () => {
     const value = wildlifeInput.trim();
-    if (!value) return;
+    if (!value || !canAddWildlife) return;
     wildlifeField.onChange([...wildlife, value]);
     setWildlifeInput('');
   };
@@ -218,10 +222,15 @@ export default function DiveInfoStep({ control }: Props) {
       </div>
 
       <div>
-        <label htmlFor="wildlife-input" className="text-sm font-medium text-foreground mb-2 block">
-          <Fish className="w-4 h-4 inline mr-2 text-blue-500" aria-hidden="true" />
-          Wildlife Observed
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="wildlife-input" className="text-sm font-medium text-foreground">
+            <Fish className="w-4 h-4 inline mr-2 text-blue-500" aria-hidden="true" />
+            Wildlife Observed
+          </label>
+          <span className="text-xs text-muted-foreground">
+            {wildlife.length}/{WILDLIFE_LIMIT}
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2 mb-3">
           {wildlife.map((item, index) => (
             <span
@@ -247,6 +256,7 @@ export default function DiveInfoStep({ control }: Props) {
             id="wildlife-input"
             type="text"
             placeholder="Add wildlife (e.g., Sea Turtle, Reef Shark)"
+            maxLength={WILDLIFE_ITEM_LIMIT}
             value={wildlifeInput}
             onChange={(e) => setWildlifeInput(e.target.value)}
             onKeyDown={(e) => {
@@ -256,16 +266,26 @@ export default function DiveInfoStep({ control }: Props) {
               }
             }}
             className="text-base"
+            disabled={!canAddWildlife}
           />
           <button
             type="button"
             onClick={addWildlife}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 rounded-md"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 rounded-md disabled:opacity-60 disabled:pointer-events-none"
             aria-label="Add wildlife"
+            disabled={!canAddWildlife}
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
+        {!canAddWildlife && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Limit {WILDLIFE_LIMIT} items. Remove one to add more.
+          </p>
+        )}
+        <p className="mt-1 text-xs text-muted-foreground">
+          Max {WILDLIFE_ITEM_LIMIT} characters per item.
+        </p>
       </div>
 
       <div>

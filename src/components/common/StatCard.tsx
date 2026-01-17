@@ -27,7 +27,7 @@ function StatCard({
         <div className="absolute -top-2 -right-4 w-42 h-42 text-white/5 rotate-12">{icon}</div>
       )}
       <p className="text-gray-400 text-xs uppercase mb-2 relative z-10">{title}</p>
-      <p className="text-white text-4xl font-bold relative z-10">{value}</p>
+      <p className="text-white text-3xl font-bold relative z-10">{value}</p>
       {description && (
         <p className={`${descriptionColorClass} text-sm relative z-10 mt-2`}>{description}</p>
       )}

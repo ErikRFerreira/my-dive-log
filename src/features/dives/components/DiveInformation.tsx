@@ -1,5 +1,6 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import {
   Select,
   SelectContent,
@@ -7,35 +8,134 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BookOpen } from 'lucide-react';
-import type { Dive } from '../types';
+import { BookOpen, Check, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { Dive, DiveType, WaterType, Exposure, Currents } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
-
-type NumericField = keyof Pick<
-  Dive,
-  'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
->;
-
-type SelectField = keyof Pick<
-  Dive,
-  'visibility' | 'dive_type' | 'water_type' | 'exposure' | 'gas' | 'currents'
->;
+import { useUpdateDive } from '../hooks/useUpdateDive';
 
 interface DiveInformationProps {
   dive: Dive;
-  isEditMode: boolean;
-  onNumberChange: (field: NumericField) => (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectChange: (field: SelectField, value: string) => void;
+  isEditing: boolean;
+  isSaving: boolean;
+  editedFields: EditableFields;
+  onFieldChange: (field: keyof EditableFields, value: EditableFields[keyof EditableFields]) => void;
 }
+
+type EditableFields = {
+  dive_type: DiveType | null | undefined;
+  water_type: WaterType | null | undefined;
+  exposure: Exposure | null | undefined;
+  currents: Currents | null | undefined;
+  weight: number | null | undefined;
+};
 
 function DiveInformation({
   dive,
-  isEditMode,
-  onNumberChange,
-  onSelectChange,
+  isEditing,
+  isSaving,
+  editedFields,
+  onFieldChange,
 }: DiveInformationProps) {
+  const [localIsEditing, setLocalIsEditing] = useState(false);
+  const [localFields, setLocalFields] = useState<EditableFields>({
+    dive_type: dive.dive_type ?? null,
+    water_type: dive.water_type ?? null,
+    exposure: dive.exposure ?? null,
+    currents: dive.currents ?? null,
+    weight: dive.weight ?? null,
+  });
+  const { mutateAsync: updateDive, isPending: isLocalSaving } = useUpdateDive();
   const unitSystem = useSettingsStore((s) => s.unitSystem);
+  const isEditingActive = isEditing || localIsEditing;
+  const fields = isEditing ? editedFields : localFields;
+  const isSavingActive = isEditing ? isSaving : isLocalSaving;
+
+  useEffect(() => {
+    if (isEditing) {
+      setLocalIsEditing(false);
+      setLocalFields({
+        dive_type: dive.dive_type ?? null,
+        water_type: dive.water_type ?? null,
+        exposure: dive.exposure ?? null,
+        currents: dive.currents ?? null,
+        weight: dive.weight ?? null,
+      });
+    } else if (!localIsEditing) {
+      setLocalFields({
+        dive_type: dive.dive_type ?? null,
+        water_type: dive.water_type ?? null,
+        exposure: dive.exposure ?? null,
+        currents: dive.currents ?? null,
+        weight: dive.weight ?? null,
+      });
+    }
+  }, [dive, isEditing, localIsEditing]);
+
+  const hasChanges = Object.keys(localFields).some(
+    (key) => localFields[key as keyof EditableFields] !== (dive[key as keyof Dive] ?? null)
+  );
+
+  const handleSelectChange = (field: keyof EditableFields, value: string) => {
+    if (isEditing) {
+      onFieldChange(field, value as DiveType | WaterType | Exposure | Currents);
+      return;
+    }
+    setLocalFields((prev) => ({
+      ...prev,
+      [field]: value as DiveType | WaterType | Exposure | Currents,
+    }));
+  };
+
+  const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value === '' ? null : Number(e.target.value);
+    if (isEditing) {
+      onFieldChange('weight', val);
+      return;
+    }
+    setLocalFields((prev) => ({ ...prev, weight: val }));
+  };
+
+  const handleEdit = () => {
+    setLocalFields({
+      dive_type: dive.dive_type ?? null,
+      water_type: dive.water_type ?? null,
+      exposure: dive.exposure ?? null,
+      currents: dive.currents ?? null,
+      weight: dive.weight ?? null,
+    });
+    setLocalIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    if (hasChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to cancel?'
+      );
+      if (!confirmed) return;
+    }
+    setLocalFields({
+      dive_type: dive.dive_type ?? null,
+      water_type: dive.water_type ?? null,
+      exposure: dive.exposure ?? null,
+      currents: dive.currents ?? null,
+      weight: dive.weight ?? null,
+    });
+    setLocalIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateDive({
+        id: dive.id,
+        diveData: localFields,
+      });
+      setLocalIsEditing(false);
+    } catch (error) {
+      console.error('Failed to save dive information:', error);
+    }
+  };
 
   return (
     <>
@@ -44,24 +144,59 @@ function DiveInformation({
           <BookOpen className="w-5 h-5 text-primary" />
           <h3 className="text-foreground text-lg font-semibold">Dive Information</h3>
         </div>
-        <button
-          type="button"
-          className="text-primary hover:text-primary/80 font-medium"
-          aria-label="Edit dive information"
-        >
-          Edit
-        </button>
+        {isEditing ? (
+          <button
+            type="button"
+            className="text-primary/60 cursor-not-allowed font-medium"
+            aria-label="Edit dive information"
+            disabled
+          >
+            Edit
+          </button>
+        ) : !localIsEditing ? (
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="text-primary hover:text-primary/80 font-medium"
+            aria-label="Edit dive information"
+          >
+            Edit
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSave}
+              disabled={isSavingActive || !hasChanges}
+              size="sm"
+              className="gap-1 h-8 bg-primary hover:bg-primary/90"
+            >
+              <Check className="w-4 h-4" />
+              {isSavingActive ? 'Saving...' : 'Save'}
+            </Button>
+            <Button
+              onClick={handleCancel}
+              disabled={isSavingActive}
+              size="sm"
+              variant="outline"
+              className="gap-1 h-8"
+            >
+              <X className="w-4 h-4" />
+              Cancel
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card className="bg-card-dark border-border-dark rounded-2xl">
         <CardContent className="p-6">
-          <div className="grid md:grid-cols-6 gap-6 divide-x divide-border">
+          <div className="grid md:grid-cols-5 gap-6 divide-x divide-border">
             <div className="md:pr-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">Dive Type</p>
-              {isEditMode ? (
+              {isEditingActive ? (
                 <Select
-                  value={dive.dive_type ?? ''}
-                  onValueChange={(value) => onSelectChange('dive_type', value)}
+                  value={fields.dive_type ?? ''}
+                  onValueChange={(value) => handleSelectChange('dive_type', value)}
+                  disabled={isSavingActive}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -84,10 +219,11 @@ function DiveInformation({
 
             <div className="md:px-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">Water Type</p>
-              {isEditMode ? (
+              {isEditingActive ? (
                 <Select
-                  value={dive.water_type ?? ''}
-                  onValueChange={(value) => onSelectChange('water_type', value)}
+                  value={fields.water_type ?? ''}
+                  onValueChange={(value) => handleSelectChange('water_type', value)}
+                  disabled={isSavingActive}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select water type" />
@@ -112,10 +248,11 @@ function DiveInformation({
               <p className="text-sm font-semibold text-muted-foreground mb-2">
                 Exposure Protection
               </p>
-              {isEditMode ? (
+              {isEditingActive ? (
                 <Select
-                  value={dive.exposure ?? ''}
-                  onValueChange={(value) => onSelectChange('exposure', value)}
+                  value={fields.exposure ?? ''}
+                  onValueChange={(value) => handleSelectChange('exposure', value)}
+                  disabled={isSavingActive}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select exposure" />
@@ -149,31 +286,12 @@ function DiveInformation({
             </div>
 
             <div className="md:px-6">
-              <p className="text-sm font-semibold text-muted-foreground mb-2">Gas Mix</p>
-              {isEditMode ? (
-                <Select
-                  value={dive.gas ?? ''}
-                  onValueChange={(value) => onSelectChange('gas', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gas" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="air">Air</SelectItem>
-                    <SelectItem value="nitrox">Nitrox</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-foreground capitalize">{dive.gas ?? 'N/A'}</p>
-              )}
-            </div>
-
-            <div className="md:px-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">Currents</p>
-              {isEditMode ? (
+              {isEditingActive ? (
                 <Select
-                  value={dive.currents ?? ''}
-                  onValueChange={(value) => onSelectChange('currents', value)}
+                  value={fields.currents ?? ''}
+                  onValueChange={(value) => handleSelectChange('currents', value)}
+                  disabled={isSavingActive}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select currents" />
@@ -192,14 +310,14 @@ function DiveInformation({
 
             <div className="md:pl-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">
-                Weight ({isEditMode ? 'kg' : getUnitLabel('weight', unitSystem)})
+                Weight ({isEditing ? 'kg' : getUnitLabel('weight', unitSystem)})
               </p>
-              {isEditMode ? (
-                <Input
-                  type="number"
-                  value={dive.weight ?? ''}
-                  onChange={onNumberChange('weight')}
+              {isEditingActive ? (
+                <NumberInput
+                  value={fields.weight ?? ''}
+                  onChange={handleWeightChange}
                   placeholder="0"
+                  disabled={isSavingActive}
                 />
               ) : (
                 <p className="text-foreground">

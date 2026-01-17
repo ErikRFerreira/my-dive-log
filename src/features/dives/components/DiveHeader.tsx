@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import GoBack from '@/components/ui/GoBack';
-import { Input } from '@/components/ui/input';
-import { Calendar, Check, Edit2, Trash2, X } from 'lucide-react';
+import { Calendar, Check, Pencil, Trash2, X } from 'lucide-react';
 
 import type { Dive } from '../types';
 import { format, parse } from 'date-fns';
@@ -21,100 +20,85 @@ const formatDisplayDate = (dateStr: string): string => {
 
 interface DiveHeaderProps {
   dive: Dive;
-  isEditMode: boolean;
-  isUpdating: boolean;
-  locationName: string;
-  onLocationNameChange: (name: string) => void;
-  onDateChange: (date: string) => void;
-  onStartEdit: () => void;
-  onSaveEdit: () => void;
-  onCancelEdit: () => void;
   onOpenDeleteModal: () => void;
+  isEditing: boolean;
+  isSaving: boolean;
+  hasChanges: boolean;
+  onEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: () => void;
 }
 
 function DiveHeader({
   dive,
-  isEditMode,
-  isUpdating,
-  locationName,
-  onLocationNameChange,
-  onDateChange,
-  onStartEdit,
-  onSaveEdit,
-  onCancelEdit,
   onOpenDeleteModal,
+  isEditing,
+  isSaving,
+  hasChanges,
+  onEdit,
+  onCancelEdit,
+  onSaveEdit,
 }: DiveHeaderProps) {
   return (
     <>
       <div className="flex items-center justify-between">
-        <GoBack disabled={isEditMode} />
-        <div className="flex gap-2">
-          {isEditMode ? (
+        <GoBack />
+        <div className="flex items-center gap-2">
+          {isEditing ? (
             <>
               <Button
                 onClick={onSaveEdit}
-                disabled={isUpdating}
-                className="gap-2 bg-primary hover:bg-primary/90"
+                disabled={isSaving || !hasChanges}
+                size="sm"
+                className="gap-2 h-9 bg-primary hover:bg-primary/90"
               >
                 <Check className="w-4 h-4" />
-                {isUpdating ? 'Saving...' : 'Save Changes'}
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
-              <Button onClick={onCancelEdit} variant="outline" className="gap-2 bg-transparent">
+              <Button
+                onClick={onCancelEdit}
+                disabled={isSaving}
+                size="sm"
+                variant="outline"
+                className="gap-2 h-9"
+              >
                 <X className="w-4 h-4" />
                 Cancel
               </Button>
             </>
           ) : (
-            <>
-              <Button
-                onClick={onStartEdit}
-                variant="outline"
-                className="gap-2 bg-[#0f1419]/20 backdrop-blur-[20px] border-[#1e2936]/80"
-              >
-                <Edit2 className="w-4 h-4" />
-                Edit Dive
-              </Button>
-              <Button
-                onClick={onOpenDeleteModal}
-                variant="outline"
-                className="gap-2 bg-[#0f1419]/20 backdrop-blur-[20px] border-[#1e2936]/80 text-red-500 hover:bg-red-50/20 dark:hover:bg-red-900/20 hover:text-red-600"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete Dive
-              </Button>
-            </>
+            <Button
+              onClick={onEdit}
+              variant="outline"
+              className="gap-2 bg-[#0f1419]/20 backdrop-blur-[5px] border-[#1e2936]/80"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit Dive
+            </Button>
+          )}
+          {!isEditing && (
+            <Button
+              onClick={onOpenDeleteModal}
+              variant="outline"
+              disabled={isSaving}
+              className="gap-2 bg-[#0f1419]/20 backdrop-blur-[20px] border-[#1e2936]/80 text-red-500 hover:bg-red-50/20 dark:hover:bg-red-900/20 hover:text-red-600 disabled:opacity-60"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Dive
+            </Button>
           )}
         </div>
       </div>
 
       <div>
-        {isEditMode ? (
-          <div className="space-y-3">
-            <Input
-              value={locationName}
-              onChange={(e) => onLocationNameChange(e.target.value)}
-              className="text-2xl font-bold"
-              placeholder="Location"
-            />
-            <Input
-              id="date"
-              type="date"
-              value={dive.date ?? ''}
-              onChange={(e) => onDateChange(e.target.value)}
-            />
-          </div>
-        ) : (
-          <>
-            <h1 className="text-3xl font-bold text-foreground">
-              {dive.locations?.name ?? 'N/A'}
-              {dive.locations?.country ? `, ${dive.locations.country}` : ''}
-            </h1>
-            <p className="text-muted-foreground mt-1 flex items-center">
-              <Calendar className="w-4 h-4 inline mr-2 text-foreground" aria-hidden="true" />
-              {dive.date ? formatDisplayDate(dive.date) : 'N/A'}
-            </p>
-          </>
-        )}
+        <h1 className="text-3xl font-bold text-foreground">
+          {dive.locations?.name ?? 'N/A'}
+          {dive.locations?.country ? `, ${dive.locations.country}` : ''}
+        </h1>
+        <p className="text-muted-foreground mt-1 flex items-center">
+          <Calendar className="w-4 h-4 inline mr-2 text-foreground" aria-hidden="true" />
+          {dive.date ? formatDisplayDate(dive.date) : 'N/A'}
+        </p>
       </div>
     </>
   );

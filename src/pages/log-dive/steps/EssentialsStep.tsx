@@ -12,8 +12,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useController } from 'react-hook-form';
 import type { Control, UseFormSetValue } from 'react-hook-form';
 
+import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { COUNTRIES } from '@/shared/data/countries';
-import type { Location } from '@/features/locations';
 import { useSettingsStore } from '@/store/settingsStore';
 
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
@@ -21,8 +21,6 @@ import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
 type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
   setValue: UseFormSetValue<LogDiveFormInput>;
-  locations: Location[];
-  isLoadingLocations: boolean;
 };
 
 /**
@@ -60,12 +58,8 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
  * - Virtual scrolling for large country list
  * - Real-time validation on required fields
  */
-export default function EssentialsStep({
-  control,
-  setValue,
-  locations,
-  isLoadingLocations,
-}: Props) {
+export default function EssentialsStep({ control, setValue }: Props) {
+  const { locations, isLoading: isLoadingLocations } = useGetLocations();
   // Country search filter input
   const [countryQuery, setCountryQuery] = useState('');
   // Scroll position for virtual scrolling optimization

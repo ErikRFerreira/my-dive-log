@@ -4,11 +4,13 @@ import './index.css';
 import 'leaflet/dist/leaflet.css';
 import App from './App.tsx';
 
+const THEME_KEY = 'dive-log:theme';
+
 // Make dark mode the default (if no preference stored)
-if (!localStorage.getItem('theme')) {
+if (!localStorage.getItem(THEME_KEY)) {
   document.documentElement.classList.add('dark');
-  localStorage.setItem('theme', 'dark');
-} else if (localStorage.getItem('theme') === 'dark') {
+  localStorage.setItem(THEME_KEY, 'dark');
+} else if (localStorage.getItem(THEME_KEY) === 'dark') {
   document.documentElement.classList.add('dark');
 }
 

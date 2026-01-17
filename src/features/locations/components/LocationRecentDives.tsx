@@ -1,11 +1,9 @@
-import Button from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Clock } from 'lucide-react';
 import type { Dive } from '@/features/dives/';
 import { useNavigate } from 'react-router';
 import { useDiveFilterStore } from '@/store/diveFilterStore';
-import { useSettingsStore } from '@/store/settingsStore';
-import { formatValueWithUnit } from '@/shared/utils/units';
+import DiveCard from '@/features/dives/components/DiveCard';
 
 type LocationRecentDivesProps = {
   dives: Dive[];
@@ -14,7 +12,6 @@ type LocationRecentDivesProps = {
 function LocationRecentDives({ dives }: LocationRecentDivesProps) {
   const { setLocationId, setCurrentPage } = useDiveFilterStore();
   const navigate = useNavigate();
-  const unitSystem = useSettingsStore((s) => s.unitSystem);
 
   const setFilterLocationId = (locationId: string | null) => {
     setLocationId(locationId);
@@ -23,63 +20,37 @@ function LocationRecentDives({ dives }: LocationRecentDivesProps) {
   };
 
   return (
-    <Card className="border-slate-200 dark:border-slate-700">
-      <CardHeader className="border-b border-border">
-        <CardTitle className="text-foreground">Recent Dives at This Location</CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        {dives.length > 0 ? (
-          <>
-            <div className="space-y-3">
-              {dives.slice(0, 3).map((dive) => (
-                <div
-                  key={dive.id}
-                  className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors"
-                >
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground">{dive.date}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{dive.notes}</p>
-                    <div className="flex gap-4 mt-2">
-                      <span className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {formatValueWithUnit(dive.depth, 'depth', unitSystem)}
-                        </span>{' '}
-                        depth
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">{dive.duration}min</span>{' '}
-                        duration
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/dives/${dive.id}`)}
-                    className="gap-2 bg-transparent"
-                  >
-                    View Details
-                    <ArrowLeft className="w-4 h-4 rotate-180" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-            <Button
-              variant="default"
-              className="w-full mt-4 gap-2"
-              onClick={() => setFilterLocationId(dives[0].location_id)}
-            >
-              See all dives at this location
-              <ArrowLeft className="w-4 h-4 rotate-180" />
-            </Button>
-          </>
-        ) : (
-          <p className="text-muted-foreground text-center py-8">
-            No dives logged at this location yet
-          </p>
+    <section className="flex flex-col">
+      <div className="flex items-center justify-between mb-3 px-2">
+        <div className="flex items-center gap-2">
+          <Clock className="w-5 h-5 text-primary" />
+          <h3 className="text-foreground text-lg font-semibold">Recent Dives at This Location</h3>
+        </div>
+        {dives.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setFilterLocationId(dives[0].location_id)}
+            className="text-primary hover:text-primary/80 font-medium"
+          >
+            See all dives in {dives[0].locations?.name}
+          </button>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {dives.length > 0 ? (
+        <div className="space-y-4">
+          {dives.slice(0, 3).map((dive) => (
+            <DiveCard key={dive.id} dive={dive} />
+          ))}
+        </div>
+      ) : (
+        <Card className="bg-card-dark border-border-dark rounded-2xl">
+          <div className="p-6 text-muted-foreground text-center">
+            No dives logged at this location yet
+          </div>
+        </Card>
+      )}
+    </section>
   );
 }
 

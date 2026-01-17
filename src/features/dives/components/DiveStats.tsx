@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import {
   Select,
   SelectContent,
@@ -8,40 +8,57 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Clock, Eye, Gauge, Thermometer } from 'lucide-react';
-import type { Dive } from '../types';
+import type { Dive, Visibility } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
-import { formatValueWithUnit } from '@/shared/utils/units';
-
-type NumericField = keyof Pick<
-  Dive,
-  'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
->;
-
-type SelectField = keyof Pick<
-  Dive,
-  'visibility' | 'dive_type' | 'water_type' | 'exposure' | 'gas' | 'currents'
->;
+import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
 
 interface DiveStatsProps {
   dive: Dive;
-  isEditMode: boolean;
-  onNumberChange: (field: NumericField) => (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectChange: (field: SelectField, value: string) => void;
+  isEditing: boolean;
+  isSaving: boolean;
+  stats: {
+    depth: Dive['depth'] | null;
+    duration: Dive['duration'] | null;
+    water_temp: Dive['water_temp'];
+    visibility: Dive['visibility'];
+  };
+  onFieldChange: (
+    field: 'depth' | 'duration' | 'water_temp' | 'visibility',
+    value: number | null | Visibility
+  ) => void;
 }
 
-function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveStatsProps) {
+function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStatsProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
+  const temperatureLabel = getUnitLabel('temperature', unitSystem);
+  const depthLabel = getUnitLabel('depth', unitSystem);
+
+  const handleNumberChange = (
+    field: 'depth' | 'duration' | 'water_temp',
+    value: string
+  ) => {
+    if (value === '') {
+      onFieldChange(field, null);
+      return;
+    }
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+      onFieldChange(field, null);
+      return;
+    }
+    onFieldChange(field, parsed);
+  };
 
   return (
     <div className="grid md:grid-cols-4 gap-4">
       {(
         [
-          { label: 'Max Depth', key: 'depth', unit: 'm', icon: Gauge },
+          { label: 'Max Depth', key: 'depth', unit: depthLabel, icon: Gauge },
           { label: 'Duration', key: 'duration', unit: 'min', icon: Clock },
-          { label: 'Water Temp', key: 'water_temp', unit: '°C', icon: Thermometer },
+          { label: 'Water Temp', key: 'water_temp', unit: temperatureLabel, icon: Thermometer },
         ] as const
       ).map(({ label, key, unit, icon: Icon }) => {
-        const val = dive[key];
+        const val = isEditing ? stats[key] : dive[key];
         const display =
           val !== null && val !== undefined
             ? key === 'depth'
@@ -51,26 +68,24 @@ function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveSta
                 : `${val} ${unit}`
             : 'N/A';
         return (
-          <Card key={key} className="bg-card-dark border-border-dark rounded-2xl">
+          <Card
+            key={key}
+            className="bg-card-dark/40 backdrop-blur-[5px] border-2 border-[#232a33] rounded-2xl"
+          >
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Icon className="w-5 h-5 text-primary" />
                 <p className="text-sm text-muted-foreground">{label}</p>
               </div>
-              {isEditMode ? (
+              {isEditing ? (
                 <div className="flex items-center gap-2">
-                  <Input
+                  <NumberInput
                     value={val ?? ''}
-                    type="number"
-                    min={1}
-                    step="any"
-                    onChange={onNumberChange(key)}
-                    className="text-2xl font-bold"
-                    placeholder="N/A"
+                    onChange={(e) => handleNumberChange(key, e.target.value)}
+                    disabled={isSaving}
+                    className="text-base"
                   />
-                  <span className="text-muted-foreground">
-                    {key === 'depth' ? 'm' : key === 'water_temp' ? '°C' : unit}
-                  </span>
+                  <span className="text-sm text-muted-foreground">{unit}</span>
                 </div>
               ) : (
                 <p className="text-2xl font-bold text-foreground">{display}</p>
@@ -81,19 +96,20 @@ function DiveStats({ dive, isEditMode, onNumberChange, onSelectChange }: DiveSta
       })}
 
       {/* Visibility Card */}
-      <Card className="bg-card-dark border-border-dark rounded-2xl">
+      <Card className="bg-card-dark/40 backdrop-blur-[20px] border border-[#232a33] rounded-2xl">
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <Eye className="w-5 h-5 text-primary" />
             <p className="text-sm text-muted-foreground">Visibility</p>
           </div>
-          {isEditMode ? (
+          {isEditing ? (
             <Select
-              value={dive.visibility ?? ''}
-              onValueChange={(value) => onSelectChange('visibility', value)}
+              value={stats.visibility ?? ''}
+              onValueChange={(value) => onFieldChange('visibility', value as Visibility)}
+              disabled={isSaving}
             >
-              <SelectTrigger className="text-2xl font-bold">
-                <SelectValue placeholder="Select" />
+              <SelectTrigger>
+                <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="poor">Poor</SelectItem>

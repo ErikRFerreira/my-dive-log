@@ -185,7 +185,7 @@ function RegisterForm() {
         type="button"
         onClick={() => loginWithGoogle()}
         disabled={isBusy}
-        className="flex w-full cursor-pointer items-center justify-center gap-3 h-10 bg-white dark:bg-slate-800 text-slate-700 dark:text-white text-base font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-300 dark:hover:border-slate-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex w-full cursor-pointer items-center justify-center gap-3 h-10 rounded-md bg-white dark:bg-slate-800 text-slate-700 dark:text-white text-base font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-slate-300 dark:hover:border-slate-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <GoogleLogo />
         <span>Google</span>

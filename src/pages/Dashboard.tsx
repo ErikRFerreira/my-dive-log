@@ -5,25 +5,8 @@ import StatsList from '@/features/dashboard/components/StatsList';
 import DepthChart from '@/features/dashboard/components/DepthChart';
 import MonthlyChart from '@/features/dashboard/components/MonthlyChart';
 import NoResults from '@/components/layout/NoResults';
-import { useDiveFilterStore } from '@/store/diveFilterStore';
-import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
 
 function Dashboard() {
-  const { sortBy, maxDepth, locationId, country, searchQuery, currentPage } = useDiveFilterStore();
-  const {
-    dives: filteredDives,
-    isLoading: isLoadingFiltered,
-    isError: isErrorFiltered,
-    refetch: refetchFiltered,
-  } = useGetDives({
-    sortBy,
-    maxDepth: maxDepth < DEFAULT_MAX_DEPTH ? maxDepth : undefined,
-    locationId: locationId ?? undefined,
-    country: country ?? undefined,
-    page: currentPage,
-    pageSize: ITEMS_PER_PAGE,
-    searchQuery,
-  });
   const {
     dives: allDives,
     isLoading: isLoadingAll,
@@ -33,8 +16,7 @@ function Dashboard() {
   } = useGetDives({ sortBy: 'date' });
 
   const hasDives = (allDives?.length ?? 0) > 0;
-  const recentDivesSource = filteredDives ?? allDives ?? [];
-  const lastThreeDives = recentDivesSource.slice(0, 3);
+  const lastThreeDives = (allDives ?? []).slice(0, 3);
 
   return (
     <>
@@ -53,7 +35,6 @@ function Dashboard() {
           <Button
             onClick={() => {
               refetchAll();
-              if (isErrorFiltered) refetchFiltered();
             }}
           >
             Retry

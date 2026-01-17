@@ -1,7 +1,7 @@
 import Loading from '@/components/common/Loading';
 import GoBack from '@/components/ui/GoBack';
 import {
-  AirUsage,
+  GasUsage,
   DeleteDiveModal,
   DiveEquipment,
   DiveGallery,
@@ -12,54 +12,79 @@ import {
   DiveSummary,
   DiveWildlife,
   useDeleteDive,
-  useGenerateSummary,
   useGetDive,
   useUpdateDive,
 } from '@/features/dives';
+
 import DiveBackground from '@/features/dives/components/DiveBackground';
 
-import type { Dive as DiveType, UpdateDivePatch } from '@/features/dives/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Type aliases for field handlers
-type TextField = keyof Pick<DiveType, 'summary' | 'notes'>;
-type NumericField = keyof Pick<
-  DiveType,
-  'depth' | 'duration' | 'water_temp' | 'start_pressure' | 'end_pressure' | 'air_usage' | 'weight'
->;
-type SelectField = keyof Pick<
-  DiveType,
-  'visibility' | 'dive_type' | 'water_type' | 'exposure' | 'gas' | 'currents'
->;
+import type { Dive, Gas } from '@/features/dives/types';
 
 function Dive() {
   const { dive, isLoading, error, coverPhotoUrl } = useGetDive();
   const { mutateAsync: deleteDive, isPending: isDeleting } = useDeleteDive();
-  const { mutateAsync: updateDive, isPending: isUpdating } = useUpdateDive();
+  const { mutateAsync: updateDive, isPending: isSaving } = useUpdateDive();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [locationNameDraft, setLocationNameDraft] = useState('');
-  const [newEquipment, setNewEquipment] = useState('');
-  const [newWildlife, setNewWildlife] = useState('');
-  const [editedDive, setEditedDive] = useState<DiveType | null>(null);
-
-  const { generateSummary, isGenerating } = useGenerateSummary(
-    dive ?? ({} as DiveType),
-    setEditedDive
-  );
+  const [isEditing, setIsEditing] = useState(false);
 
   const navigate = useNavigate();
 
-  // Determine which dive data to display: original or edited
-  const currentDive = isEditMode && editedDive ? editedDive : dive;
+  type DiveEditState = {
+    depth: Dive['depth'] | null;
+    duration: Dive['duration'] | null;
+    water_temp: Dive['water_temp'];
+    visibility: Dive['visibility'];
+    dive_type: Dive['dive_type'];
+    water_type: Dive['water_type'];
+    exposure: Dive['exposure'];
+    currents: Dive['currents'];
+    weight: Dive['weight'];
+    gas: Gas;
+    nitrox_percent: number;
+    start_pressure: Dive['start_pressure'];
+    end_pressure: Dive['end_pressure'];
+    equipment: string[];
+    wildlife: string[];
+    notes: string;
+    summary: string;
+  };
+
+  const [editState, setEditState] = useState<DiveEditState | null>(null);
+
+  const buildEditState = (sourceDive: Dive): DiveEditState => ({
+    depth: sourceDive.depth ?? null,
+    duration: sourceDive.duration ?? null,
+    water_temp: sourceDive.water_temp ?? null,
+    visibility: sourceDive.visibility ?? null,
+    dive_type: sourceDive.dive_type ?? null,
+    water_type: sourceDive.water_type ?? null,
+    exposure: sourceDive.exposure ?? null,
+    currents: sourceDive.currents ?? null,
+    weight: sourceDive.weight ?? null,
+    gas: sourceDive.gas ?? 'air',
+    nitrox_percent: sourceDive.nitrox_percent ?? 21,
+    start_pressure: sourceDive.start_pressure ?? null,
+    end_pressure: sourceDive.end_pressure ?? null,
+    equipment: Array.isArray(sourceDive.equipment) ? sourceDive.equipment : [],
+    wildlife: Array.isArray(sourceDive.wildlife) ? sourceDive.wildlife : [],
+    notes: sourceDive.notes ?? '',
+    summary: sourceDive.summary ?? '',
+  });
+
+  useEffect(() => {
+    if (dive && !isEditing) {
+      setEditState(buildEditState(dive));
+    }
+  }, [dive, isEditing]);
 
   // Delete dive and navigate back to dives list
   const onConfirmDeletion = async () => {
-    if (!currentDive) return;
+    if (!dive) return;
     try {
-      await deleteDive(currentDive.id);
+      await deleteDive(dive.id);
       setIsModalOpen(false);
       navigate('/dives');
     } catch (err) {
@@ -70,178 +95,92 @@ function Dive() {
   // Cancel deletion
   const onCancelDelete = () => setIsModalOpen(false);
 
-  // Start edit mode
-  const startEdit = () => {
+  const currentEditState = dive ? (editState ?? buildEditState(dive)) : null;
+  const calculatedAirUsage =
+    currentEditState &&
+    currentEditState.start_pressure !== null &&
+    currentEditState.end_pressure !== null
+      ? currentEditState.start_pressure - currentEditState.end_pressure
+      : null;
+
+  const hasChanges = (() => {
+    if (!dive || !currentEditState) return false;
+    const baseEquipment = Array.isArray(dive.equipment) ? dive.equipment : [];
+    const baseWildlife = Array.isArray(dive.wildlife) ? dive.wildlife : [];
+    return (
+      currentEditState.dive_type !== (dive.dive_type ?? null) ||
+      currentEditState.water_type !== (dive.water_type ?? null) ||
+      currentEditState.exposure !== (dive.exposure ?? null) ||
+      currentEditState.currents !== (dive.currents ?? null) ||
+      currentEditState.weight !== (dive.weight ?? null) ||
+      currentEditState.depth !== dive.depth ||
+      currentEditState.duration !== dive.duration ||
+      currentEditState.water_temp !== (dive.water_temp ?? null) ||
+      currentEditState.visibility !== (dive.visibility ?? null) ||
+      currentEditState.gas !== (dive.gas ?? 'air') ||
+      currentEditState.nitrox_percent !== (dive.nitrox_percent ?? 21) ||
+      currentEditState.start_pressure !== (dive.start_pressure ?? null) ||
+      currentEditState.end_pressure !== (dive.end_pressure ?? null) ||
+      JSON.stringify(currentEditState.equipment) !== JSON.stringify(baseEquipment) ||
+      JSON.stringify(currentEditState.wildlife) !== JSON.stringify(baseWildlife) ||
+      currentEditState.notes !== (dive.notes ?? '') ||
+      currentEditState.summary !== (dive.summary ?? '')
+    );
+  })();
+
+  const handleStartEdit = () => {
     if (!dive) return;
-    setEditedDive(dive);
-    setLocationNameDraft(dive.locations?.name ?? '');
-    setIsEditMode(true);
+    setEditState(buildEditState(dive));
+    setIsEditing(true);
   };
 
-  // Save edited dive
+  const handleCancelEdit = () => {
+    if (!dive) return;
+    if (hasChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to cancel?'
+      );
+      if (!confirmed) return;
+    }
+    setEditState(buildEditState(dive));
+    setIsEditing(false);
+  };
+
   const handleSaveEdit = async () => {
-    if (!editedDive) return;
-
-    const updates: UpdateDivePatch = {
-      date: editedDive.date,
-      depth: editedDive.depth,
-      duration: editedDive.duration,
-      notes: editedDive.notes,
-      summary: editedDive.summary,
-      water_temp: editedDive.water_temp,
-      visibility: editedDive.visibility,
-      start_pressure: editedDive.start_pressure,
-      end_pressure: editedDive.end_pressure,
-      air_usage: editedDive.air_usage,
-      equipment: editedDive.equipment ?? [],
-      wildlife: editedDive.wildlife ?? [],
-      dive_type: editedDive.dive_type,
-      water_type: editedDive.water_type,
-      exposure: editedDive.exposure,
-      gas: editedDive.gas,
-      currents: editedDive.currents,
-      weight: editedDive.weight,
-    };
-
+    if (!dive || !currentEditState) return;
+    if (currentEditState.depth === null || currentEditState.duration === null) {
+      window.alert('Depth and duration are required.');
+      return;
+    }
     try {
-      const trimmedLocationName = locationNameDraft.trim();
-      const currentLocationName = dive?.locations?.name ?? '';
-      if (trimmedLocationName && trimmedLocationName !== currentLocationName) {
-        updates.locationName = trimmedLocationName;
-        updates.locationCountry = dive?.locations?.country ?? null;
-        updates.locationCountryCode = dive?.locations?.country_code ?? null;
-      }
-
-      await updateDive({ id: editedDive.id, diveData: updates });
-      setIsEditMode(false);
-      setEditedDive(null);
+      const notes = currentEditState.notes.trim();
+      const summary = currentEditState.summary.trim();
+      await updateDive({
+        id: dive.id,
+        diveData: {
+          depth: currentEditState.depth,
+          duration: currentEditState.duration,
+          water_temp: currentEditState.water_temp,
+          visibility: currentEditState.visibility,
+          dive_type: currentEditState.dive_type,
+          water_type: currentEditState.water_type,
+          exposure: currentEditState.exposure,
+          currents: currentEditState.currents,
+          weight: currentEditState.weight,
+          gas: currentEditState.gas,
+          nitrox_percent: currentEditState.gas === 'nitrox' ? currentEditState.nitrox_percent : null,
+          start_pressure: currentEditState.start_pressure,
+          end_pressure: currentEditState.end_pressure,
+          air_usage: calculatedAirUsage,
+          equipment: currentEditState.equipment,
+          wildlife: currentEditState.wildlife,
+          notes: notes.length > 0 ? currentEditState.notes : null,
+          summary: summary.length > 0 ? currentEditState.summary : null,
+        },
+      });
+      setIsEditing(false);
     } catch (err) {
       console.error('Failed to update dive:', err);
-    }
-  };
-
-  // Cancel edit mode
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
-    setEditedDive(null);
-    setLocationNameDraft(dive?.locations?.name ?? '');
-  };
-
-  // Handle changes in edit mode for text fields
-  const handleTextChange =
-    (field: TextField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.target.value;
-      setEditedDive((prev) =>
-        prev
-          ? {
-              ...prev,
-              [field]: value,
-            }
-          : prev
-      );
-    };
-
-  // Handle date changes
-  const handleDateChange = (date: string) => {
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            date,
-          }
-        : prev
-    );
-  };
-
-  // Handle changes for numeric fields
-  const handleNumberChange = (field: NumericField) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    const parsed = raw === '' ? null : Number(raw);
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            [field]: parsed,
-          }
-        : prev
-    );
-  };
-
-  // Handler for select fields
-  const handleSelectChange = (field: SelectField, value: string) => {
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            [field]: value,
-          }
-        : prev
-    );
-  };
-
-  // Add equipment item
-  const addEquipment = () => {
-    if (!isEditMode || !editedDive || !newEquipment.trim()) return;
-    const value = newEquipment.trim();
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            equipment: [...(prev.equipment ?? []), value],
-          }
-        : prev
-    );
-    setNewEquipment('');
-  };
-
-  // Remove equipment item
-  const removeEquipment = (index: number) => {
-    if (!isEditMode || !editedDive) return;
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            equipment: (prev.equipment ?? []).filter((_, i) => i !== index),
-          }
-        : prev
-    );
-  };
-
-  // Add wildlife item
-  const addWildlife = () => {
-    if (!isEditMode || !editedDive || !newWildlife.trim()) return;
-    const value = newWildlife.trim();
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            wildlife: [...(prev.wildlife ?? []), value],
-          }
-        : prev
-    );
-    setNewWildlife('');
-  };
-
-  // Remove wildlife item
-  const removeWildlife = (index: number) => {
-    if (!isEditMode || !editedDive) return;
-    setEditedDive((prev) =>
-      prev
-        ? {
-            ...prev,
-            wildlife: (prev.wildlife ?? []).filter((_, i) => i !== index),
-          }
-        : prev
-    );
-  };
-
-  // Generate AI summary
-  const handleGenerateAISummary = async () => {
-    if (!editedDive) return;
-    try {
-      await generateSummary();
-    } catch (err) {
-      console.error('Failed to generate summary', err);
     }
   };
 
@@ -249,7 +188,7 @@ function Dive() {
     return <Loading />;
   }
 
-  if (error || !dive || !currentDive) {
+  if (error || !dive) {
     return (
       <div className="p-8">
         <GoBack />
@@ -257,6 +196,17 @@ function Dive() {
       </div>
     );
   }
+
+  if (!currentEditState) {
+    return <Loading />;
+  }
+
+  const updateEditField = <K extends keyof DiveEditState>(
+    key: K,
+    value: DiveEditState[K]
+  ) => {
+    setEditState((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
 
   return (
     <div className="mt-8">
@@ -266,83 +216,110 @@ function Dive() {
       <div className="relative z-10 p-8 space-y-6">
         {/* Header */}
         <DiveHeader
-          dive={currentDive}
-          isEditMode={isEditMode}
-          isUpdating={isUpdating}
-          locationName={locationNameDraft}
-          onLocationNameChange={setLocationNameDraft}
-          onDateChange={handleDateChange}
-          onStartEdit={startEdit}
-          onSaveEdit={handleSaveEdit}
-          onCancelEdit={handleCancelEdit}
+          dive={dive}
           onOpenDeleteModal={() => setIsModalOpen(true)}
+          isEditing={isEditing}
+          isSaving={isSaving}
+          hasChanges={hasChanges}
+          onEdit={handleStartEdit}
+          onCancelEdit={handleCancelEdit}
+          onSaveEdit={handleSaveEdit}
         />
 
         {/* Stats */}
         <DiveStats
-          dive={currentDive}
-          isEditMode={isEditMode}
-          onNumberChange={handleNumberChange}
-          onSelectChange={handleSelectChange}
+          dive={dive}
+          isEditing={isEditing}
+          isSaving={isSaving}
+          stats={{
+            depth: currentEditState.depth,
+            duration: currentEditState.duration,
+            water_temp: currentEditState.water_temp,
+            visibility: currentEditState.visibility,
+          }}
+          onFieldChange={updateEditField}
         />
 
         {/* Gallery */}
-        <DiveGallery diveId={currentDive.id} coverPhotoPath={currentDive.cover_photo_path} />
+        <DiveGallery diveId={dive.id} coverPhotoPath={dive.cover_photo_path} />
 
         {/* Information */}
         <DiveInformation
-          dive={currentDive}
-          isEditMode={isEditMode}
-          onNumberChange={handleNumberChange}
-          onSelectChange={handleSelectChange}
+          dive={dive}
+          isEditing={isEditing}
+          isSaving={isSaving}
+          editedFields={{
+            dive_type: currentEditState.dive_type,
+            water_type: currentEditState.water_type,
+            exposure: currentEditState.exposure,
+            currents: currentEditState.currents,
+            weight: currentEditState.weight,
+          }}
+          onFieldChange={(field, value) =>
+            setEditState((prev) => (prev ? { ...prev, [field]: value } : prev))
+          }
         />
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Summary */}
-          <DiveSummary
-            dive={currentDive}
-            isEditMode={isEditMode}
-            isGenerating={isGenerating}
-            onTextChange={handleTextChange}
-            onGenerateSummary={handleGenerateAISummary}
+        <div className="grid md:grid-cols-2 gap-6 items-stretch">
+          {/* Notes */}
+          <DiveNotes
+            dive={dive}
+            isEditing={isEditing}
+            isSaving={isSaving}
+            notes={currentEditState.notes}
+            onNotesChange={(value) => updateEditField('notes', value)}
           />
-          {/* Air Usage */}
-          <AirUsage
-            dive={currentDive}
-            isEditMode={isEditMode}
-            onNumberChange={handleNumberChange}
+
+          {/* Gas Usage */}
+          <GasUsage
+            dive={dive}
+            isEditing={isEditing}
+            isSaving={isSaving}
+            gasMix={currentEditState.gas}
+            nitroxPercent={currentEditState.nitrox_percent}
+            startPressure={currentEditState.start_pressure}
+            endPressure={currentEditState.end_pressure}
+            airUsage={calculatedAirUsage}
+            onGasMixChange={(value) => updateEditField('gas', value)}
+            onNitroxPercentChange={(value) => updateEditField('nitrox_percent', value)}
+            onStartPressureChange={(value) => updateEditField('start_pressure', value)}
+            onEndPressureChange={(value) => updateEditField('end_pressure', value)}
           />
         </div>
-
-        {/* Notes */}
-        <DiveNotes dive={currentDive} isEditMode={isEditMode} onTextChange={handleTextChange} />
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Equipment */}
           <DiveEquipment
-            dive={currentDive}
-            isEditMode={isEditMode}
-            newEquipment={newEquipment}
-            onNewEquipmentChange={setNewEquipment}
-            onAddEquipment={addEquipment}
-            onRemoveEquipment={removeEquipment}
+            dive={dive}
+            isEditing={isEditing}
+            isSaving={isSaving}
+            equipment={currentEditState.equipment}
+            onEquipmentChange={(value) => updateEditField('equipment', value)}
           />
 
           {/* Wildlife */}
           <DiveWildlife
-            dive={currentDive}
-            isEditMode={isEditMode}
-            newWildlife={newWildlife}
-            onNewWildlifeChange={setNewWildlife}
-            onAddWildlife={addWildlife}
-            onRemoveWildlife={removeWildlife}
+            dive={dive}
+            isEditing={isEditing}
+            isSaving={isSaving}
+            wildlife={currentEditState.wildlife}
+            onWildlifeChange={(value) => updateEditField('wildlife', value)}
           />
         </div>
+
+        {/* Summary */}
+        <DiveSummary
+          dive={dive}
+          isEditing={isEditing}
+          isSaving={isSaving}
+          summary={currentEditState.summary}
+          onSummaryChange={(value) => updateEditField('summary', value)}
+        />
 
         {/* Delete Dive Modal */}
         <DeleteDiveModal
           isOpen={isModalOpen}
-          location={currentDive.locations?.name ?? 'N/A'}
+          location={dive.locations?.name ?? 'N/A'}
           isPending={isDeleting}
           onCancel={onCancelDelete}
           onConfirm={onConfirmDeletion}

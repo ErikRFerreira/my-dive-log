@@ -7,7 +7,7 @@ export { default as DiveHeader } from './components/DiveHeader';
 export { default as DiveStats } from './components/DiveStats';
 export { default as DiveInformation } from './components/DiveInformation';
 export { default as DiveSummary } from './components/DiveSummary';
-export { default as AirUsage } from './components/AirUsage';
+export { default as GasUsage } from './components/GasUsage';
 export { default as DiveNotes } from './components/DiveNotes';
 export { default as DiveEquipment } from './components/DiveEquipment';
 export { default as DiveWildlife } from './components/DiveWildlife';
