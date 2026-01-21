@@ -1,24 +1,15 @@
 import type { DiveType } from '@/features/dives/types';
 import type { V0Exposure, V0GasMix } from './types';
 
-import caveIcon from '../../../assets/icons/cave.svg?raw';
-import driftIcon from '../../../assets/icons/drift.svg?raw';
-import lakeRiverIcon from '../../../assets/icons/lake-river.svg?raw';
-import nightIcon from '../../../assets/icons/night.svg?raw';
-import reefIcon from '../../../assets/icons/reef.svg?raw';
-import trainingIcon from '../../../assets/icons/training.svg?raw';
-import wallIcon from '../../../assets/icons/wall.svg?raw';
-import wreckIcon from '../../../assets/icons/wreck.svg?raw';
-
 export const DIVE_TYPES: Array<{ value: DiveType; label: string; icon: string }> = [
-  { value: 'cave', label: 'Cave', icon: caveIcon },
-  { value: 'drift', label: 'Drift', icon: driftIcon },
-  { value: 'lake-river', label: 'Lake/River', icon: lakeRiverIcon },
-  { value: 'night', label: 'Night', icon: nightIcon },
-  { value: 'reef', label: 'Reef', icon: reefIcon },
-  { value: 'training', label: 'Training', icon: trainingIcon },
-  { value: 'wall', label: 'Wall', icon: wallIcon },
-  { value: 'wreck', label: 'Wreck', icon: wreckIcon },
+  { value: 'cave', label: 'Cave', icon : 'cave' },
+  { value: 'drift', label: 'Drift', icon: 'drift' },
+  { value: 'lake-river', label: 'Lake/River', icon: 'lake-river'},
+  { value: 'night', label: 'Night', icon: 'night'},
+  { value: 'reef', label: 'Reef', icon: 'reef'},
+  { value: 'training', label: 'Training', icon: 'training'},
+  { value: 'wall', label: 'Wall', icon: 'wall' },
+  { value: 'wreck', label: 'Wreck', icon: 'wreck' },
 ];
 
 export const EXPOSURE_OPTIONS: Array<{ value: V0Exposure; label: string }> = [

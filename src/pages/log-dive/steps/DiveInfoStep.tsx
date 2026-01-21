@@ -7,6 +7,7 @@ import type { Control } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
+import TypeIcon from '@/components/ui/TypeIcon';
 
 import { CURRENT_OPTIONS, DIVE_TYPES, VISIBILITY_OPTIONS } from '../utils/options';
 
@@ -95,11 +96,7 @@ export default function DiveInfoStep({ control }: Props) {
                   : 'border-slate-200 dark:border-slate-700'
               }`}
             >
-              <div
-                aria-hidden="true"
-                className="mx-auto mb-2 flex h-10 w-10 items-center justify-center text-primary [&>svg]:h-10 [&>svg]:w-10"
-                dangerouslySetInnerHTML={{ __html: type.icon }}
-              />
+              <TypeIcon icon={type.icon} width="w-10" height="h-10" color="text-primary" />
               <div className="text-sm font-medium">{type.label}</div>
             </button>
           ))}
