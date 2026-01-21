@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { BookOpen, Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { Dive, DiveType, WaterType, Exposure, Currents } from '../types';
+import type { Dive, Visibility, WaterType, Exposure, Currents } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
 import { useUpdateDive } from '../hooks/useUpdateDive';
@@ -24,7 +24,7 @@ interface DiveInformationProps {
 }
 
 type EditableFields = {
-  dive_type: DiveType | null | undefined;
+  visibility: Visibility | null | undefined;
   water_type: WaterType | null | undefined;
   exposure: Exposure | null | undefined;
   currents: Currents | null | undefined;
@@ -40,7 +40,7 @@ function DiveInformation({
 }: DiveInformationProps) {
   const [localIsEditing, setLocalIsEditing] = useState(false);
   const [localFields, setLocalFields] = useState<EditableFields>({
-    dive_type: dive.dive_type ?? null,
+    visibility: dive.visibility ?? null,
     water_type: dive.water_type ?? null,
     exposure: dive.exposure ?? null,
     currents: dive.currents ?? null,
@@ -56,7 +56,7 @@ function DiveInformation({
     if (isEditing) {
       setLocalIsEditing(false);
       setLocalFields({
-        dive_type: dive.dive_type ?? null,
+        visibility: dive.visibility ?? null,
         water_type: dive.water_type ?? null,
         exposure: dive.exposure ?? null,
         currents: dive.currents ?? null,
@@ -64,7 +64,7 @@ function DiveInformation({
       });
     } else if (!localIsEditing) {
       setLocalFields({
-        dive_type: dive.dive_type ?? null,
+        visibility: dive.visibility ?? null,
         water_type: dive.water_type ?? null,
         exposure: dive.exposure ?? null,
         currents: dive.currents ?? null,
@@ -79,12 +79,12 @@ function DiveInformation({
 
   const handleSelectChange = (field: keyof EditableFields, value: string) => {
     if (isEditing) {
-      onFieldChange(field, value as DiveType | WaterType | Exposure | Currents);
+      onFieldChange(field, value as Visibility | WaterType | Exposure | Currents);
       return;
     }
     setLocalFields((prev) => ({
       ...prev,
-      [field]: value as DiveType | WaterType | Exposure | Currents,
+      [field]: value as Visibility | WaterType | Exposure | Currents,
     }));
   };
 
@@ -99,7 +99,7 @@ function DiveInformation({
 
   const handleEdit = () => {
     setLocalFields({
-      dive_type: dive.dive_type ?? null,
+      visibility: dive.visibility ?? null,
       water_type: dive.water_type ?? null,
       exposure: dive.exposure ?? null,
       currents: dive.currents ?? null,
@@ -116,7 +116,7 @@ function DiveInformation({
       if (!confirmed) return;
     }
     setLocalFields({
-      dive_type: dive.dive_type ?? null,
+      visibility: dive.visibility ?? null,
       water_type: dive.water_type ?? null,
       exposure: dive.exposure ?? null,
       currents: dive.currents ?? null,
@@ -191,29 +191,25 @@ function DiveInformation({
         <CardContent className="p-6">
           <div className="grid md:grid-cols-5 gap-6 divide-x divide-border">
             <div className="md:pr-6">
-              <p className="text-sm font-semibold text-muted-foreground mb-2">Dive Type</p>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Visibility</p>
               {isEditingActive ? (
                 <Select
-                  value={fields.dive_type ?? ''}
-                  onValueChange={(value) => handleSelectChange('dive_type', value)}
+                  value={fields.visibility ?? ''}
+                  onValueChange={(value) => handleSelectChange('visibility', value)}
                   disabled={isSavingActive}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Select visibility" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="reef">Reef</SelectItem>
-                    <SelectItem value="wreck">Wreck</SelectItem>
-                    <SelectItem value="wall">Wall</SelectItem>
-                    <SelectItem value="cave">Cave</SelectItem>
-                    <SelectItem value="drift">Drift</SelectItem>
-                    <SelectItem value="night">Night</SelectItem>
-                    <SelectItem value="training">Training</SelectItem>
-                    <SelectItem value="lake-river">Lake/River</SelectItem>
+                    <SelectItem value="poor">Poor</SelectItem>
+                    <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="good">Good</SelectItem>
+                    <SelectItem value="excellent">Excellent</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
-                <p className="text-foreground capitalize">{dive.dive_type ?? 'N/A'}</p>
+                <p className="text-foreground capitalize">{dive.visibility ?? 'N/A'}</p>
               )}
             </div>
 

@@ -1,13 +1,16 @@
 type DiveBackgroundProps = {
-  coverPhotoUrl: string;
+  coverPhotoUrl?: string;
+  diveType?: string | null;
 };
 
-function DiveBackground({ coverPhotoUrl }: DiveBackgroundProps) {
+function DiveBackground({ coverPhotoUrl, diveType }: DiveBackgroundProps) {
+  const backgroundImageUrl = coverPhotoUrl ? coverPhotoUrl : `/banners/${diveType}.png`;
+  console.log('DiveBackground backgroundImageUrl:', backgroundImageUrl);
   return (
     <div className="absolute left-0 right-0 top-0 h-[440px] overflow-hidden pointer-events-none z-0 md:left-[300px]">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url('${coverPhotoUrl}')` }}
+        style={{ backgroundImage: `url('${backgroundImageUrl}')` }}
       ></div>
       <div className="absolute inset-0 bg-black/10"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-50/20 to-cyan-50 dark:via-slate-900/25 dark:to-slate-900"></div>

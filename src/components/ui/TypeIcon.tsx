@@ -23,23 +23,16 @@ type TypeIconKey = keyof typeof TYPE_ICON_SVGS;
 type TypeIconProps = {
   icon: TypeIconKey | string;
   color?: string;
-  width?: string;
-  height?: string;
 };
 
-function TypeIconBase({
-  icon,
-  color = 'text-primary',
-  width = 'w-10',
-  height = 'h-10',
-}: TypeIconProps) {
+function TypeIconBase({ icon, color = 'text-primary' }: TypeIconProps) {
   const resolvedIcon = TYPE_ICON_SVGS[icon as TypeIconKey];
   if (!resolvedIcon) return null;
 
   return (
     <div
       aria-hidden="true"
-      className={`mx-auto mb-2 flex ${height} ${width} items-center justify-center ${color} [&>svg]:${height} [&>svg]:${width}`}
+      className={`z-10 flex w-10 h-10 items-center justify-center ${color} [&>svg]:h-10 [&>svg]:w-10`}
       dangerouslySetInnerHTML={{ __html: resolvedIcon }}
     />
   );

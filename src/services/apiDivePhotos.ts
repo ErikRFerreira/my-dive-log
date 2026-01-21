@@ -84,14 +84,6 @@ export async function uploadDivePhotoToBucket(
     throw dbError;
   }
 
-  // 3. Set cover photo if the dive doesn't have one yet.
-  await supabase
-    .from("dives")
-    .update({ cover_photo_path: path })
-    .eq("id", diveId)
-    .eq("user_id", userId)
-    .is("cover_photo_path", null);
-
   return path;
 }
 
@@ -216,5 +208,4 @@ export async function fetchDivePhotos(diveId: string): Promise<DivePhoto[]> {
 
   return signed;
 }
-
 

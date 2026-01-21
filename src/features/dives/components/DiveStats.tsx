@@ -7,8 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Clock, Eye, Gauge, Thermometer } from 'lucide-react';
-import type { Dive, Visibility } from '../types';
+import { BookType, Clock, Gauge, Thermometer } from 'lucide-react';
+import type { Dive, DiveType } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
 
@@ -20,11 +20,11 @@ interface DiveStatsProps {
     depth: Dive['depth'] | null;
     duration: Dive['duration'] | null;
     water_temp: Dive['water_temp'];
-    visibility: Dive['visibility'];
+    dive_type: Dive['dive_type'];
   };
   onFieldChange: (
-    field: 'depth' | 'duration' | 'water_temp' | 'visibility',
-    value: number | null | Visibility
+    field: 'depth' | 'duration' | 'water_temp' | 'dive_type',
+    value: number | null | DiveType
   ) => void;
 }
 
@@ -33,10 +33,7 @@ function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStat
   const temperatureLabel = getUnitLabel('temperature', unitSystem);
   const depthLabel = getUnitLabel('depth', unitSystem);
 
-  const handleNumberChange = (
-    field: 'depth' | 'duration' | 'water_temp',
-    value: string
-  ) => {
+  const handleNumberChange = (field: 'depth' | 'duration' | 'water_temp', value: string) => {
     if (value === '') {
       onFieldChange(field, null);
       return;
@@ -95,32 +92,36 @@ function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStat
         );
       })}
 
-      {/* Visibility Card */}
+      {/* Dive Type Card */}
       <Card className="bg-card-dark/40 backdrop-blur-[20px] border border-[#232a33] rounded-2xl">
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Eye className="w-5 h-5 text-primary" />
-            <p className="text-sm text-muted-foreground">Visibility</p>
+            <BookType className="w-5 h-5 text-primary" />
+            <p className="text-sm text-muted-foreground">Dive Type</p>
           </div>
           {isEditing ? (
             <Select
-              value={stats.visibility ?? ''}
-              onValueChange={(value) => onFieldChange('visibility', value as Visibility)}
+              value={stats.dive_type ?? ''}
+              onValueChange={(value) => onFieldChange('dive_type', value as DiveType)}
               disabled={isSaving}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select visibility" />
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="poor">Poor</SelectItem>
-                <SelectItem value="fair">Fair</SelectItem>
-                <SelectItem value="good">Good</SelectItem>
-                <SelectItem value="excellent">Excellent</SelectItem>
+                <SelectItem value="reef">Reef</SelectItem>
+                <SelectItem value="wreck">Wreck</SelectItem>
+                <SelectItem value="wall">Wall</SelectItem>
+                <SelectItem value="cave">Cave</SelectItem>
+                <SelectItem value="drift">Drift</SelectItem>
+                <SelectItem value="night">Night</SelectItem>
+                <SelectItem value="training">Training</SelectItem>
+                <SelectItem value="lake-river">Lake/River</SelectItem>
               </SelectContent>
             </Select>
           ) : (
             <p className="text-2xl font-bold text-foreground capitalize">
-              {dive.visibility ?? 'N/A'}
+              {dive.dive_type ?? 'N/A'}
             </p>
           )}
         </CardContent>

@@ -6,30 +6,10 @@ import { Calendar } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
 import { useCoverPhotoUrl } from '../hooks/useCoverPhotoUrl';
-
-import caveIcon from '../../../assets/icons/cave.svg?raw';
-import driftIcon from '../../../assets/icons/drift.svg?raw';
-import lakeRiverIcon from '../../../assets/icons/lake-river.svg?raw';
-import nightIcon from '../../../assets/icons/night.svg?raw';
-import reefIcon from '../../../assets/icons/reef.svg?raw';
-import trainingIcon from '../../../assets/icons/training.svg?raw';
-import wallIcon from '../../../assets/icons/wall.svg?raw';
-import wreckIcon from '../../../assets/icons/wreck.svg?raw';
-import diverIcon from '../../../assets/icons/diver.svg?raw';
+import TypeIcon from '@/components/ui/TypeIcon';
 
 type DiveCardProps = {
   dive: Dive;
-};
-
-const diveTypeIcons: Partial<Record<NonNullable<Dive['dive_type']>, string>> = {
-  cave: caveIcon,
-  drift: driftIcon,
-  'lake-river': lakeRiverIcon,
-  night: nightIcon,
-  reef: reefIcon,
-  training: trainingIcon,
-  wall: wallIcon,
-  wreck: wreckIcon,
 };
 
 function DiveCard({ dive }: DiveCardProps) {
@@ -38,11 +18,13 @@ function DiveCard({ dive }: DiveCardProps) {
   const diveCountry = dive.locations?.country || '';
   const fullLocation = diveCountry ? `${diveLocation}, ${diveCountry}` : diveLocation;
   const diveLocationDisplay = fullLocation || 'Unknown Location';
-  const diveIcon = dive.dive_type ? diveTypeIcons[dive.dive_type] : diverIcon;
   const { coverPhotoUrl } = useCoverPhotoUrl(dive.cover_photo_path, {
     transform: { width: 200, height: 200, resize: 'cover' },
   });
-
+  let cover = coverPhotoUrl;
+  if (!coverPhotoUrl && dive.dive_type) {
+    cover = `/banners/${dive.dive_type}.png`;
+  }
   const formattedDate = new Date(dive.date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -61,21 +43,15 @@ function DiveCard({ dive }: DiveCardProps) {
       <div className="flex items-center gap-4">
         <div
           className="w-24 h-24 rounded-xl bg-[#0f1419] relative overflow-hidden flex items-center justify-center text-primary flex-shrink-0 bg-cover bg-center"
-          style={coverPhotoUrl ? { backgroundImage: `url('${coverPhotoUrl}')` } : undefined}
+          style={cover ? { backgroundImage: `url('${cover}')` } : undefined}
         >
-          {coverPhotoUrl && (
+          {cover && (
             <>
               <div className="absolute inset-0 bg-black/35" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f2e] via-transparent to-transparent" />
             </>
           )}
-          {diveIcon && (
-            <span
-              aria-hidden="true"
-              className="relative z-10 flex h-6 w-6 items-center justify-center [&>svg]:h-10 [&>svg]:w-10"
-              dangerouslySetInnerHTML={{ __html: diveIcon }}
-            />
-          )}
+          {dive.dive_type && <TypeIcon icon={dive.dive_type} color="text-primary" />}
         </div>
 
         <div className="flex-1">

@@ -17,7 +17,6 @@ import {
 } from '@/features/dives';
 
 import DiveBackground from '@/features/dives/components/DiveBackground';
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Dive, Gas } from '@/features/dives/types';
@@ -168,7 +167,8 @@ function Dive() {
           currents: currentEditState.currents,
           weight: currentEditState.weight,
           gas: currentEditState.gas,
-          nitrox_percent: currentEditState.gas === 'nitrox' ? currentEditState.nitrox_percent : null,
+          nitrox_percent:
+            currentEditState.gas === 'nitrox' ? currentEditState.nitrox_percent : null,
           start_pressure: currentEditState.start_pressure,
           end_pressure: currentEditState.end_pressure,
           air_usage: calculatedAirUsage,
@@ -201,17 +201,18 @@ function Dive() {
     return <Loading />;
   }
 
-  const updateEditField = <K extends keyof DiveEditState>(
-    key: K,
-    value: DiveEditState[K]
-  ) => {
+  const updateEditField = <K extends keyof DiveEditState>(key: K, value: DiveEditState[K]) => {
     setEditState((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
+
+  console.log(coverPhotoUrl);
 
   return (
     <div className="mt-8">
       {/* Background */}
-      {coverPhotoUrl && <DiveBackground coverPhotoUrl={coverPhotoUrl} />}
+      {coverPhotoUrl || dive.dive_type ? (
+        <DiveBackground coverPhotoUrl={coverPhotoUrl} diveType={dive.dive_type} />
+      ) : null}
 
       <div className="relative z-10 p-8 space-y-6">
         {/* Header */}
@@ -235,7 +236,7 @@ function Dive() {
             depth: currentEditState.depth,
             duration: currentEditState.duration,
             water_temp: currentEditState.water_temp,
-            visibility: currentEditState.visibility,
+            dive_type: currentEditState.dive_type,
           }}
           onFieldChange={updateEditField}
         />
@@ -249,7 +250,7 @@ function Dive() {
           isEditing={isEditing}
           isSaving={isSaving}
           editedFields={{
-            dive_type: currentEditState.dive_type,
+            visibility: currentEditState.visibility,
             water_type: currentEditState.water_type,
             exposure: currentEditState.exposure,
             currents: currentEditState.currents,

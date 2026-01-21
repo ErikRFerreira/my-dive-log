@@ -96,7 +96,9 @@ export default function DiveInfoStep({ control }: Props) {
                   : 'border-slate-200 dark:border-slate-700'
               }`}
             >
-              <TypeIcon icon={type.icon} width="w-10" height="h-10" color="text-primary" />
+              <div className="flex justify-center items-center my-2">
+                <TypeIcon icon={type.icon} color="text-primary" />
+              </div>
               <div className="text-sm font-medium">{type.label}</div>
             </button>
           ))}

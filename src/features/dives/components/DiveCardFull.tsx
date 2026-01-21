@@ -33,6 +33,11 @@ function DiveCardFull({ dive }: DiveCardFullProps) {
     transform: { width: 800, height: 320, resize: 'cover' },
   });
 
+  let cover = coverPhotoUrl;
+  if (!coverPhotoUrl && dive.dive_type) {
+    cover = `/banners/${dive.dive_type}.png`;
+  }
+
   const diveLocation = dive.locations?.name || 'Unknown Location';
   const diveCountry = dive.locations?.country || '';
   const fullLocation = diveCountry ? `${diveLocation}, ${diveCountry}` : diveLocation;
@@ -60,7 +65,7 @@ function DiveCardFull({ dive }: DiveCardFullProps) {
       {/* Image Section with Gradient Fallback */}
       <div
         className="h-40 w-full relative bg-gradient-to-br from-[#1a3a4a] via-[#0f2838] to-[#0a1f2e] bg-cover bg-center"
-        style={coverPhotoUrl ? { backgroundImage: `url('${coverPhotoUrl}')` } : undefined}
+        style={cover ? { backgroundImage: `url('${cover}')` } : undefined}
       >
         {/* Darken Overlay */}
         <div className="absolute inset-0 bg-black/35" />
