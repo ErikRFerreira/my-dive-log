@@ -1,3 +1,7 @@
+/**
+ * Unit tests for the dive media preparation helper.
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { prepareDiveMedia } from './prepareDiveMedia';
 import imageCompression from 'browser-image-compression';

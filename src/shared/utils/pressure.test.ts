@@ -1,3 +1,7 @@
+/**
+ * Unit tests for scuba pressure utility helpers.
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   parsePressureInput,

@@ -1,10 +1,17 @@
-import Loading from '@/components/common/Loading';
 import StatCard from '@/components/common/StatCard';
 import { useGetDives } from '@/features/dives';
 import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
 import SkeletonCard from '@/components/common/SkeletonCard';
+import {
+  getAverageDepth,
+  getDaysSinceMostRecentDive,
+  getDeepestDiveInfo,
+  getLongestDiveDuration,
+  getTotalDiveDurationMinutes,
+  getUniqueLocationCount,
+} from '@/shared/utils/diveStats';
 
 function CarrerStatistics() {
   const { dives, isLoading: divesLoading, isError: divesError } = useGetDives();
@@ -27,27 +34,12 @@ function CarrerStatistics() {
 
   const totalDives = dives.length;
 
-  const totalDiveTime = dives.reduce((acc, dive) => acc + dive.duration, 0);
-
-  const deepestDive = dives.length > 0 ? Math.max(...dives.map((dive) => dive.depth)) : 0;
-
-  const daysSinceLastDive = (() => {
-    if (dives.length === 0) return 0;
-    const lastDiveDate = new Date(Math.max(...dives.map((dive) => new Date(dive.date).getTime())));
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - lastDiveDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  })();
-
-  const averageDepth = (() => {
-    if (dives.length === 0) return 0;
-    const totalDepth = dives.reduce((acc, dive) => acc + dive.depth, 0);
-    return totalDepth / dives.length;
-  })();
-
-  const longestDive = dives.length > 0 ? Math.max(...dives.map((dive) => dive.duration)) : 0;
-
-  const uniqueLocations = new Set(dives.map((dive) => dive.locations?.name ?? 'N/A')).size;
+  const totalDiveTime = getTotalDiveDurationMinutes(dives);
+  const { deepestDive } = getDeepestDiveInfo(dives);
+  const daysSinceLastDive = getDaysSinceMostRecentDive(dives);
+  const averageDepth = getAverageDepth(dives);
+  const longestDive = getLongestDiveDuration(dives);
+  const uniqueLocations = getUniqueLocationCount(dives);
 
   return (
     <section>

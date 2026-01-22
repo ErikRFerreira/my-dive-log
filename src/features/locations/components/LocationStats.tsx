@@ -1,29 +1,16 @@
-import type { Dive } from '@/features/dives';
-import { useMemo } from 'react';
-import { MapPin, Waves, Zap } from 'lucide-react';
+import { MapPin, Star, Waves } from 'lucide-react';
 import StatCard from '@/components/common/StatCard';
-import { useSettingsStore } from '@/store/settingsStore';
-import { formatValueWithUnit } from '@/shared/utils/units';
+import type { Dive } from '@/features/dives';
+import { getFavoriteLocation, getTotalLocations } from '@/shared/utils/diveStats';
 
 type LocationStatsProps = {
   dives: Dive[];
 };
 
 function LocationStats({ dives }: LocationStatsProps) {
-  const unitSystem = useSettingsStore((s) => s.unitSystem);
-
-  const totalLocations = useMemo(() => {
-    const ids = dives.map((dive) => dive.locations?.id).filter((id): id is string => !!id);
-    return new Set(ids).size;
-  }, [dives]);
-
   const totalDives = dives.length;
-
-  const averageDepth = useMemo(() => {
-    if (dives.length === 0) return 0;
-    const totalDepth = dives.reduce((sum, dive) => sum + dive.depth, 0);
-    return Math.round(totalDepth / dives.length);
-  }, [dives]);
+  const totalLocations = getTotalLocations(dives);
+  const favoriteLocation = getFavoriteLocation(dives);
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -34,9 +21,9 @@ function LocationStats({ dives }: LocationStatsProps) {
       />
       <StatCard title="Total Dives" value={totalDives} icon={<Waves className="w-42 h-42" />} />
       <StatCard
-        title="Average Depth"
-        value={formatValueWithUnit(averageDepth, 'depth', unitSystem)}
-        icon={<Zap className="w-42 h-42" />}
+        title="Favorite Location"
+        value={favoriteLocation}
+        icon={<Star className="w-42 h-42" />}
       />
     </section>
   );

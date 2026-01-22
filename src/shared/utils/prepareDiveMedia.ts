@@ -1,3 +1,10 @@
+/**
+ * Utilities for preparing dive media uploads.
+ *
+ * This module validates supported formats, converts HEIC/HEIF images,
+ * and compresses media to stay within size and dimension limits.
+ */
+
 import imageCompression from 'browser-image-compression';
 
 /** Maximum file size in bytes after compression (1MB) */
@@ -82,19 +89,22 @@ async function convertHeicToJpeg(file: File) {
 }
 
 /**
- * Prepares and compresses an image file for dive media upload
- * 
+ * Prepares and compresses an image file for dive media upload.
+ *
  * Handles HEIC/HEIF conversion, image compression, and size validation.
  * Output will be in JPEG or WebP format depending on input.
  * Uses iterative compression with progressively lower quality settings
  * to ensure the file meets size requirements.
- * 
+ *
  * @param file - The image file to process
  * @param options - Optional compression settings
  * @param options.maxBytes - Maximum file size in bytes (default: 1MB)
  * @param options.maxDimension - Maximum width or height in pixels (default: 1600)
  * @returns A Promise that resolves to the processed File
  * @throws Error if the file format is unsupported or cannot be compressed below maxBytes
+ *
+ * @example
+ * const processed = await prepareDiveMedia(file, { maxBytes: 750_000, maxDimension: 1400 });
  */
 export async function prepareDiveMedia(
   file: File,
