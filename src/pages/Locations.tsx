@@ -1,14 +1,16 @@
 import Loading from '@/components/common/Loading';
 import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
-import { useGetDives } from '@/features/dives';
+import { useGetDives, useGetLocations } from '@/features/dives';
 import { LocationCardsGrid, LocationStats } from '@/features/locations';
+import LocationsMap from '@/features/locations/components/LocationsMap';
 import { useNavigate } from 'react-router-dom';
 
 function Locations() {
   const { dives, isLoading, isError } = useGetDives({
     sortBy: 'date',
   });
+  const { locations } = useGetLocations();
   const navigate = useNavigate();
 
   return (
@@ -41,7 +43,13 @@ function Locations() {
 
       {dives && dives.length > 0 && (
         <>
+          {/* Location statistics */}
           <LocationStats dives={dives} />
+
+          {/* Map showing dive locations */}
+          <LocationsMap dives={dives} locations={locations} />
+
+          {/* Grid of location cards */}
           <LocationCardsGrid dives={dives} />
         </>
       )}

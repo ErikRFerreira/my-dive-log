@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Button from '../ui/button';
@@ -22,7 +22,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-function Header() {
+type HeaderProps = {
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
+};
+
+function Header({ isSidebarOpen, onToggleSidebar }: HeaderProps) {
   const { logout, isLoggingOut } = useLogout();
   const { user, isLoading, isError } = useUser();
 
@@ -56,8 +61,18 @@ function Header() {
   const certLevel = profile?.cert_level;
 
   return (
-    <header className="col-start-2 row-start-1 h-20 border-b border-[#1e2936] bg-[#0f1419]/20 backdrop-blur-[10px] flex items-center justify-between px-8 shadow-sm relative z-20">
+    <header className="col-start-1 row-start-1 min-[992px]:col-start-2 h-20 border-b border-[#1e2936] bg-[#0f1419]/20 backdrop-blur-[10px] flex items-center justify-between px-8 max-[991px]:px-4 shadow-sm relative z-20">
       <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          title={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          onClick={onToggleSidebar}
+          className="min-[992px]:hidden"
+        >
+          <Menu className="w-5 h-5" />
+        </Button>
         <Avatar className="w-10 h-10">
           <AvatarImage
             src={avatarUrl || undefined}

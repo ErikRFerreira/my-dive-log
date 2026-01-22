@@ -344,7 +344,7 @@ function LogDivePage() {
           </div>
         </div>
 
-        <Card className="p-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl">
+        <Card className="p-8 max-[991px]:px-6 max-[991px]:-mt-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl">
           {step === 1 && <EssentialsStep control={control} setValue={setValue} />}
           {step === 2 && <DiveInfoStep control={control} />}
           {step === 3 && <EquipmentStep control={control} />}

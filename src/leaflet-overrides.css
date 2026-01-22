@@ -1,0 +1,21 @@
+/* Leaflet popup styling for location hover cards */
+.leaflet-popup.locations-map-popup .leaflet-popup-content-wrapper {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+}
+
+.leaflet-popup.locations-map-popup .leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+.leaflet-popup.locations-map-popup .leaflet-popup-tip {
+  background: hsl(var(--card));
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+}
+
+.leaflet-popup.locations-map-popup .leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground));
+}

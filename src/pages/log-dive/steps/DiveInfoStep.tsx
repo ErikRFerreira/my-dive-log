@@ -82,7 +82,11 @@ export default function DiveInfoStep({ control }: Props) {
           <MapPin className="w-4 h-4 inline mr-2 text-teal-500" aria-hidden="true" />
           Dive Type
         </label>
-        <div className="grid grid-cols-4 gap-3" role="radiogroup" aria-labelledby="dive-type-label">
+        <div
+          className="grid grid-cols-4 max-[991px]:grid-cols-2 gap-3"
+          role="radiogroup"
+          aria-labelledby="dive-type-label"
+        >
           {DIVE_TYPES.map((type) => (
             <button
               key={type.value}
