@@ -1,10 +1,10 @@
-import { DiveList, useGetDives } from '@/features/dives';
 import Loading from '@/components/common/Loading';
+import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
-import StatsList from '@/features/dashboard/components/StatsList';
 import DepthChart from '@/features/dashboard/components/DepthChart';
 import MonthlyChart from '@/features/dashboard/components/MonthlyChart';
-import NoResults from '@/components/layout/NoResults';
+import StatsList from '@/features/dashboard/components/StatsList';
+import { DiveList, useGetDives } from '@/features/dives';
 
 function Dashboard() {
   const {
@@ -23,7 +23,7 @@ function Dashboard() {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your diving activities</p>
+          <p className="text-muted-foreground mt-1">Overview of your diving activities</p>
         </div>
       </header>
 

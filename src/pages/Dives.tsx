@@ -1,12 +1,11 @@
-import InlineSpinner from '@/components/common/InlineSpinner';
 import Loading from '@/components/common/Loading';
 import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
-import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
-import { useDiveFilterStore } from '@/store/diveFilterStore';
 import { DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
-import { Download } from 'lucide-react';
+import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
 import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
+import { useDiveFilterStore } from '@/store/diveFilterStore';
+import { Download } from 'lucide-react';
 
 function Dives() {
   const {
@@ -56,7 +55,6 @@ function Dives() {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dive History</h1>
-          {isFetching && <InlineSpinner aria-label="Refreshing dives" />}
           <p className="text-muted-foreground mt-1">Browse and manage all your recorded dives</p>
         </div>
         <div className="flex gap-2">

@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+
 import type { Dive } from '@/features/dives';
 import { Area, AreaChart, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -16,92 +17,92 @@ function DepthChart({ dives }: DepthChartProps) {
 
   const { chartData, averageDepth, changeLabel, changePositive, labels, comparisonLabel } =
     useMemo(() => {
-    const sortedDives = [...dives].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+      const sortedDives = [...dives].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
 
-    if (sortedDives.length === 0) {
+      if (sortedDives.length === 0) {
+        return {
+          chartData: [] as Array<{ index: number; depth: number; label: string }>,
+          averageDepth: 0,
+          changeLabel: 0,
+          changePositive: true,
+          totalCountLabel: '0 Dives',
+          labels: [] as string[],
+        };
+      }
+
+      const lastTen = sortedDives.slice(-10);
+      const previousTen = sortedDives.slice(-20, -10);
+
+      const latestDate = new Date(sortedDives[sortedDives.length - 1].date);
+      const latestMonth = latestDate.getMonth();
+      const latestYear = latestDate.getFullYear();
+
+      const monthDives = sortedDives.filter((dive) => {
+        const date = new Date(dive.date);
+        return date.getFullYear() === latestYear && date.getMonth() === latestMonth;
+      });
+
+      const previousMonth = latestMonth === 0 ? 11 : latestMonth - 1;
+      const previousMonthYear = latestMonth === 0 ? latestYear - 1 : latestYear;
+      const previousMonthDives = sortedDives.filter((dive) => {
+        const date = new Date(dive.date);
+        return date.getFullYear() === previousMonthYear && date.getMonth() === previousMonth;
+      });
+
+      const selectedDives = viewMode === 'month' ? monthDives : lastTen;
+      const comparisonDives = viewMode === 'month' ? previousMonthDives : previousTen;
+
+      const chartData = selectedDives.map((dive, index) => {
+        const date = new Date(dive.date);
+        const label =
+          viewMode === 'month'
+            ? date.toLocaleString('en-US', { month: 'short', day: 'numeric' })
+            : `Dive ${index + 1}`;
+        return {
+          index: index + 1,
+          label,
+          depth: convertValue(dive.depth, 'depth', unitSystem),
+        };
+      });
+
+      const averageDepth =
+        chartData.reduce((sum, item) => sum + item.depth, 0) / (chartData.length || 1);
+      const comparisonAvg =
+        comparisonDives.reduce(
+          (sum, dive) => sum + convertValue(dive.depth, 'depth', unitSystem),
+          0
+        ) / (comparisonDives.length || 1);
+      const changePercent =
+        comparisonDives.length > 0 ? ((averageDepth - comparisonAvg) / comparisonAvg) * 100 : 0;
+      const changeLabel = Number.isFinite(changePercent) ? Math.round(changePercent) : 0;
+      const changePositive = changeLabel >= 0;
+
+      const totalCountLabel =
+        viewMode === 'month' ? `${chartData.length} Dives` : `Last ${chartData.length} Dives`;
+      const labels = chartData.map((item) => item.label);
+
+      const comparisonLabel = viewMode === 'month' ? 'vs last month' : 'vs last 10 dives';
+
       return {
-        chartData: [] as Array<{ index: number; depth: number; label: string }>,
-        averageDepth: 0,
-        changeLabel: 0,
-        changePositive: true,
-        totalCountLabel: '0 Dives',
-        labels: [] as string[],
+        chartData,
+        averageDepth,
+        changeLabel,
+        changePositive,
+        totalCountLabel,
+        labels,
+        comparisonLabel,
       };
-    }
-
-    const lastTen = sortedDives.slice(-10);
-    const previousTen = sortedDives.slice(-20, -10);
-
-    const latestDate = new Date(sortedDives[sortedDives.length - 1].date);
-    const latestMonth = latestDate.getMonth();
-    const latestYear = latestDate.getFullYear();
-
-    const monthDives = sortedDives.filter((dive) => {
-      const date = new Date(dive.date);
-      return date.getFullYear() === latestYear && date.getMonth() === latestMonth;
-    });
-
-    const previousMonth = latestMonth === 0 ? 11 : latestMonth - 1;
-    const previousMonthYear = latestMonth === 0 ? latestYear - 1 : latestYear;
-    const previousMonthDives = sortedDives.filter((dive) => {
-      const date = new Date(dive.date);
-      return date.getFullYear() === previousMonthYear && date.getMonth() === previousMonth;
-    });
-
-    const selectedDives = viewMode === 'month' ? monthDives : lastTen;
-    const comparisonDives = viewMode === 'month' ? previousMonthDives : previousTen;
-
-    const chartData = selectedDives.map((dive, index) => {
-      const date = new Date(dive.date);
-      const label =
-        viewMode === 'month'
-          ? date.toLocaleString('en-US', { month: 'short', day: 'numeric' })
-          : `Dive ${index + 1}`;
-      return {
-        index: index + 1,
-        label,
-        depth: convertValue(dive.depth, 'depth', unitSystem),
-      };
-    });
-
-    const averageDepth =
-      chartData.reduce((sum, item) => sum + item.depth, 0) / (chartData.length || 1);
-    const comparisonAvg =
-      comparisonDives.reduce(
-        (sum, dive) => sum + convertValue(dive.depth, 'depth', unitSystem),
-        0
-      ) / (comparisonDives.length || 1);
-    const changePercent =
-      comparisonDives.length > 0 ? ((averageDepth - comparisonAvg) / comparisonAvg) * 100 : 0;
-    const changeLabel = Number.isFinite(changePercent) ? Math.round(changePercent) : 0;
-    const changePositive = changeLabel >= 0;
-
-    const totalCountLabel =
-      viewMode === 'month' ? `${chartData.length} Dives` : `Last ${chartData.length} Dives`;
-    const labels = chartData.map((item) => item.label);
-
-    const comparisonLabel = viewMode === 'month' ? 'vs last month' : 'vs last 10 dives';
-
-    return {
-      chartData,
-      averageDepth,
-      changeLabel,
-      changePositive,
-      totalCountLabel,
-      labels,
-      comparisonLabel,
-    };
-  }, [dives, unitSystem, viewMode]);
+    }, [dives, unitSystem, viewMode]);
 
   const isMonthView = viewMode === 'month';
 
   return (
     <Card className="border-border/60 bg-[#0f1c23]">
-      <CardContent className="p-6">
+      <CardContent className="p-6 max-[991px]:p-4">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-white">Depth Trend</h2>
+          <h2 className="text-2xl font-bold text-white max-[991px]:text-sm">Depth Trend</h2>
           <div className="flex items-center gap-3 text-sm">
             <button
               type="button"
@@ -128,7 +129,7 @@ function DepthChart({ dives }: DepthChartProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#2a3b44] bg-[#1f3440] px-6 py-5">
+        <div className="rounded-2xl border border-[#2a3b44] bg-[#1f3440] px-6 py-5 max-[991px]:p-4">
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm text-slate-300">Average Depth</p>

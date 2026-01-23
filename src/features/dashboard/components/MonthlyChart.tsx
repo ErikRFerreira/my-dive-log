@@ -64,9 +64,9 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
 
   return (
     <Card className="border-border/60 bg-[#0f1c23]">
-      <CardContent className="p-6">
+      <CardContent className="p-6 max-[991px]:p-4">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-white">Monthly Activity</h2>
+          <h2 className="text-2xl font-bold text-white max-[991px]:text-sm">Monthly Activity</h2>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[120px] bg-[#0f1c23] border border-[#2a3b44] text-white">
               <SelectValue placeholder="Select year" />
@@ -81,7 +81,7 @@ function MonthlyChart({ dives }: MonthlyChartProps) {
           </Select>
         </div>
 
-        <div className="rounded-2xl border border-[#2a3b44] bg-[#1f3440] px-6 py-5">
+        <div className="rounded-2xl border border-[#2a3b44] bg-[#1f3440] px-6 py-5 max-[991px]:p-4">
           {monthlyActivityData.length === 0 ? (
             <div className="flex h-[300px] items-center justify-center text-sm text-slate-300">
               No dives logged for {selectedYear}.
