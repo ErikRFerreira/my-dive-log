@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { getCurrentUserId } from './apiAuth';
 import { validateResponse } from '@/lib/validateResponse';
-import { stringResponseSchema, booleanResponseSchema, divePhotosResponseSchema } from '@/lib/schemas';
+import { stringResponseSchema, booleanResponseSchema } from '@/lib/schemas';
 
 export type DivePhoto = {
   id: string;
