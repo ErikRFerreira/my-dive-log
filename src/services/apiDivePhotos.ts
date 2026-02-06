@@ -213,6 +213,6 @@ export async function fetchDivePhotos(diveId: string): Promise<DivePhoto[]> {
     })
   );
 
-  return validateResponse(divePhotosResponseSchema, signed, 'fetchDivePhotos');
+  return signed;
 }
 

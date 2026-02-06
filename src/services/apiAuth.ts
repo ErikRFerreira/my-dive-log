@@ -249,5 +249,5 @@ export async function deleteAccount(): Promise<true> {
   }
 
   await supabase.auth.signOut();
-  return validateResponse(booleanResponseSchema, true, 'deleteAccount');
+  return true;
 }
