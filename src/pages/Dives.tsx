@@ -1,11 +1,16 @@
 import Loading from '@/components/common/Loading';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
+import InlineError from '@/components/common/InlineError';
 import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
-import { DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
-import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
+import DiveList from '@/features/dives/components/DiveList';
+import DivesFilter from '@/features/dives/components/DivesFilter';
+import { useGetDives } from '@/features/dives/hooks/useGetDives';
+import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
+import { useDivesFilterController } from '@/features/dives/hooks/useDivesFilterController';
+import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
-import { useDiveFilterStore } from '@/store/diveFilterStore';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 import { Download } from 'lucide-react';
 
 function Dives() {
@@ -17,16 +22,22 @@ function Dives() {
     searchQuery,
     locationId,
     country,
-    setSortBy,
-    setMaxDepth,
-    setCurrentPage,
-    setSearchQuery,
-    setCountry,
-    setLocationId,
-    resetFilters,
     toggleShowFilters,
-  } = useDiveFilterStore();
-  const { locations, isLoading: isLoadingLocations } = useGetLocations();
+    setCurrentPage,
+    setPageAndSortBy,
+    setPageAndMaxDepth,
+    setPageAndSearchQuery,
+    setPageAndCountry,
+    setPageAndLocationId,
+    handleReset,
+    hasActiveFilters,
+  } = useDivesFilterController();
+  const {
+    locations,
+    isLoading: isLoadingLocations,
+    isError: isLocationsError,
+    error: locationsError,
+  } = useGetLocations();
 
   // Fetch dives with server-side filtering and pagination
   const filters = {
@@ -43,13 +54,6 @@ function Dives() {
     locations,
   });
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-
-  // Check if any filters are active
-  const hasActiveFilters =
-    maxDepth < DEFAULT_MAX_DEPTH ||
-    locationId !== null ||
-    sortBy !== 'date' ||
-    searchQuery.trim() !== '';
 
   return (
     <>
@@ -69,6 +73,16 @@ function Dives() {
           </Button>
         </div>
       </header>
+
+      {isLocationsError && (
+        <InlineError
+          message={getErrorMessage(
+            locationsError,
+            'Failed to load locations. Filters may be limited.'
+          )}
+          className="mt-4"
+        />
+      )}
 
       {isLoading && !dives ? (
         <Loading />
@@ -94,31 +108,12 @@ function Dives() {
               filteredCount={dives.length}
               totalCount={totalCount}
               searchQuery={searchQuery}
-              onSearchQueryChange={(query) => {
-                setSearchQuery(query);
-                setCurrentPage(1);
-              }}
-              onSortByChange={(nextSortBy) => {
-                setSortBy(nextSortBy);
-                setCurrentPage(1);
-              }}
-              onMaxDepthChange={(nextMaxDepth) => {
-                setMaxDepth(nextMaxDepth);
-                setCurrentPage(1);
-              }}
-              onCountryChange={(nextCountry) => {
-                setCountry(nextCountry);
-                setCurrentPage(1);
-                setLocationId(null);
-              }}
-              onLocationIdChange={(nextLocationId) => {
-                setLocationId(nextLocationId);
-                setCurrentPage(1);
-              }}
-              onReset={() => {
-                resetFilters();
-                setCurrentPage(1);
-              }}
+              onSearchQueryChange={setPageAndSearchQuery}
+              onSortByChange={setPageAndSortBy}
+              onMaxDepthChange={setPageAndMaxDepth}
+              onCountryChange={setPageAndCountry}
+              onLocationIdChange={setPageAndLocationId}
+              onReset={handleReset}
             />
           </section>
           <section aria-busy={isFetching}>

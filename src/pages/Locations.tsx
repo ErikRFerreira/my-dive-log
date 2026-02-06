@@ -1,17 +1,20 @@
 import Loading from '@/components/common/Loading';
 import NoResults from '@/components/layout/NoResults';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
+import InlineError from '@/components/common/InlineError';
 import Button from '@/components/ui/button';
-import { useGetDives, useGetLocations } from '@/features/dives';
+import { useGetDives } from '@/features/dives/hooks/useGetDives';
+import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { LocationCardsGrid, LocationStats } from '@/features/locations';
 import LocationsMap from '@/features/locations/components/LocationsMap';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 import { useNavigate } from 'react-router-dom';
 
 function Locations() {
   const { dives, isLoading, error, refetch } = useGetDives({
     sortBy: 'date',
   });
-  const { locations } = useGetLocations();
+  const { locations, isError: isLocationsError, error: locationsError } = useGetLocations();
   const navigate = useNavigate();
 
   return (
@@ -31,6 +34,16 @@ function Locations() {
           onRetry={refetch}
           title="Failed to load locations"
           description="We couldn't load your dive locations. Please try again."
+        />
+      )}
+
+      {!error && isLocationsError && (
+        <InlineError
+          message={getErrorMessage(
+            locationsError,
+            'Failed to load location details. Some data may be missing.'
+          )}
+          className="mt-4"
         />
       )}
 

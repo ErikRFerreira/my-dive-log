@@ -1,5 +1,5 @@
 import StatCard from '@/components/common/StatCard';
-import { useGetDives } from '@/features/dives';
+import { useGetDives } from '@/features/dives/hooks/useGetDives';
 import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';

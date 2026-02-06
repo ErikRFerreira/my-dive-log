@@ -1,4 +1,4 @@
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import { useMemo, useState } from 'react';
 
 import LocationCard from './LocationCard';

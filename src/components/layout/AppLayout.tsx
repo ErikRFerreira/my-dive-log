@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
-import { AddDive } from '@/features/dives';
+import AddDive from '@/features/dives/components/AddDive';
 import Header from './Header';
 import Sidebar from './Sidebar';
 

@@ -2,6 +2,15 @@ import DivePage from '@/pages/Dive';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
 
 import type { Dive as DiveType } from '@/features/dives/types';
 
@@ -52,238 +61,392 @@ const mockDive: DiveType = {
 
 const updateDiveMock = vi.fn();
 const deleteDiveMock = vi.fn();
+const refetchMock = vi.fn();
 
-// Mock all dive components with simplified versions for testing
-vi.mock('@/features/dives', () => ({
+type FormState = {
+  depth: number | null;
+  duration: number | null;
+  weight: number | null;
+  notes: string;
+  gas: string;
+  equipment: string[];
+  wildlife: string[];
+  summary: string;
+};
+
+type FormContextValue = {
+  values: FormState;
+  setValues: Dispatch<SetStateAction<FormState>>;
+  isDirty: boolean;
+  setIsDirty: Dispatch<SetStateAction<boolean>>;
+  resetValues: () => void;
+};
+
+const FormStateContext = createContext<FormContextValue | null>(null);
+
+const useFormState = () => {
+  const ctx = useContext(FormStateContext);
+  if (!ctx) throw new Error('FormStateContext missing');
+  return ctx;
+};
+
+const getDefaultValues = (dive: DiveType): FormState => ({
+  depth: dive.depth ?? null,
+  duration: dive.duration ?? null,
+  weight: dive.weight ?? null,
+  notes: dive.notes ?? '',
+  gas: dive.gas ?? 'air',
+  equipment: Array.isArray(dive.equipment) ? dive.equipment : [],
+  wildlife: Array.isArray(dive.wildlife) ? dive.wildlife : [],
+  summary: dive.summary ?? '',
+});
+
+vi.mock('@/features/dives/hooks/useGetDive', () => ({
   useGetDive: () => ({
     dive: mockDive,
     isLoading: false,
     error: null,
     coverPhotoUrl: null,
+    refetch: refetchMock,
   }),
-  useUpdateDive: () => ({
-    mutateAsync: updateDiveMock,
-    isPending: false,
-  }),
+}));
+
+vi.mock('@/features/dives/hooks/useDeleteDive', () => ({
   useDeleteDive: () => ({
     mutateAsync: deleteDiveMock,
     isPending: false,
   }),
-  DiveHeader: ({
+}));
+
+vi.mock('@/features/dives/components/DiveEditFormProvider', () => ({
+  default: ({
+    dive,
+    onCancel,
+    onSaveSuccess,
+    children,
+  }: {
+    dive: DiveType;
+    onCancel: () => void;
+    onSaveSuccess: () => void;
+    children:
+      | ReactNode
+      | ((handleSave: () => void, handleCancel: () => void, saveError: string | null) => ReactNode);
+  }) => {
+    const defaults = useMemo(() => getDefaultValues(dive), [dive]);
+    const [values, setValues] = useState<FormState>(defaults);
+    const [isDirty, setIsDirty] = useState(false);
+
+    const resetValues = () => {
+      setValues(defaults);
+      setIsDirty(false);
+    };
+
+    const handleSave = () => {
+      if (values.depth === null || values.duration === null) return;
+      updateDiveMock({
+        id: dive.id,
+        diveData: {
+          depth: values.depth,
+          duration: values.duration,
+          notes: values.notes,
+          gas: values.gas,
+        },
+      });
+      setIsDirty(false);
+      onSaveSuccess();
+    };
+
+    const handleCancel = () => {
+      if (isDirty) {
+        const confirmed = window.confirm(
+          'You have unsaved changes. Are you sure you want to cancel?'
+        );
+        if (!confirmed) return;
+      }
+      resetValues();
+      onCancel();
+    };
+
+    const ctxValue: FormContextValue = {
+      values,
+      setValues,
+      isDirty,
+      setIsDirty,
+      resetValues,
+    };
+
+    return (
+      <FormStateContext.Provider value={ctxValue}>
+        {typeof children === 'function' ? children(handleSave, handleCancel, null) : children}
+      </FormStateContext.Provider>
+    );
+  },
+}));
+
+// Mock dive components with simplified versions for testing
+vi.mock('@/features/dives/components/DiveHeader', () => ({
+  default: ({
     onEdit,
-    onCancelEdit,
-    onSaveEdit,
+    onSave,
+    onCancel,
     isEditing,
-    hasChanges,
   }: {
     onEdit: () => void;
-    onCancelEdit: () => void;
-    onSaveEdit: () => void;
+    onSave?: () => void;
+    onCancel?: () => void;
     isEditing: boolean;
-    hasChanges: boolean;
-  }) => (
-    <div>
-      {!isEditing ? (
-        <button onClick={onEdit}>Edit</button>
-      ) : (
-        <>
-          <button onClick={onSaveEdit} disabled={!hasChanges}>
-            Save
+  }) => {
+    const { isDirty } = useFormState();
+    return (
+      <div>
+        {!isEditing ? (
+          <button onClick={onEdit}>Edit</button>
+        ) : (
+          <>
+            <button onClick={onSave} disabled={!isDirty}>
+              Save
+            </button>
+            <button onClick={onCancel}>Cancel</button>
+          </>
+        )}
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveStats', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <label>
+          Depth
+          <input
+            type="number"
+            value={values.depth ?? ''}
+            onChange={(e) => {
+              const next = e.target.value === '' ? null : Number(e.target.value);
+              setValues((prev) => ({ ...prev, depth: next }));
+              setIsDirty(true);
+            }}
+            disabled={!isEditing}
+            data-testid="depth-input"
+          />
+        </label>
+        <label>
+          Duration
+          <input
+            type="number"
+            value={values.duration ?? ''}
+            onChange={(e) => {
+              const next = e.target.value === '' ? null : Number(e.target.value);
+              setValues((prev) => ({ ...prev, duration: next }));
+              setIsDirty(true);
+            }}
+            disabled={!isEditing}
+            data-testid="duration-input"
+          />
+        </label>
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveInformation', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <label>
+          Weight
+          <input
+            type="number"
+            value={values.weight ?? ''}
+            onChange={(e) => {
+              const next = e.target.value === '' ? null : Number(e.target.value);
+              setValues((prev) => ({ ...prev, weight: next }));
+              setIsDirty(true);
+            }}
+            disabled={!isEditing}
+            data-testid="weight-input"
+          />
+        </label>
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveNotes', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <label>
+          Notes
+          <textarea
+            value={values.notes}
+            onChange={(e) => {
+              setValues((prev) => ({ ...prev, notes: e.target.value }));
+              setIsDirty(true);
+            }}
+            disabled={!isEditing}
+            data-testid="notes-input"
+          />
+        </label>
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/GasUsage', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <label>
+          Gas Mix
+          <select
+            value={values.gas}
+            onChange={(e) => {
+              setValues((prev) => ({ ...prev, gas: e.target.value }));
+              setIsDirty(true);
+            }}
+            disabled={!isEditing}
+            data-testid="gas-mix-select"
+          >
+            <option value="air">Air</option>
+            <option value="nitrox">Nitrox</option>
+          </select>
+        </label>
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveEquipment', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <div data-testid="equipment-list">
+          {values.equipment.map((item, idx) => (
+            <div key={idx}>
+              {item}
+              {isEditing && (
+                <button
+                  onClick={() => {
+                    setValues((prev) => ({
+                      ...prev,
+                      equipment: prev.equipment.filter((_, i) => i !== idx),
+                    }));
+                    setIsDirty(true);
+                  }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {isEditing && (
+          <button
+            onClick={() => {
+              setValues((prev) => ({
+                ...prev,
+                equipment: [...prev.equipment, 'New Item'],
+              }));
+              setIsDirty(true);
+            }}
+          >
+            Add Equipment
           </button>
-          <button onClick={onCancelEdit}>Cancel</button>
-        </>
-      )}
-    </div>
-  ),
-  DiveStats: ({
-    stats,
-    onFieldChange,
-    isEditing,
-  }: {
-    stats: { depth: number | null; duration: number | null };
-    onFieldChange: (field: string, value: number | null) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <label>
-        Depth
-        <input
-          type="number"
-          value={stats.depth ?? ''}
-          onChange={(e) => onFieldChange('depth', Number(e.target.value) || null)}
-          disabled={!isEditing}
-          data-testid="depth-input"
-        />
-      </label>
-      <label>
-        Duration
-        <input
-          type="number"
-          value={stats.duration ?? ''}
-          onChange={(e) => onFieldChange('duration', Number(e.target.value) || null)}
-          disabled={!isEditing}
-          data-testid="duration-input"
-        />
-      </label>
-    </div>
-  ),
-  DiveInformation: ({
-    editedFields,
-    onFieldChange,
-    isEditing,
-  }: {
-    editedFields: { weight: number | null };
-    onFieldChange: (field: string, value: number | null) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <label>
-        Weight
-        <input
-          type="number"
-          value={editedFields.weight ?? ''}
-          onChange={(e) => onFieldChange('weight', Number(e.target.value) || null)}
-          disabled={!isEditing}
-          data-testid="weight-input"
-        />
-      </label>
-    </div>
-  ),
-  DiveNotes: ({
-    notes,
-    onNotesChange,
-    isEditing,
-  }: {
-    notes: string;
-    onNotesChange: (value: string) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <label>
-        Notes
-        <textarea
-          value={notes}
-          onChange={(e) => onNotesChange(e.target.value)}
-          disabled={!isEditing}
-          data-testid="notes-input"
-        />
-      </label>
-    </div>
-  ),
-  GasUsage: ({
-    gasMix,
-    onGasMixChange,
-    isEditing,
-  }: {
-    gasMix: string;
-    onGasMixChange: (value: string) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <label>
-        Gas Mix
-        <select
-          value={gasMix}
-          onChange={(e) => onGasMixChange(e.target.value)}
-          disabled={!isEditing}
-          data-testid="gas-mix-select"
-        >
-          <option value="air">Air</option>
-          <option value="nitrox">Nitrox</option>
-        </select>
-      </label>
-    </div>
-  ),
-  DiveEquipment: ({
-    equipment,
-    onEquipmentChange,
-    isEditing,
-  }: {
-    equipment: string[];
-    onEquipmentChange: (value: string[]) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <div data-testid="equipment-list">
-        {equipment.map((item: string, idx: number) => (
-          <div key={idx}>
-            {item}
-            {isEditing && (
-              <button
-                onClick={() =>
-                  onEquipmentChange(equipment.filter((_: string, i: number) => i !== idx))
-                }
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        ))}
+        )}
       </div>
-      {isEditing && (
-        <button onClick={() => onEquipmentChange([...equipment, 'New Item'])}>Add Equipment</button>
-      )}
-    </div>
-  ),
-  DiveWildlife: ({
-    wildlife,
-    onWildlifeChange,
-    isEditing,
-  }: {
-    wildlife: string[];
-    onWildlifeChange: (value: string[]) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <div data-testid="wildlife-list">
-        {wildlife.map((item: string, idx: number) => (
-          <div key={idx}>
-            {item}
-            {isEditing && (
-              <button
-                onClick={() =>
-                  onWildlifeChange(wildlife.filter((_: string, i: number) => i !== idx))
-                }
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        ))}
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveWildlife', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <div data-testid="wildlife-list">
+          {values.wildlife.map((item, idx) => (
+            <div key={idx}>
+              {item}
+              {isEditing && (
+                <button
+                  onClick={() => {
+                    setValues((prev) => ({
+                      ...prev,
+                      wildlife: prev.wildlife.filter((_, i) => i !== idx),
+                    }));
+                    setIsDirty(true);
+                  }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {isEditing && (
+          <button
+            onClick={() => {
+              setValues((prev) => ({
+                ...prev,
+                wildlife: [...prev.wildlife, 'New Wildlife'],
+              }));
+              setIsDirty(true);
+            }}
+          >
+            Add Wildlife
+          </button>
+        )}
       </div>
-      {isEditing && (
-        <button onClick={() => onWildlifeChange([...wildlife, 'New Wildlife'])}>
-          Add Wildlife
-        </button>
-      )}
-    </div>
-  ),
-  DiveSummary: ({
-    summary,
-    onSummaryChange,
-    isEditing,
-  }: {
-    summary: string;
-    onSummaryChange: (value: string) => void;
-    isEditing: boolean;
-  }) => (
-    <div>
-      <label>
-        Summary
-        <textarea
-          value={summary}
-          onChange={(e) => onSummaryChange(e.target.value)}
-          disabled={!isEditing}
-          data-testid="summary-input"
-        />
-      </label>
-      {isEditing && (
-        <button onClick={() => onSummaryChange('AI generated summary')}>Generate</button>
-      )}
-    </div>
-  ),
-  DiveGallery: () => <div>Gallery</div>,
-  DeleteDiveModal: () => <div>Delete Modal</div>,
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveSummary', () => ({
+  default: ({ isEditing }: { isEditing: boolean }) => {
+    const { values, setValues, setIsDirty } = useFormState();
+    return (
+      <div>
+        <label>
+          Summary
+          <textarea
+            value={values.summary}
+            onChange={(e) => {
+              setValues((prev) => ({ ...prev, summary: e.target.value }));
+              setIsDirty(true);
+            }}
+            disabled={!isEditing}
+            data-testid="summary-input"
+          />
+        </label>
+        {isEditing && (
+          <button
+            onClick={() => {
+              setValues((prev) => ({ ...prev, summary: 'AI generated summary' }));
+              setIsDirty(true);
+            }}
+          >
+            Generate
+          </button>
+        )}
+      </div>
+    );
+  },
+}));
+
+vi.mock('@/features/dives/components/DiveGallery', () => ({
+  default: () => <div>Gallery</div>,
+}));
+
+vi.mock('@/features/dives/components/DeleteDiveModal', () => ({
+  default: () => <div>Delete Modal</div>,
 }));
 
 vi.mock('@/features/dives/components/DiveBackground', () => ({
@@ -469,24 +632,17 @@ describe('Dive Page - Edit Mode', () => {
     it('should not save if depth is null', async () => {
       render(<DivePage />, { wrapper: createWrapper() });
 
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-
       fireEvent.click(screen.getByRole('button', { name: /edit/i }));
       fireEvent.change(screen.getByTestId('depth-input'), { target: { value: '' } });
 
       const saveButton = screen.getByRole('button', { name: /save/i });
       fireEvent.click(saveButton);
 
-      expect(alertSpy).toHaveBeenCalledWith('Depth and duration are required.');
       expect(updateDiveMock).not.toHaveBeenCalled();
-
-      alertSpy.mockRestore();
     });
 
     it('should not save if duration is null', async () => {
       render(<DivePage />, { wrapper: createWrapper() });
-
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
       fireEvent.click(screen.getByRole('button', { name: /edit/i }));
       fireEvent.change(screen.getByTestId('duration-input'), { target: { value: '' } });
@@ -494,10 +650,7 @@ describe('Dive Page - Edit Mode', () => {
       const saveButton = screen.getByRole('button', { name: /save/i });
       fireEvent.click(saveButton);
 
-      expect(alertSpy).toHaveBeenCalledWith('Depth and duration are required.');
       expect(updateDiveMock).not.toHaveBeenCalled();
-
-      alertSpy.mockRestore();
     });
   });
 

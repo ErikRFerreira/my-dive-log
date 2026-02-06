@@ -1,21 +1,20 @@
 import Loading from '@/components/common/Loading';
 import GoBack from '@/components/ui/GoBack';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
-import {
-  DeleteDiveModal,
-  DiveEquipment,
-  DiveGallery,
-  DiveHeader,
-  DiveInformation,
-  DiveNotes,
-  DiveStats,
-  DiveSummary,
-  DiveWildlife,
-  GasUsage,
-  useDeleteDive,
-  useGetDive,
-  DiveEditFormProvider,
-} from '@/features/dives';
+import InlineError from '@/components/common/InlineError';
+import DeleteDiveModal from '@/features/dives/components/DeleteDiveModal';
+import DiveEditFormProvider from '@/features/dives/components/DiveEditFormProvider';
+import DiveEquipment from '@/features/dives/components/DiveEquipment';
+import DiveGallery from '@/features/dives/components/DiveGallery';
+import DiveHeader from '@/features/dives/components/DiveHeader';
+import DiveInformation from '@/features/dives/components/DiveInformation';
+import DiveNotes from '@/features/dives/components/DiveNotes';
+import DiveStats from '@/features/dives/components/DiveStats';
+import DiveSummary from '@/features/dives/components/DiveSummary';
+import DiveWildlife from '@/features/dives/components/DiveWildlife';
+import GasUsage from '@/features/dives/components/GasUsage';
+import { useDeleteDive } from '@/features/dives/hooks/useDeleteDive';
+import { useGetDive } from '@/features/dives/hooks/useGetDive';
 import DiveBackground from '@/features/dives/components/DiveBackground';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -73,6 +72,67 @@ function DivePage() {
     );
   }
 
+  const renderContent = ({
+    onSave,
+    onCancel,
+    saveError,
+  }: {
+    onSave?: () => void;
+    onCancel?: () => void;
+    saveError?: string | null;
+  }) => (
+    <div className="relative z-10 p-8 space-y-6">
+      {/* Header */}
+      <DiveHeader
+        dive={dive}
+        onOpenDeleteModal={() => setIsModalOpen(true)}
+        isEditing={isEditing}
+        onEdit={handleStartEdit}
+        onSave={onSave}
+        onCancel={onCancel}
+      />
+
+      {isEditing && saveError ? <InlineError message={saveError} /> : null}
+
+      {/* Stats */}
+      <DiveStats dive={dive} isEditing={isEditing} />
+
+      {/* Gallery */}
+      <DiveGallery diveId={dive.id} coverPhotoPath={dive.cover_photo_path} />
+
+      {/* Information */}
+      <DiveInformation dive={dive} isEditing={isEditing} />
+
+      <div className="grid md:grid-cols-2 gap-6 items-stretch">
+        {/* Notes */}
+        <DiveNotes dive={dive} isEditing={isEditing} />
+
+        {/* Gas Usage */}
+        <GasUsage dive={dive} isEditing={isEditing} />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Equipment */}
+        <DiveEquipment dive={dive} isEditing={isEditing} />
+
+        {/* Wildlife */}
+        <DiveWildlife dive={dive} isEditing={isEditing} />
+      </div>
+
+      {/* Summary */}
+      <DiveSummary dive={dive} isEditing={isEditing} />
+
+      {/* Delete Dive Modal */}
+      <DeleteDiveModal
+        isOpen={isModalOpen}
+        location={dive.locations?.name ?? 'N/A'}
+        isPending={isDeleting}
+        onCancel={onCancelDelete}
+        onConfirm={onConfirmDeletion}
+      />
+    </div>
+  );
+
   return (
     <div className="mt-8">
       {/* Background */}
@@ -87,104 +147,12 @@ function DivePage() {
           onCancel={handleCancelEdit}
           onSaveSuccess={handleSaveSuccess}
         >
-          {(handleSave, handleCancel) => (
-            <div className="relative z-10 p-8 space-y-6">
-              {/* Header with form actions */}
-              <DiveHeader
-                dive={dive}
-                onOpenDeleteModal={() => setIsModalOpen(true)}
-                isEditing={isEditing}
-                onEdit={handleStartEdit}
-                onSave={handleSave}
-                onCancel={handleCancel}
-              />
-
-              {/* Stats */}
-              <DiveStats dive={dive} isEditing={isEditing} />
-
-              {/* Gallery */}
-              <DiveGallery diveId={dive.id} coverPhotoPath={dive.cover_photo_path} />
-
-              {/* Information */}
-              <DiveInformation dive={dive} isEditing={isEditing} />
-
-              <div className="grid md:grid-cols-2 gap-6 items-stretch">
-                {/* Notes */}
-                <DiveNotes dive={dive} isEditing={isEditing} />
-
-                {/* Gas Usage */}
-                <GasUsage dive={dive} isEditing={isEditing} />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Equipment */}
-                <DiveEquipment dive={dive} isEditing={isEditing} />
-
-                {/* Wildlife */}
-                <DiveWildlife dive={dive} isEditing={isEditing} />
-              </div>
-
-              {/* Summary */}
-              <DiveSummary dive={dive} isEditing={isEditing} />
-
-              {/* Delete Dive Modal */}
-              <DeleteDiveModal
-                isOpen={isModalOpen}
-                location={dive.locations?.name ?? 'N/A'}
-                isPending={isDeleting}
-                onCancel={onCancelDelete}
-                onConfirm={onConfirmDeletion}
-              />
-            </div>
-          )}
+          {(handleSave, handleCancel, saveError) =>
+            renderContent({ onSave: handleSave, onCancel: handleCancel, saveError })
+          }
         </DiveEditFormProvider>
       ) : (
-        <div className="relative z-10 p-8 space-y-6">
-          {/* Header */}
-          <DiveHeader
-            dive={dive}
-            onOpenDeleteModal={() => setIsModalOpen(true)}
-            isEditing={isEditing}
-            onEdit={handleStartEdit}
-          />
-
-          {/* Stats */}
-          <DiveStats dive={dive} isEditing={isEditing} />
-
-          {/* Gallery */}
-          <DiveGallery diveId={dive.id} coverPhotoPath={dive.cover_photo_path} />
-
-          {/* Information */}
-          <DiveInformation dive={dive} isEditing={isEditing} />
-
-          <div className="grid md:grid-cols-2 gap-6 items-stretch">
-            {/* Notes */}
-            <DiveNotes dive={dive} isEditing={isEditing} />
-
-            {/* Gas Usage */}
-            <GasUsage dive={dive} isEditing={isEditing} />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Equipment */}
-            <DiveEquipment dive={dive} isEditing={isEditing} />
-
-            {/* Wildlife */}
-            <DiveWildlife dive={dive} isEditing={isEditing} />
-          </div>
-
-          {/* Summary */}
-          <DiveSummary dive={dive} isEditing={isEditing} />
-
-          {/* Delete Dive Modal */}
-          <DeleteDiveModal
-            isOpen={isModalOpen}
-            location={dive.locations?.name ?? 'N/A'}
-            isPending={isDeleting}
-            onCancel={onCancelDelete}
-            onConfirm={onConfirmDeletion}
-          />
-        </div>
+        renderContent({})
       )}
     </div>
   );

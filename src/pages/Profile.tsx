@@ -2,17 +2,23 @@ import Loading from '@/components/common/Loading';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import InlineError from '@/components/common/InlineError';
 import { useUser } from '@/features/authentication';
-import { useGetDives } from '@/features/dives';
+import { useGetDives } from '@/features/dives/hooks/useGetDives';
 import DepthChart from '@/features/dashboard/components/DepthChart';
 import DurationChart from '@/features/dashboard/components/DurationChart';
 import { CarrerStatistics, ProfileInformation } from '@/features/profile';
 import Certification from '@/features/profile/components/Certification';
 import { useGetProfile } from '@/features/profile/hooks/useGetProfile';
 import { useUpsertProfile } from '@/features/profile/hooks/useUpsertProfile';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 
 function Profile() {
-  const { user, isLoading, isError } = useUser();
-  const { profile, isLoading: isProfileLoading } = useGetProfile(user?.id);
+  const { user, isLoading, isError, error } = useUser();
+  const {
+    profile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    error: profileError,
+  } = useGetProfile(user?.id);
   const { isPending: isUpdatingProfile, mutateUpsert } = useUpsertProfile(user?.id);
   const { dives, isLoading: isDivesLoading, error: divesError } = useGetDives({ sortBy: 'date' });
 
@@ -22,7 +28,7 @@ function Profile() {
   if (isError || !user)
     return (
       <QueryErrorFallback
-        error={new Error('Failed to load user data')}
+        error={(error as Error) ?? new Error('Failed to load user data')}
         title="Failed to load profile"
         description="We couldn't load your profile. Please try logging out and back in."
       />
@@ -51,6 +57,15 @@ function Profile() {
         ) : null}
 
         {/* Profile Information and Certification Sections */}
+        {isProfileError && (
+          <InlineError
+            message={getErrorMessage(
+              profileError,
+              'Failed to load profile data. Some fields may be unavailable.'
+            )}
+            className="mb-4"
+          />
+        )}
         <ProfileInformation
           user={user}
           profile={profile}

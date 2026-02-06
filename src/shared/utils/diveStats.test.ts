@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import {
   getAverageDepth,
   getAverageDuration,

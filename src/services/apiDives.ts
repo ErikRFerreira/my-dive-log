@@ -1,4 +1,4 @@
-import type { Dive, NewDiveInput, UpdateDivePatch } from '@/features/dives';
+import type { Dive, NewDiveInput, UpdateDivePatch } from '@/features/dives/types';
 import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
 import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
@@ -339,4 +339,3 @@ export async function getDivesByLocationId(locationId: string) {
   
   return validateResponse(z.array(diveSchema), data ?? [], 'getDivesByLocationId');
 }
-

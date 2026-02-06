@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Button from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import InlineError from '@/components/common/InlineError';
 
 import { COUNTRIES } from '../../../shared/data/countries';
 import { useAddDive } from '../hooks/useAddDive';
@@ -14,6 +15,7 @@ import { useGetLocations } from '../hooks/useGetLocations';
 import { createDiveSchema, type CreateDiveInput } from '../schemas/createDiveSchema';
 import type { NewDiveInput } from '../types';
 import CountryCombobox from './CountryCombobox';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 
 type SubmittedDive = {
   date: string;
@@ -31,7 +33,12 @@ type NewDiveFormProps = {
 
 function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
   const { mutateAdd, isPending } = useAddDive();
-  const { locations, isLoading: isLoadingLocations } = useGetLocations();
+  const {
+    locations,
+    isLoading: isLoadingLocations,
+    isError: isLocationsError,
+    error: locationsError,
+  } = useGetLocations();
 
   const countryNameByCode = useMemo(() => {
     const map = new Map<string, string>();
@@ -110,6 +117,14 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
 
   return (
     <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4" autoComplete="off">
+      {isLocationsError && (
+        <InlineError
+          message={getErrorMessage(
+            locationsError,
+            'Failed to load saved locations. Autocomplete may be limited.'
+          )}
+        />
+      )}
       <Field>
         <FieldLabel htmlFor="date">Date</FieldLabel>
         <Controller

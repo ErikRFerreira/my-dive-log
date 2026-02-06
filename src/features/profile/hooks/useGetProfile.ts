@@ -8,6 +8,7 @@ export function useGetProfile(userId: string | undefined) {
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useQuery({
     queryKey: ['profile', userId],
@@ -17,5 +18,5 @@ export function useGetProfile(userId: string | undefined) {
     ...queryRetryConfig,
   });
 
-  return { profile, isLoading, isFetching, isError, refetch };
+  return { profile, isLoading, isFetching, isError, error, refetch };
 }

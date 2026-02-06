@@ -1,6 +1,7 @@
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useState } from 'react';
 
 import { useSettingsStore } from '@/store/settingsStore';
 import { useUpdateDive } from '../hooks/useUpdateDive';
@@ -14,7 +15,7 @@ type DiveEditFormProviderProps = {
   onSaveSuccess: () => void;
   children:
     | React.ReactNode
-    | ((handleSave: () => void, handleCancel: () => void) => React.ReactNode);
+    | ((handleSave: () => void, handleCancel: () => void, saveError: string | null) => React.ReactNode);
 };
 
 /**
@@ -30,6 +31,7 @@ function DiveEditFormProvider({
 }: DiveEditFormProviderProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
   const { mutateAsync: updateDive } = useUpdateDive();
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Initialize form with dive data and unit-aware validation
   const methods = useForm({
@@ -72,6 +74,7 @@ function DiveEditFormProvider({
   // Handle save with calculated air_usage
   const handleSave = handleSubmit(async (data) => {
     try {
+      setSaveError(null);
       // Calculate air_usage from pressures
       const airUsage =
         data.start_pressure !== null && data.end_pressure !== null
@@ -106,10 +109,14 @@ function DiveEditFormProvider({
 
       await updateDive({ id: dive.id, diveData });
       reset(data); // Reset form dirty state after successful save
+      setSaveError(null);
       onSaveSuccess();
     } catch (err) {
       // Error handling is done in useUpdateDive hook
       console.error('Save failed:', err);
+      setSaveError(
+        err instanceof Error ? err.message : 'Failed to save changes. Please try again.'
+      );
     }
   });
 
@@ -122,13 +129,14 @@ function DiveEditFormProvider({
       if (!confirmed) return;
     }
     reset();
+    setSaveError(null);
     onCancel();
   };
 
   return (
     <ErrorBoundary FallbackComponent={EditErrorFallback} onReset={handleCancel}>
       <FormProvider {...methods}>
-        {typeof children === 'function' ? children(handleSave, handleCancel) : children}
+        {typeof children === 'function' ? children(handleSave, handleCancel, saveError) : children}
       </FormProvider>
     </ErrorBoundary>
   );

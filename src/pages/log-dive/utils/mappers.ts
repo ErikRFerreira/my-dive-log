@@ -6,7 +6,7 @@
  * and type mappings.
  */
 
-import type { NewDiveInput } from '@/features/dives';
+import type { NewDiveInput } from '@/features/dives/types';
 import type { Exposure, Gas } from '@/features/dives/types';
 import { convertValueBetweenSystems } from '@/shared/utils/units';
 import { COUNTRIES } from '@/shared/data/countries';

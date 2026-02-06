@@ -1,8 +1,19 @@
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import { useUser } from '@/features/authentication';
 import { DangerZone, ProfileSettings, Units } from '@/features/settings';
 
 function Settings() {
-  const { user, isLoading: isUserLoading, isError: isUserError } = useUser();
+  const { user, isLoading: isUserLoading, isError: isUserError, error } = useUser();
+
+  if (isUserError) {
+    return (
+      <QueryErrorFallback
+        error={error as Error}
+        title="Failed to Load Settings"
+        description="We couldn't load your settings. Please try again."
+      />
+    );
+  }
 
   return (
     <>
@@ -13,9 +24,7 @@ function Settings() {
         </div>
       </header>
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5x">
-        {!isUserError && (
-          <ProfileSettings isUserLoading={isUserLoading} user={user === undefined ? null : user} />
-        )}
+        <ProfileSettings isUserLoading={isUserLoading} user={user === undefined ? null : user} />
         <Units />
         <DangerZone />
       </section>

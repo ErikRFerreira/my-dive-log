@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { useEffect, useMemo } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapPin } from 'lucide-react';
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import type { Location } from '@/features/locations/types';
 
 // Fix default marker icons in Vite/React

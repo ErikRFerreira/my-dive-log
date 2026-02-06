@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { BookType, Clock, Gauge, Thermometer } from 'lucide-react';
 import { Controller, useFormContext } from 'react-hook-form';
-import type { Dive, DiveType } from '../types';
+import type { Dive } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
 
@@ -23,7 +23,8 @@ function DiveStats({ dive, isEditing }: DiveStatsProps) {
   const temperatureLabel = getUnitLabel('temperature', unitSystem);
   const depthLabel = getUnitLabel('depth', unitSystem);
 
-  const formContext = isEditing ? useFormContext() : null;
+  // Always call useFormContext - React Hooks must be called unconditionally
+  const formContext = useFormContext();
   const { control, formState: { errors = {}, isSubmitting = false } = {} } = formContext || {};
 
   return (

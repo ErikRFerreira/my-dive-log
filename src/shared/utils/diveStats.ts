@@ -5,7 +5,7 @@
  * such as totals, averages, and recency metrics.
  */
 
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 
 /**
  * Returns the count of unique location ids across dives.

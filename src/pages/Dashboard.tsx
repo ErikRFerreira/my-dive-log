@@ -5,7 +5,8 @@ import Button from '@/components/ui/button';
 import DepthChart from '@/features/dashboard/components/DepthChart';
 import MonthlyChart from '@/features/dashboard/components/MonthlyChart';
 import StatsList from '@/features/dashboard/components/StatsList';
-import { DiveList, useGetDives } from '@/features/dives';
+import DiveList from '@/features/dives/components/DiveList';
+import { useGetDives } from '@/features/dives/hooks/useGetDives';
 
 function Dashboard() {
   const {

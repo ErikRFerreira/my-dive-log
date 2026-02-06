@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import { Area, AreaChart, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useMemo, useState } from 'react';

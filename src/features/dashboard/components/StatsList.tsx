@@ -1,4 +1,4 @@
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import { TrendingDown, Waves, Clock, Calendar } from 'lucide-react';
 import StatCard from '../../../components/common/StatCard';
 import { useSettingsStore } from '@/store/settingsStore';

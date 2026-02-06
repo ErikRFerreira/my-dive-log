@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/select';
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import { useEffect, useMemo, useState } from 'react';
 
 type MonthlyChartProps = {

@@ -1,7 +1,7 @@
 import NoResults from '@/components/layout/NoResults';
 import Pagination from '@/components/layout/Pagination';
 
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import { Link } from 'react-router';
 
 import DiveCard from './DiveCard';

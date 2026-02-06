@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Clock } from 'lucide-react';
-import type { Dive } from '@/features/dives/';
+import type { Dive } from '@/features/dives/types';
 import { useNavigate } from 'react-router';
 import { useDiveFilterStore } from '@/store/diveFilterStore';
 import DiveCard from '@/features/dives/components/DiveCard';

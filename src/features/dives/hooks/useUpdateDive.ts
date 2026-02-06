@@ -60,6 +60,7 @@ export function useUpdateDive() {
     },
     onError: (error, { id }, context) => {
       // Rollback to the previous value on error
+      console.error('Update dive failed:', error);
       if (context?.previousDive) {
         queryClient.setQueryData(['dive', userId, id], context.previousDive);
       }

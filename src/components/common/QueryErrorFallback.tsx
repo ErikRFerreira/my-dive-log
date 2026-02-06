@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 interface QueryErrorFallbackProps {
@@ -21,6 +22,7 @@ function QueryErrorFallback({
 }: QueryErrorFallbackProps) {
   const defaultDescription =
     'We encountered an error while loading this data. Please try again or contact support if the problem persists.';
+  const resolvedDescription = description ?? getErrorMessage(error, defaultDescription);
 
   return (
     <div className="p-8">
@@ -30,7 +32,7 @@ function QueryErrorFallback({
             <AlertCircle className="w-6 h-6 text-destructive shrink-0 mt-1" />
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
-              <p className="text-muted-foreground mb-4">{description || defaultDescription}</p>
+              <p className="text-muted-foreground mb-4">{resolvedDescription}</p>
 
               {onRetry && (
                 <Button onClick={onRetry} variant="default" className="gap-2">

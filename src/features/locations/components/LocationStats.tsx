@@ -1,6 +1,6 @@
 import { MapPin, Star, Waves } from 'lucide-react';
 import StatCard from '@/components/common/StatCard';
-import type { Dive } from '@/features/dives';
+import type { Dive } from '@/features/dives/types';
 import { getFavoriteLocation, getTotalLocations } from '@/shared/utils/diveStats';
 
 type LocationStatsProps = {

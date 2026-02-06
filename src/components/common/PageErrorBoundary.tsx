@@ -1,4 +1,4 @@
-import { Component, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 import QueryErrorFallback from './QueryErrorFallback';
 
@@ -30,6 +30,7 @@ function PageErrorBoundary({
           title={fallbackTitle}
           description={fallbackDescription}
           onRetry={handleReset}
+          error={props.error instanceof Error ? props.error : new Error(String(props.error))}
         />
       )}
       onReset={handleReset}

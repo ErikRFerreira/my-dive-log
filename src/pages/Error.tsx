@@ -1,4 +1,5 @@
 import { useRouteError } from 'react-router';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 
 type RouteError = {
   status?: number;
@@ -9,7 +10,10 @@ type RouteError = {
 function Error() {
   const error = useRouteError() as RouteError | undefined;
   const title = error?.status ? `Error ${error.status}` : 'Oops!';
-  const details = error?.statusText || error?.message || 'Something went wrong.';
+  const details =
+    error?.statusText ||
+    (error?.message ? getErrorMessage(error) : undefined) ||
+    'Something went wrong.';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-foreground flex items-center justify-center p-6">

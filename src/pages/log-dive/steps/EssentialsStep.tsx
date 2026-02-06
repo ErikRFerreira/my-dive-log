@@ -14,6 +14,8 @@ import type { Control, UseFormSetValue } from 'react-hook-form';
 
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { COUNTRIES } from '@/shared/data/countries';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
+import InlineError from '@/components/common/InlineError';
 import { useSettingsStore } from '@/store/settingsStore';
 
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
@@ -59,7 +61,12 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
  * - Real-time validation on required fields
  */
 export default function EssentialsStep({ control, setValue }: Props) {
-  const { locations, isLoading: isLoadingLocations } = useGetLocations();
+  const {
+    locations,
+    isLoading: isLoadingLocations,
+    isError: isLocationsError,
+    error: locationsError,
+  } = useGetLocations();
   // Country search filter input
   const [countryQuery, setCountryQuery] = useState('');
   // Scroll position for virtual scrolling optimization
@@ -151,6 +158,14 @@ export default function EssentialsStep({ control, setValue }: Props) {
 
   return (
     <div className="space-y-6">
+      {isLocationsError && (
+        <InlineError
+          message={getErrorMessage(
+            locationsError,
+            'Failed to load saved locations. Autocomplete may be limited.'
+          )}
+        />
+      )}
       <div className="flex justify-between">
         <h2 className="text-2xl font-bold text-foreground mb-6">Essential Information</h2>
         <div>

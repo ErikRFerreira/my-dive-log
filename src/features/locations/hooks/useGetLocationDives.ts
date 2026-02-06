@@ -9,7 +9,7 @@ export function useGetLocationDives() {
    const { user } = useUser();
    const userId = user?.id;
 	
-	const { data, isLoading, isError, refetch } = useQuery({
+	const { data, isLoading, isError, error, refetch } = useQuery({
 		queryKey: ['location-dives', userId, id],
 		enabled: !!userId && !!id,
 		queryFn: () => getDivesByLocationId(id!),
@@ -20,6 +20,7 @@ export function useGetLocationDives() {
 		dives: data ?? null,
 		isLoading,
 		isError,
+		error,
 		refetch,
 	};
 }

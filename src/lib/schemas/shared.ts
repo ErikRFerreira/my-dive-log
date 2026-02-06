@@ -69,11 +69,17 @@ export const stringArrayOrNull = (maxItems = 20, maxLength = 40) =>
 export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format');
 
 /**
- * ISO 8601 datetime string.
+ * ISO 8601 datetime string (flexible format).
+ * Accepts any ISO 8601 datetime format from Supabase including microseconds.
+ * Examples: 2024-01-15T10:30:00+00:00, 2024-01-15T10:30:00.123456+00:00
  */
-export const isoDateTimeSchema = z.string().regex(
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/,
-  'Must be a valid ISO datetime'
+export const isoDateTimeSchema = z.string().refine(
+  (val) => {
+    // Accept any string that looks like an ISO datetime
+    // More permissive - just check basic structure
+    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val);
+  },
+  { message: 'Must be a valid ISO datetime' }
 );
 
 /**
