@@ -88,8 +88,9 @@ Rules:
     }
 
     return res.status(200).json({ summary });
-  } catch (err: any) {
-    console.error('Error in summarize-dive:', err);
-    return res.status(500).json({ error: err?.message || 'Internal server error' });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Internal server error';
+    console.error('Error in summarize-dive:', errorMessage);
+    return res.status(500).json({ error: errorMessage });
   }
 }

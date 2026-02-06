@@ -1,6 +1,7 @@
 import { getDivesByLocationId } from '@/services/apiDives';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
+import { queryRetryConfig } from '@/lib/queryClient';
 import { useUser } from '@/features/authentication';
 
 export function useGetLocationDives() {
@@ -12,6 +13,7 @@ export function useGetLocationDives() {
 		queryKey: ['location-dives', userId, id],
 		enabled: !!userId && !!id,
 		queryFn: () => getDivesByLocationId(id!),
+		...queryRetryConfig,
 	});
 
 	return {

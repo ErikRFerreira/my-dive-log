@@ -15,7 +15,6 @@ export function useDeleteAccount() {
       navigate('/login', { replace: true });
     },
     onError: (error: Error) => {
-      console.error('Delete account error:', error);
       toast.error(error.message || 'Failed to delete account. Please try again.');
     },
   });

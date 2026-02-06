@@ -13,6 +13,8 @@ export { default as DiveEquipment } from './components/DiveEquipment';
 export { default as DiveWildlife } from './components/DiveWildlife';
 export { default as DeleteDiveModal } from './components/DeleteDiveModal';
 export { default as DiveGallery } from './components/DiveGallery';
+export { default as DiveEditFormProvider } from './components/DiveEditFormProvider';
+export { default as EditErrorFallback } from './components/EditErrorFallback';
 
 // Hooks
 export { useGetDives } from './hooks/useGetDives';

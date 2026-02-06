@@ -5,7 +5,6 @@ type DiveBackgroundProps = {
 
 function DiveBackground({ coverPhotoUrl, diveType }: DiveBackgroundProps) {
   const backgroundImageUrl = coverPhotoUrl ? coverPhotoUrl : `/banners/${diveType}.png`;
-  console.log('DiveBackground backgroundImageUrl:', backgroundImageUrl);
   return (
     <div className="absolute left-0 right-0 top-0 h-[440px] overflow-hidden pointer-events-none z-0 md:left-[300px]">
       <div

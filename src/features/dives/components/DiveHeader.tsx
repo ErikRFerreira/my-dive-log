@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import GoBack from '@/components/ui/GoBack';
 import { Calendar, Check, Pencil, Trash2, X } from 'lucide-react';
+import { useFormContext } from 'react-hook-form';
 
 import type { Dive } from '../types';
 import { format, parse } from 'date-fns';
@@ -22,45 +23,47 @@ interface DiveHeaderProps {
   dive: Dive;
   onOpenDeleteModal: () => void;
   isEditing: boolean;
-  isSaving: boolean;
-  hasChanges: boolean;
   onEdit: () => void;
-  onCancelEdit: () => void;
-  onSaveEdit: () => void;
+  onSave?: () => void;
+  onCancel?: () => void;
 }
 
 function DiveHeader({
   dive,
   onOpenDeleteModal,
   isEditing,
-  isSaving,
-  hasChanges,
   onEdit,
-  onCancelEdit,
-  onSaveEdit,
+  onSave,
+  onCancel,
 }: DiveHeaderProps) {
+  // Only access form context when editing
+  const formContext = isEditing ? useFormContext() : null;
+  const { formState } = formContext || {};
+  const { isSubmitting, isDirty } = formState || {};
+
   return (
     <>
       <div className="flex items-center justify-between">
         <GoBack />
         <div className="flex items-center gap-2">
-          {isEditing ? (
+          {isEditing && onSave && onCancel ? (
             <>
               <Button
-                onClick={onSaveEdit}
-                disabled={isSaving || !hasChanges}
+                onClick={onSave}
+                disabled={isSubmitting || !isDirty}
                 size="sm"
                 className="gap-2 h-9 bg-primary hover:bg-primary/90"
               >
                 <Check className="w-4 h-4" />
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSubmitting ? 'Saving...' : 'Save'}
               </Button>
               <Button
-                onClick={onCancelEdit}
-                disabled={isSaving}
+                onClick={onCancel}
+                disabled={isSubmitting}
                 size="sm"
                 variant="outline"
                 className="gap-2 h-9"
+                type="button"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -80,7 +83,6 @@ function DiveHeader({
             <Button
               onClick={onOpenDeleteModal}
               variant="outline"
-              disabled={isSaving}
               className="gap-2 bg-[#0f1419]/20 backdrop-blur-[20px] border-[#1e2936]/80 text-red-500 hover:bg-red-50/20 dark:hover:bg-red-900/20 hover:text-red-600 disabled:opacity-60"
             >
               <Trash2 className="w-4 h-4" />

@@ -1,5 +1,6 @@
 import Loading from '@/components/common/Loading';
 import NoResults from '@/components/layout/NoResults';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import Button from '@/components/ui/button';
 import { useGetDives, useGetLocations } from '@/features/dives';
 import { LocationCardsGrid, LocationStats } from '@/features/locations';
@@ -7,7 +8,7 @@ import LocationsMap from '@/features/locations/components/LocationsMap';
 import { useNavigate } from 'react-router-dom';
 
 function Locations() {
-  const { dives, isLoading, isError } = useGetDives({
+  const { dives, isLoading, error, refetch } = useGetDives({
     sortBy: 'date',
   });
   const { locations } = useGetLocations();
@@ -24,9 +25,16 @@ function Locations() {
 
       {isLoading && <Loading />}
 
-      {isError && <NoResults>Error loading dives. Please try again later.</NoResults>}
+      {error && (
+        <QueryErrorFallback
+          error={error}
+          onRetry={refetch}
+          title="Failed to load locations"
+          description="We couldn't load your dive locations. Please try again."
+        />
+      )}
 
-      {!isLoading && !isError && dives && dives.length === 0 && (
+      {!isLoading && !error && dives && dives.length === 0 && (
         <NoResults>
           <>
             No dive locations found. Start by adding your first dive!

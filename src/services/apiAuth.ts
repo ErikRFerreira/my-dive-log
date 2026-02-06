@@ -1,4 +1,7 @@
 import { supabase } from './supabase';
+import { validateResponse } from '@/lib/validateResponse';
+import { uuidResponseSchema, authResponseSchema, userResponseSchema, booleanResponseSchema } from '@/lib/schemas';
+import type { User } from '@supabase/supabase-js';
 
 /**
  * Get the current authenticated user's ID.
@@ -15,7 +18,7 @@ export async function getCurrentUserId(): Promise<string> {
   if (error) throw error;
   if (!user) throw new Error('User must be authenticated');
 
-  return user.id;
+  return validateResponse(uuidResponseSchema, user.id, 'getCurrentUserId');
 }
 
 /**
@@ -33,7 +36,7 @@ export async function login({ email, password }: { email: string; password: stri
 
   if (error) throw new Error(error.message);
 
-  return data;
+  return validateResponse(authResponseSchema, data, 'login');
 }
 
 /**
@@ -201,6 +204,8 @@ export async function getCurrentUser() {
 
   if (error) throw new Error(error.message);
 
+  // Validate in dev, but cast back to Supabase User type for type compatibility
+  validateResponse(userResponseSchema, user, 'getCurrentUser');
   return user;
 }
 
@@ -245,5 +250,5 @@ export async function deleteAccount(): Promise<true> {
   }
 
   await supabase.auth.signOut();
-  return true;
+  return validateResponse(booleanResponseSchema, true, 'deleteAccount');
 }

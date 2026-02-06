@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NumberInput } from '@/components/ui/number-input';
 import {
@@ -8,183 +7,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BookOpen, Check, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { Dive, Visibility, WaterType, Exposure, Currents } from '../types';
+import { BookOpen } from 'lucide-react';
+import { Controller, useFormContext } from 'react-hook-form';
+import type { Dive } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
-import { useUpdateDive } from '../hooks/useUpdateDive';
 
 interface DiveInformationProps {
   dive: Dive;
   isEditing: boolean;
-  isSaving: boolean;
-  editedFields: EditableFields;
-  onFieldChange: (field: keyof EditableFields, value: EditableFields[keyof EditableFields]) => void;
 }
 
-type EditableFields = {
-  visibility: Visibility | null | undefined;
-  water_type: WaterType | null | undefined;
-  exposure: Exposure | null | undefined;
-  currents: Currents | null | undefined;
-  weight: number | null | undefined;
-};
-
-function DiveInformation({
-  dive,
-  isEditing,
-  isSaving,
-  editedFields,
-  onFieldChange,
-}: DiveInformationProps) {
-  const [localIsEditing, setLocalIsEditing] = useState(false);
-  const [localFields, setLocalFields] = useState<EditableFields>({
-    visibility: dive.visibility ?? null,
-    water_type: dive.water_type ?? null,
-    exposure: dive.exposure ?? null,
-    currents: dive.currents ?? null,
-    weight: dive.weight ?? null,
-  });
-  const { mutateAsync: updateDive, isPending: isLocalSaving } = useUpdateDive();
+function DiveInformation({ dive, isEditing }: DiveInformationProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
-  const isEditingActive = isEditing || localIsEditing;
-  const fields = isEditing ? editedFields : localFields;
-  const isSavingActive = isEditing ? isSaving : isLocalSaving;
-
-  useEffect(() => {
-    if (isEditing) {
-      setLocalIsEditing(false);
-      setLocalFields({
-        visibility: dive.visibility ?? null,
-        water_type: dive.water_type ?? null,
-        exposure: dive.exposure ?? null,
-        currents: dive.currents ?? null,
-        weight: dive.weight ?? null,
-      });
-    } else if (!localIsEditing) {
-      setLocalFields({
-        visibility: dive.visibility ?? null,
-        water_type: dive.water_type ?? null,
-        exposure: dive.exposure ?? null,
-        currents: dive.currents ?? null,
-        weight: dive.weight ?? null,
-      });
-    }
-  }, [dive, isEditing, localIsEditing]);
-
-  const hasChanges = Object.keys(localFields).some(
-    (key) => localFields[key as keyof EditableFields] !== (dive[key as keyof Dive] ?? null)
-  );
-
-  const handleSelectChange = (field: keyof EditableFields, value: string) => {
-    if (isEditing) {
-      onFieldChange(field, value as Visibility | WaterType | Exposure | Currents);
-      return;
-    }
-    setLocalFields((prev) => ({
-      ...prev,
-      [field]: value as Visibility | WaterType | Exposure | Currents,
-    }));
-  };
-
-  const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value === '' ? null : Number(e.target.value);
-    if (isEditing) {
-      onFieldChange('weight', val);
-      return;
-    }
-    setLocalFields((prev) => ({ ...prev, weight: val }));
-  };
-
-  const handleEdit = () => {
-    setLocalFields({
-      visibility: dive.visibility ?? null,
-      water_type: dive.water_type ?? null,
-      exposure: dive.exposure ?? null,
-      currents: dive.currents ?? null,
-      weight: dive.weight ?? null,
-    });
-    setLocalIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    if (hasChanges) {
-      const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to cancel?'
-      );
-      if (!confirmed) return;
-    }
-    setLocalFields({
-      visibility: dive.visibility ?? null,
-      water_type: dive.water_type ?? null,
-      exposure: dive.exposure ?? null,
-      currents: dive.currents ?? null,
-      weight: dive.weight ?? null,
-    });
-    setLocalIsEditing(false);
-  };
-
-  const handleSave = async () => {
-    try {
-      await updateDive({
-        id: dive.id,
-        diveData: localFields,
-      });
-      setLocalIsEditing(false);
-    } catch (error) {
-      console.error('Failed to save dive information:', error);
-    }
-  };
+  const formContext = isEditing ? useFormContext() : null;
+  const { control, formState: { errors = {}, isSubmitting = false } = {} } = formContext || {};
 
   return (
     <>
-      <div className="flex items-center justify-between mb-3 px-2">
-        <div className="flex items-center gap-2 ">
-          <BookOpen className="w-5 h-5 text-primary" />
-          <h3 className="text-foreground text-lg font-semibold">Dive Information</h3>
-        </div>
-        {isEditing ? (
-          <button
-            type="button"
-            className="text-primary/60 cursor-not-allowed font-medium"
-            aria-label="Edit dive information"
-            disabled
-          >
-            Edit
-          </button>
-        ) : !localIsEditing ? (
-          <button
-            type="button"
-            onClick={handleEdit}
-            className="text-primary hover:text-primary/80 font-medium"
-            aria-label="Edit dive information"
-          >
-            Edit
-          </button>
-        ) : (
-          <div className="flex gap-2">
-            <Button
-              onClick={handleSave}
-              disabled={isSavingActive || !hasChanges}
-              size="sm"
-              className="gap-1 h-8 bg-primary hover:bg-primary/90"
-            >
-              <Check className="w-4 h-4" />
-              {isSavingActive ? 'Saving...' : 'Save'}
-            </Button>
-            <Button
-              onClick={handleCancel}
-              disabled={isSavingActive}
-              size="sm"
-              variant="outline"
-              className="gap-1 h-8"
-            >
-              <X className="w-4 h-4" />
-              Cancel
-            </Button>
-          </div>
-        )}
+      <div className="flex items-center gap-2 mb-3 px-2">
+        <BookOpen className="w-5 h-5 text-primary" />
+        <h3 className="text-foreground text-lg font-semibold">Dive Information</h3>
       </div>
 
       <Card className="bg-card-dark border-border-dark rounded-2xl">
@@ -192,22 +35,35 @@ function DiveInformation({
           <div className="grid md:grid-cols-5 gap-6 divide-x divide-border">
             <div className="md:pr-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">Visibility</p>
-              {isEditingActive ? (
-                <Select
-                  value={fields.visibility ?? ''}
-                  onValueChange={(value) => handleSelectChange('visibility', value)}
-                  disabled={isSavingActive}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select visibility" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="poor">Poor</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                  </SelectContent>
-                </Select>
+              {isEditing ? (
+                <Controller
+                  name="visibility"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-1">
+                      <Select
+                        value={field.value ?? ''}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger aria-invalid={!!errors.visibility}>
+                          <SelectValue placeholder="Select visibility" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="poor">Poor</SelectItem>
+                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="excellent">Excellent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.visibility && (
+                        <span className="text-xs text-destructive" role="alert">
+                          {errors.visibility?.message as string}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                />
               ) : (
                 <p className="text-foreground capitalize">{dive.visibility ?? 'N/A'}</p>
               )}
@@ -215,20 +71,33 @@ function DiveInformation({
 
             <div className="md:px-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">Water Type</p>
-              {isEditingActive ? (
-                <Select
-                  value={fields.water_type ?? ''}
-                  onValueChange={(value) => handleSelectChange('water_type', value)}
-                  disabled={isSavingActive}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select water type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="salt">Salt Water</SelectItem>
-                    <SelectItem value="fresh">Fresh Water</SelectItem>
-                  </SelectContent>
-                </Select>
+              {isEditing ? (
+                <Controller
+                  name="water_type"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-1">
+                      <Select
+                        value={field.value ?? ''}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger aria-invalid={!!errors.water_type}>
+                          <SelectValue placeholder="Select water type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="salt">Salt Water</SelectItem>
+                          <SelectItem value="fresh">Fresh Water</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.water_type && (
+                        <span className="text-xs text-destructive" role="alert">
+                          {errors.water_type?.message as string}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                />
               ) : (
                 <p className="text-foreground capitalize">
                   {dive.water_type === 'salt'
@@ -244,24 +113,37 @@ function DiveInformation({
               <p className="text-sm font-semibold text-muted-foreground mb-2">
                 Exposure Protection
               </p>
-              {isEditingActive ? (
-                <Select
-                  value={fields.exposure ?? ''}
-                  onValueChange={(value) => handleSelectChange('exposure', value)}
-                  disabled={isSavingActive}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select exposure" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="wet-2mm">Wetsuit (2mm)</SelectItem>
-                    <SelectItem value="wet-3mm">Wetsuit (3mm)</SelectItem>
-                    <SelectItem value="wet-5mm">Wetsuit (5mm)</SelectItem>
-                    <SelectItem value="wet-7mm">Wetsuit (7mm)</SelectItem>
-                    <SelectItem value="semi-dry">Semy-dry suit</SelectItem>
-                    <SelectItem value="dry">Dry suit</SelectItem>
-                  </SelectContent>
-                </Select>
+              {isEditing ? (
+                <Controller
+                  name="exposure"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-1">
+                      <Select
+                        value={field.value ?? ''}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger aria-invalid={!!errors.exposure}>
+                          <SelectValue placeholder="Select exposure" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="wet-2mm">Wetsuit (2mm)</SelectItem>
+                          <SelectItem value="wet-3mm">Wetsuit (3mm)</SelectItem>
+                          <SelectItem value="wet-5mm">Wetsuit (5mm)</SelectItem>
+                          <SelectItem value="wet-7mm">Wetsuit (7mm)</SelectItem>
+                          <SelectItem value="semi-dry">Semy-dry suit</SelectItem>
+                          <SelectItem value="dry">Dry suit</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.exposure && (
+                        <span className="text-xs text-destructive" role="alert">
+                          {errors.exposure?.message as string}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                />
               ) : (
                 <p className="text-foreground capitalize">
                   {dive.exposure === 'wet-2mm'
@@ -283,22 +165,35 @@ function DiveInformation({
 
             <div className="md:px-6">
               <p className="text-sm font-semibold text-muted-foreground mb-2">Currents</p>
-              {isEditingActive ? (
-                <Select
-                  value={fields.currents ?? ''}
-                  onValueChange={(value) => handleSelectChange('currents', value)}
-                  disabled={isSavingActive}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currents" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="calm">Calm</SelectItem>
-                    <SelectItem value="mild">Mild</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="strong">Strong</SelectItem>
-                  </SelectContent>
-                </Select>
+              {isEditing ? (
+                <Controller
+                  name="currents"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-1">
+                      <Select
+                        value={field.value ?? ''}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger aria-invalid={!!errors.currents}>
+                          <SelectValue placeholder="Select currents" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="calm">Calm</SelectItem>
+                          <SelectItem value="mild">Mild</SelectItem>
+                          <SelectItem value="moderate">Moderate</SelectItem>
+                          <SelectItem value="strong">Strong</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.currents && (
+                        <span className="text-xs text-destructive" role="alert">
+                          {errors.currents?.message as string}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                />
               ) : (
                 <p className="text-foreground capitalize">{dive.currents ?? 'N/A'}</p>
               )}
@@ -308,12 +203,31 @@ function DiveInformation({
               <p className="text-sm font-semibold text-muted-foreground mb-2">
                 Weight ({isEditing ? 'kg' : getUnitLabel('weight', unitSystem)})
               </p>
-              {isEditingActive ? (
-                <NumberInput
-                  value={fields.weight ?? ''}
-                  onChange={handleWeightChange}
-                  placeholder="0"
-                  disabled={isSavingActive}
+              {isEditing ? (
+                <Controller
+                  name="weight"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-1">
+                      <NumberInput
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? null : Number(e.target.value);
+                          field.onChange(val);
+                        }}
+                        onBlur={field.onBlur}
+                        placeholder="0"
+                        disabled={isSubmitting}
+                        aria-invalid={!!errors.weight}
+                        aria-describedby={errors.weight ? 'weight-error' : undefined}
+                      />
+                      {errors.weight && (
+                        <span id="weight-error" className="text-xs text-destructive" role="alert">
+                          {errors.weight?.message as string}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 />
               ) : (
                 <p className="text-foreground">

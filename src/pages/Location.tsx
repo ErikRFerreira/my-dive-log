@@ -1,5 +1,6 @@
 import InlineSpinner from '@/components/common/InlineSpinner';
 import Loading from '@/components/common/Loading';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import StatCard from '@/components/common/StatCard';
 import NoResults from '@/components/layout/NoResults';
 import GoBack from '@/components/ui/GoBack';
@@ -11,7 +12,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { Calendar, MapPin, Star, TrendingUp, Waves, Zap } from 'lucide-react';
 
 function Location() {
-  const { dives, isLoading, isError } = useGetLocationDives();
+  const { dives, isLoading, error, refetch } = useGetLocationDives();
   const { isPending: isUpdatingLocation, mutateAsync: updateLocation } = useUpdateLocation();
   const { isPending: isTogglingFavorite, mutateAsync: toggleFavoriteMutate } =
     useToggleLocationFavorite();
@@ -21,8 +22,15 @@ function Location() {
     return <Loading />;
   }
 
-  if (isError || !dives) {
-    return <NoResults>Error loading location. Please try again later.</NoResults>;
+  if (error) {
+    return (
+      <QueryErrorFallback
+        error={error}
+        onRetry={refetch}
+        title="Failed to Load Location"
+        description="Unable to load location data. Please check your connection and try again."
+      />
+    );
   }
 
   const location = dives?.[0]?.locations ?? null;

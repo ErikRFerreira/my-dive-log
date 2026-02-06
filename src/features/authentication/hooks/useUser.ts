@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-
+import type { User } from '@supabase/supabase-js';
 import { getCurrentUser } from '../../../services/apiAuth';
 
 export function useUser() {
@@ -8,7 +8,7 @@ export function useUser() {
     isLoading,
     isError,
     error,
-  } = useQuery({
+  } = useQuery<User | null>({
     queryKey: ['user'],
     queryFn: getCurrentUser,
     staleTime: 5 * 60 * 1000, // 5 minutes

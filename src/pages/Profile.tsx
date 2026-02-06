@@ -1,4 +1,6 @@
 import Loading from '@/components/common/Loading';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
+import InlineError from '@/components/common/InlineError';
 import { useUser } from '@/features/authentication';
 import { useGetDives } from '@/features/dives';
 import DepthChart from '@/features/dashboard/components/DepthChart';
@@ -12,14 +14,19 @@ function Profile() {
   const { user, isLoading, isError } = useUser();
   const { profile, isLoading: isProfileLoading } = useGetProfile(user?.id);
   const { isPending: isUpdatingProfile, mutateUpsert } = useUpsertProfile(user?.id);
-  const {
-    dives,
-    isLoading: isDivesLoading,
-    isError: isDivesError,
-  } = useGetDives({ sortBy: 'date' });
+  const { dives, isLoading: isDivesLoading, error: divesError } = useGetDives({ sortBy: 'date' });
+
+  const isDivesError = !!divesError;
 
   if (isLoading) return <Loading />;
-  if (isError || !user) return <div>Error loading user data.</div>;
+  if (isError || !user)
+    return (
+      <QueryErrorFallback
+        error={new Error('Failed to load user data')}
+        title="Failed to load profile"
+        description="We couldn't load your profile. Please try logging out and back in."
+      />
+    );
   return (
     <>
       <header className="flex justify-between items-center">
@@ -35,7 +42,7 @@ function Profile() {
         {isDivesLoading ? (
           <Loading />
         ) : isDivesError ? (
-          <div className="text-sm text-muted-foreground">Failed to load dive charts.</div>
+          <InlineError message="Failed to load dive charts. Some statistics may be unavailable." />
         ) : dives && dives.length > 1 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DepthChart dives={dives} />

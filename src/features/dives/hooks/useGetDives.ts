@@ -1,6 +1,7 @@
 import { useUser } from '@/features/authentication';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { queryRetryConfig } from '@/lib/queryClient';
 
 import type { Location } from '@/features/locations/types';
 
@@ -30,11 +31,12 @@ export function useGetDives(filters?: DiveFilters, options: UseGetDivesOptions =
   const userId = user?.id;
   const locations = options.locations;
 
-  const { data, isLoading, isFetching, isError, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: buildDivesQueryKey(userId, filters),
     enabled: !!userId,
     queryFn: () => getDives(filters),
     placeholderData: keepPreviousData,
+    ...queryRetryConfig,
   });
 
   const locationsById = useMemo(() => {
@@ -61,7 +63,7 @@ export function useGetDives(filters?: DiveFilters, options: UseGetDivesOptions =
     totalCount: data?.totalCount ?? 0,
     isLoading,
     isFetching,
-    isError,
+    error,
     refetch,
   };
 }

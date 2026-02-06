@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { BookType, Clock, Gauge, Thermometer } from 'lucide-react';
+import { Controller, useFormContext } from 'react-hook-form';
 import type { Dive, DiveType } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
@@ -15,36 +16,15 @@ import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
 interface DiveStatsProps {
   dive: Dive;
   isEditing: boolean;
-  isSaving: boolean;
-  stats: {
-    depth: Dive['depth'] | null;
-    duration: Dive['duration'] | null;
-    water_temp: Dive['water_temp'];
-    dive_type: Dive['dive_type'];
-  };
-  onFieldChange: (
-    field: 'depth' | 'duration' | 'water_temp' | 'dive_type',
-    value: number | null | DiveType
-  ) => void;
 }
 
-function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStatsProps) {
+function DiveStats({ dive, isEditing }: DiveStatsProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
   const temperatureLabel = getUnitLabel('temperature', unitSystem);
   const depthLabel = getUnitLabel('depth', unitSystem);
 
-  const handleNumberChange = (field: 'depth' | 'duration' | 'water_temp', value: string) => {
-    if (value === '') {
-      onFieldChange(field, null);
-      return;
-    }
-    const parsed = Number(value);
-    if (Number.isNaN(parsed)) {
-      onFieldChange(field, null);
-      return;
-    }
-    onFieldChange(field, parsed);
-  };
+  const formContext = isEditing ? useFormContext() : null;
+  const { control, formState: { errors = {}, isSubmitting = false } = {} } = formContext || {};
 
   return (
     <div className="grid md:grid-cols-4 gap-4">
@@ -55,7 +35,7 @@ function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStat
           { label: 'Water Temp', key: 'water_temp', unit: temperatureLabel, icon: Thermometer },
         ] as const
       ).map(({ label, key, unit, icon: Icon }) => {
-        const val = isEditing ? stats[key] : dive[key];
+        const val = dive[key];
         const display =
           val !== null && val !== undefined
             ? key === 'depth'
@@ -75,15 +55,34 @@ function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStat
                 <p className="text-sm text-muted-foreground">{label}</p>
               </div>
               {isEditing ? (
-                <div className="flex items-center gap-2">
-                  <NumberInput
-                    value={val ?? ''}
-                    onChange={(e) => handleNumberChange(key, e.target.value)}
-                    disabled={isSaving}
-                    className="text-base"
-                  />
-                  <span className="text-sm text-muted-foreground">{unit}</span>
-                </div>
+                <Controller
+                  name={key}
+                  control={control}
+                  render={({ field }) => (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <NumberInput
+                          value={field.value ?? ''}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? null : Number(e.target.value);
+                            field.onChange(val);
+                          }}
+                          onBlur={field.onBlur}
+                          disabled={isSubmitting}
+                          className="text-base"
+                          aria-invalid={!!errors[key]}
+                          aria-describedby={errors[key] ? `${key}-error` : undefined}
+                        />
+                        <span className="text-sm text-muted-foreground">{unit}</span>
+                      </div>
+                      {errors[key] && (
+                        <span id={`${key}-error`} className="text-xs text-destructive" role="alert">
+                          {errors[key]?.message as string}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                />
               ) : (
                 <p className="text-2xl font-bold text-foreground">{display}</p>
               )}
@@ -100,25 +99,38 @@ function DiveStats({ dive, isEditing, isSaving, stats, onFieldChange }: DiveStat
             <p className="text-sm text-muted-foreground">Dive Type</p>
           </div>
           {isEditing ? (
-            <Select
-              value={stats.dive_type ?? ''}
-              onValueChange={(value) => onFieldChange('dive_type', value as DiveType)}
-              disabled={isSaving}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="reef">Reef</SelectItem>
-                <SelectItem value="wreck">Wreck</SelectItem>
-                <SelectItem value="wall">Wall</SelectItem>
-                <SelectItem value="cave">Cave</SelectItem>
-                <SelectItem value="drift">Drift</SelectItem>
-                <SelectItem value="night">Night</SelectItem>
-                <SelectItem value="training">Training</SelectItem>
-                <SelectItem value="lake-river">Lake/River</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="dive_type"
+              control={control}
+              render={({ field }) => (
+                <div className="flex flex-col gap-1">
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={field.onChange}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger aria-invalid={!!errors.dive_type}>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="reef">Reef</SelectItem>
+                      <SelectItem value="wreck">Wreck</SelectItem>
+                      <SelectItem value="wall">Wall</SelectItem>
+                      <SelectItem value="cave">Cave</SelectItem>
+                      <SelectItem value="drift">Drift</SelectItem>
+                      <SelectItem value="night">Night</SelectItem>
+                      <SelectItem value="training">Training</SelectItem>
+                      <SelectItem value="lake-river">Lake/River</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.dive_type && (
+                    <span className="text-xs text-destructive" role="alert">
+                      {errors.dive_type?.message as string}
+                    </span>
+                  )}
+                </div>
+              )}
+            />
           ) : (
             <p className="text-2xl font-bold text-foreground capitalize">
               {dive.dive_type ?? 'N/A'}

@@ -12,9 +12,8 @@ export function useDeleteDive() {
       queryClient.invalidateQueries({ queryKey: ['dives'] });
       toast.success('Dive deleted successfully.');
     },
-    onError: (error) => {
-      console.error('Error deleting dive:', error);
-      toast.error('Failed to delete dive. Please try again.');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete dive. Please try again.');
     },
   });
   return { isPending, mutateAsync };

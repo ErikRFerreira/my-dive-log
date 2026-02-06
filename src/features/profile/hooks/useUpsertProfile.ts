@@ -1,5 +1,6 @@
 import { upsertUserProfile } from '../../../services/apiProfile';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 import type { UserProfile } from '@/features/profile';
 
@@ -20,8 +21,8 @@ export function useUpsertProfile(userId: string | undefined) {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },
-    onError: (error) => {
-      console.error('Error updating profile:', error);
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update profile');
     },
   });
   return { isPending, mutateUpsert };

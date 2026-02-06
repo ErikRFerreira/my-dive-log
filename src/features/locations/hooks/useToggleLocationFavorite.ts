@@ -15,9 +15,8 @@ export function useToggleLocationFavorite() {
 			// Show success toast
 			toast.success('Favorite status updated successfully.');
 		},
-		onError: (error) => {
-			console.error('Error toggling location favorite status:', error);
-			toast.error('Error toggling location favorite status.');
+		onError: (error: Error) => {
+			toast.error(error.message || 'Error toggling location favorite status.');
 		},
  	});
   return { isPending, mutateAsync };

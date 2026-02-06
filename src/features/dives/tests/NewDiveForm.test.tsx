@@ -1,7 +1,7 @@
+import NewDiveForm from '../components/NewDiveForm';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import NewDiveForm from '../components/NewDiveForm';
 import type { Dive, NewDiveInput } from '../types';
 
 const { mutateAddMock } = vi.hoisted(() => ({
@@ -52,51 +52,53 @@ describe('NewDiveForm', () => {
 
     mutateAddMock.mockImplementation(
       (payload: NewDiveInput, options: { onSuccess?: (created: Dive | null) => void }) => {
-      expect(payload).toMatchObject({
-        date: '2025-01-02',
-        locationName: 'Blue Hole',
-        locationCountryCode: 'PT',
-        depth: 18,
-        duration: 35,
-      });
+        expect(payload).toMatchObject({
+          date: '2025-01-02',
+          locationName: 'Blue Hole',
+          locationCountryCode: 'PT',
+          depth: 18,
+          duration: 35,
+        });
 
-      options?.onSuccess?.({
-        id: 'dive-1',
-        user_id: 'user-1',
-        location_id: 'loc-1',
-        date: payload.date,
-        depth: payload.depth,
-        duration: payload.duration,
-        notes: payload.notes ?? null,
-        summary: null,
-        created_at: new Date().toISOString(),
-        water_temp: null,
-        visibility: null,
-        start_pressure: null,
-        end_pressure: null,
-        air_usage: null,
-        equipment: null,
-        wildlife: null,
-        dive_type: null,
-        water_type: null,
-        exposure: null,
-        gas: null,
-        currents: null,
-        weight: null,
-        locations: {
-          id: 'loc-1',
-          name: payload.locationName,
-          country: payload.locationCountry ?? null,
-          country_code: payload.locationCountryCode ?? null,
-        },
-      } as unknown as Dive);
-    }
+        options?.onSuccess?.({
+          id: 'dive-1',
+          user_id: 'user-1',
+          location_id: 'loc-1',
+          date: payload.date,
+          depth: payload.depth,
+          duration: payload.duration,
+          notes: payload.notes ?? null,
+          summary: null,
+          created_at: new Date().toISOString(),
+          water_temp: null,
+          visibility: null,
+          start_pressure: null,
+          end_pressure: null,
+          air_usage: null,
+          equipment: null,
+          wildlife: null,
+          dive_type: null,
+          water_type: null,
+          exposure: null,
+          gas: null,
+          currents: null,
+          weight: null,
+          locations: {
+            id: 'loc-1',
+            name: payload.locationName,
+            country: payload.locationCountry ?? null,
+            country_code: payload.locationCountryCode ?? null,
+          },
+        } as unknown as Dive);
+      }
     );
 
     render(<NewDiveForm onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText(/date/i), { target: { value: '2025-01-02' } });
-    fireEvent.change(screen.getByLabelText(/location\/dive site/i), { target: { value: 'Blue Hole' } });
+    fireEvent.change(screen.getByLabelText(/location\/dive site/i), {
+      target: { value: 'Blue Hole' },
+    });
     fireEvent.change(screen.getByLabelText(/depth/i), { target: { value: '18' } });
     fireEvent.change(screen.getByLabelText(/duration/i), { target: { value: '35' } });
 

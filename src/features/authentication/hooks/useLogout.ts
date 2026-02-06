@@ -13,8 +13,7 @@ export function useLogout() {
       queryClient.clear();
       navigate('/login', { replace: true });
     },
-    onError: (error) => {
-      console.error(error);
+    onError: (error: Error) => {
       toast.error(error.message || 'Logout failed. Please try again.');
     },
   });

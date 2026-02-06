@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 import { getCurrentUserId } from './apiAuth';
+import { validateResponse } from '@/lib/validateResponse';
+import { stringResponseSchema, booleanResponseSchema, divePhotosResponseSchema } from '@/lib/schemas';
 
 export type DivePhoto = {
   id: string;
@@ -30,7 +32,7 @@ export async function getCoverSignedUrl(
     .createSignedUrl(storagePath, 60 * 60, options as never); // 1 hour
 
   if (error) throw error;
-  return data.signedUrl;
+  return validateResponse(stringResponseSchema, data.signedUrl, 'getCoverSignedUrl');
 }
 
 /**
@@ -84,7 +86,7 @@ export async function uploadDivePhotoToBucket(
     throw dbError;
   }
 
-  return path;
+  return validateResponse(stringResponseSchema, path, 'uploadDivePhotoToBucket');
 }
 
 /**
@@ -134,7 +136,7 @@ export async function deleteDivePhoto(photoId: string): Promise<boolean> {
     console.warn('Failed to delete photo from storage:', storageError);
   }
 
-  return true;
+  return validateResponse(booleanResponseSchema, true, 'deleteDivePhoto');
 }
 
 /**
@@ -168,7 +170,7 @@ export async function setDiveCoverPhoto(photoId: string, diveId: string): Promis
 
   if (updateError) throw updateError;
 
-  return true;
+  return validateResponse(booleanResponseSchema, true, 'setDiveCoverPhoto');
 }
 
 /**
@@ -206,6 +208,6 @@ export async function fetchDivePhotos(diveId: string): Promise<DivePhoto[]> {
     })
   );
 
-  return signed;
+  return validateResponse(divePhotosResponseSchema, signed, 'fetchDivePhotos');
 }
 

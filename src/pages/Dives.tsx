@@ -1,4 +1,5 @@
 import Loading from '@/components/common/Loading';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
 import { DiveList, DivesFilter, useGetDives, useGetLocations } from '@/features/dives';
@@ -38,7 +39,7 @@ function Dives() {
     searchQuery,
   };
 
-  const { dives, totalCount, isLoading, isFetching, isError, refetch } = useGetDives(filters, {
+  const { dives, totalCount, isLoading, isFetching, error, refetch } = useGetDives(filters, {
     locations,
   });
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -71,11 +72,13 @@ function Dives() {
 
       {isLoading && !dives ? (
         <Loading />
-      ) : isError || !dives ? (
-        <NoResults>
-          Failed to load dives.
-          <Button onClick={() => refetch()}>Retry</Button>
-        </NoResults>
+      ) : error ? (
+        <QueryErrorFallback
+          error={error}
+          onRetry={refetch}
+          title="Failed to Load Dives"
+          description="Unable to load your dive history. Please check your connection and try again."
+        />
       ) : (
         <>
           <section id="dives-filter-panel" role="region" aria-labelledby="dives-filter-toggle-btn">

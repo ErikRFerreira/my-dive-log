@@ -65,9 +65,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (deleteUserError) return res.status(500).json({ error: deleteUserError.message });
 
     return res.status(200).json({ ok: true });
-  } catch (err: any) {
-    console.error('delete-account error:', err);
-    return res.status(500).json({ error: err?.message || 'Internal server error' });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Internal server error';
+    console.error('delete-account error:', errorMessage);
+    return res.status(500).json({ error: errorMessage });
   }
 }
 

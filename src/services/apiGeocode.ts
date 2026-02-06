@@ -1,3 +1,6 @@
+import { validateResponse } from '@/lib/validateResponse';
+import { geocodeResultSchema } from '@/lib/schemas';
+
 type GeocodeResult = { lat: number | null; lng: number | null };
 
 /**
@@ -22,5 +25,6 @@ export async function geocodeLocation(input: {
     throw new Error(`Geocode failed: ${res.status} ${text}`);
   }
 
-  return (await res.json()) as GeocodeResult;
+  const result = await res.json();
+  return validateResponse(geocodeResultSchema, result, 'geocodeLocation');
 }

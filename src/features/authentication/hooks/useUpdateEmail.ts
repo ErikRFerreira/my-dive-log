@@ -12,7 +12,6 @@ export function useUpdateEmail() {
       toast.success('Email update requested. Check your inbox to confirm.');
     },
     onError: (error: Error) => {
-      console.error('Update email error:', error);
       toast.error(error.message || 'Failed to update email. Please try again.');
     },
   });

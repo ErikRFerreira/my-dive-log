@@ -19,9 +19,8 @@ export function useUpdateLocation() {
 			// Show success toast
 			toast.success('Location updated successfully.');
 		},
-		onError: (error) => {
-			console.error('Error updating location:', error);
-			toast.error('Failed to update location. Please try again.');
+		onError: (error: Error) => {
+			toast.error(error.message || 'Failed to update location. Please try again.');
 		},
  	});
   return { isPending, mutateAsync };

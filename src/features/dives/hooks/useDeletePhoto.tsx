@@ -14,9 +14,8 @@ export function useDeleteDivePhoto() {
       queryClient.invalidateQueries({ queryKey: ['dives'] });
       toast.success('Photo deleted successfully');
     },
-    onError: (error) => {
-      console.error('Error deleting photo:', error);
-      toast.error('Failed to delete photo. Please try again.');
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete photo. Please try again.');
     },
   });
 

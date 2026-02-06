@@ -1,4 +1,5 @@
 import Loading from '@/components/common/Loading';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
 import DepthChart from '@/features/dashboard/components/DepthChart';
@@ -10,7 +11,7 @@ function Dashboard() {
   const {
     dives: allDives,
     isLoading: isLoadingAll,
-    isError: isErrorAll,
+    error: errorAll,
     totalCount: totalCountAll,
     refetch: refetchAll,
   } = useGetDives({ sortBy: 'date' });
@@ -29,17 +30,13 @@ function Dashboard() {
 
       {isLoadingAll ? (
         <Loading />
-      ) : isErrorAll || !allDives ? (
-        <NoResults>
-          Failed to load dives.
-          <Button
-            onClick={() => {
-              refetchAll();
-            }}
-          >
-            Retry
-          </Button>
-        </NoResults>
+      ) : errorAll ? (
+        <QueryErrorFallback
+          error={errorAll}
+          onRetry={refetchAll}
+          title="Failed to Load Dashboard"
+          description="Unable to load your diving statistics. Please check your connection and try again."
+        />
       ) : !hasDives ? (
         <NoResults>No dives logged yet. Start by adding your first dive!</NoResults>
       ) : (

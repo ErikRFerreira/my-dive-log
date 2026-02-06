@@ -12,7 +12,6 @@ export function useUpdatePassword() {
       toast.success('Password updated.');
     },
     onError: (error: Error) => {
-      console.error('Update password error:', error);
       toast.error(error.message || 'Failed to update password. Please try again.');
     },
   });

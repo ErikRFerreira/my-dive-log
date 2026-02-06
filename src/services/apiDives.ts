@@ -5,6 +5,9 @@ import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';
 import { getCurrentUserId } from './apiAuth';
 import { geocodeLocation } from './apiGeocode';
+import { validateResponse } from '@/lib/validateResponse';
+import { diveResponseSchema, divesResponseSchema, diveSchema } from '@/lib/schemas';
+import { z } from 'zod';
 
 
 /**
@@ -24,7 +27,8 @@ export async function getDiveById(id: string): Promise<Dive | null> {
     .eq('user_id', userId)
     .single();
   if (error) throw error;
-  return data ?? null;
+  
+  return validateResponse(diveResponseSchema, data ?? null, 'getDiveById');
 }
 
 /**
@@ -134,10 +138,12 @@ export async function getDives(filters?: DiveFilters): Promise<{
 
   if (error) throw error;
 
-  return {
+  const result = {
     dives: data ?? [],
     totalCount: count ?? 0,
   };
+
+  return validateResponse(divesResponseSchema, result, 'getDives');
 }
 
 /**
@@ -231,8 +237,7 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     .single();
   if (error) throw error;
 
-  await geocodePromise;
-
+  await validateResponse(diveResponseSchema, data ?? null, 'createDive');
   return data ?? null;
 }
 
@@ -312,7 +317,8 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
     .single();
 
   if (error) throw error;
-  return data ?? null;
+  
+  return validateResponse(diveResponseSchema, data ?? null, 'updateDive');
 }
 
 
@@ -325,12 +331,12 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
 export async function getDivesByLocationId(locationId: string) {
   const userId = await getCurrentUserId();
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('dives')
     .select('*, locations(id, name, country, country_code, lat, lng, is_favorite)')
     .eq('location_id', locationId)
     .eq('user_id', userId);
-  if (error) throw error;
-  return data ?? [];
+  
+  return validateResponse(z.array(diveSchema), data ?? [], 'getDivesByLocationId');
 }
 

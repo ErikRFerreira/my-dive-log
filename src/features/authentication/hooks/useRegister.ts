@@ -30,7 +30,6 @@ export function useRegister() {
       navigate('/login', { replace: true });
     },
     onError: (error: Error) => {
-      console.error('Register error:', error);
       toast.error(error.message || 'Registration failed. Please try again.');
     },
   });

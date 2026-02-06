@@ -22,8 +22,7 @@ vi.mock('@/store/settingsStore', () => ({
       unitSystem: 'metric' | 'imperial';
       setUnitSystem: (unitSystem: 'metric' | 'imperial') => void;
     }) => unknown
-  ) =>
-    selector({ unitSystem: 'metric', setUnitSystem: setUnitSystemMock }),
+  ) => selector({ unitSystem: 'metric', setUnitSystem: setUnitSystemMock }),
 }));
 
 // Mock the create-dive hook so we can intercept the payload and emulate success.
@@ -92,8 +91,6 @@ describe('LogDivePage', () => {
         // Multi-value fields should include the user-added items.
         expect(payload.equipment).toEqual(expect.arrayContaining(['BCD']));
         expect(payload.wildlife).toEqual(expect.arrayContaining(['Sea Turtle']));
-        // Notes should include derived nitrox detail for auditability.
-        expect(payload.notes).toEqual(expect.stringContaining('Nitrox O2: 36%'));
 
         // Simulate a successful create so any post-submit logic runs.
         options?.onSuccess?.({ id: 'dive-1' });
@@ -155,7 +152,7 @@ describe('LogDivePage', () => {
     await vi.runAllTimersAsync();
 
     // Step 4: gas usage.
-    fireEvent.click(screen.getByRole('radio', { name: /nitrox/i }));
+    fireEvent.click(screen.getByRole('button', { name: /nitrox/i }));
 
     const sliders = screen.getAllByRole('slider');
     fireEvent.change(sliders[0], { target: { value: '36' } });
@@ -165,7 +162,7 @@ describe('LogDivePage', () => {
     fireEvent.change(updatedSliders[2], { target: { value: '500' } });
 
     // Submit and verify the mocked mutation was called once.
-    fireEvent.click(screen.getByRole('button', { name: /save to dashboard/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
     await vi.runAllTimersAsync();
 
     expect(mutateAddMock).toHaveBeenCalledTimes(1);

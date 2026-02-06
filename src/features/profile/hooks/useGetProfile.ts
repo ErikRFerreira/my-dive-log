@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { queryRetryConfig } from '@/lib/queryClient';
 import { getUserProfile } from '../../../services/apiProfile';
 
 export function useGetProfile(userId: string | undefined) {
@@ -13,7 +14,7 @@ export function useGetProfile(userId: string | undefined) {
     enabled: !!userId,
     queryFn: () => getUserProfile(userId as string),
     staleTime: 60_000,
-    retry: false,
+    ...queryRetryConfig,
   });
 
   return { profile, isLoading, isFetching, isError, refetch };
