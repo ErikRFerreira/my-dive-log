@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 const STORAGE_KEY = 'dive-log:dive-filter';
 
-const createNamespacedStorage = (name: string) =>
+const createNamespacedStorage = () =>
   createJSONStorage(() => ({
     getItem: (key) => {
       return localStorage.getItem(key);
@@ -70,7 +70,7 @@ export const useDiveFilterStore = create<DiveFilterState>()(
     {
       name: STORAGE_KEY,
       version: 1,
-      storage: createNamespacedStorage(STORAGE_KEY),
+      storage: createNamespacedStorage(),
       partialize: (s) => ({
         sortBy: s.sortBy,
         maxDepth: s.maxDepth,

@@ -202,7 +202,12 @@ export async function fetchDivePhotos(diveId: string): Promise<DivePhoto[]> {
       if (urlError) throw urlError;
 
       return {
-        ...p,
+        id: p.id,
+        dive_id: p.dive_id,
+        storage_path: p.storage_path,
+        caption: p.caption,
+        sort_order: p.sort_order,
+        created_at: p.created_at,
         url: urlData.signedUrl,
       } satisfies DivePhoto;
     })

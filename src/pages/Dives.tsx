@@ -1,14 +1,13 @@
 import Loading from '@/components/common/Loading';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import InlineError from '@/components/common/InlineError';
-import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
 import DiveList from '@/features/dives/components/DiveList';
 import DivesFilter from '@/features/dives/components/DivesFilter';
 import { useGetDives } from '@/features/dives/hooks/useGetDives';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { useDivesFilterController } from '@/features/dives/hooks/useDivesFilterController';
-import { ITEMS_PER_PAGE } from '@/shared/constants';
+import { ITEMS_PER_PAGE, DEFAULT_MAX_DEPTH } from '@/shared/constants';
 import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
 import { Download } from 'lucide-react';
@@ -105,7 +104,7 @@ function Dives() {
               isLoadingLocations={isLoadingLocations}
               showFilters={showFilters}
               onToggleFilters={toggleShowFilters}
-              filteredCount={dives.length}
+              filteredCount={dives?.length ?? 0}
               totalCount={totalCount}
               searchQuery={searchQuery}
               onSearchQueryChange={setPageAndSearchQuery}
@@ -118,7 +117,7 @@ function Dives() {
           </section>
           <section aria-busy={isFetching}>
             <DiveList
-              dives={dives}
+              dives={dives ?? []}
               hasActiveFilters={hasActiveFilters}
               currentPage={currentPage}
               totalPages={totalPages}

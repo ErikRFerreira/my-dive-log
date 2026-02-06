@@ -1,7 +1,6 @@
 import { supabase } from './supabase';
 import { validateResponse } from '@/lib/validateResponse';
 import { uuidResponseSchema, authResponseSchema, userResponseSchema, booleanResponseSchema } from '@/lib/schemas';
-import type { User } from '@supabase/supabase-js';
 
 /**
  * Get the current authenticated user's ID.
@@ -182,12 +181,12 @@ export async function registerWithEmail({
  * @returns {Promise<true>} Resolves with true when sign-out succeeds.
  * @throws {Error} When Supabase returns a sign-out error.
  */
-export async function logout() {
+export async function logout(): Promise<boolean> {
   const { error } = await supabase.auth.signOut();
 
   if (error) throw new Error(error.message);
 
-  return true;
+  return validateResponse(booleanResponseSchema, true, 'logout');
 }
 
 /**

@@ -1,6 +1,4 @@
 import { Eye, FileText, Thermometer } from 'lucide-react';
-
-import { Input } from '@/components/ui/input';
 import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
 import type { UnitSystem } from '@/shared/constants';

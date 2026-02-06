@@ -2,7 +2,6 @@ import InlineSpinner from '@/components/common/InlineSpinner';
 import Loading from '@/components/common/Loading';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import StatCard from '@/components/common/StatCard';
-import NoResults from '@/components/layout/NoResults';
 import GoBack from '@/components/ui/GoBack';
 import { LocationMap, LocationRecentDives, useGetLocationDives } from '@/features/locations';
 import { useToggleLocationFavorite } from '@/features/locations/hooks/useToggleLocationFavorite';
@@ -40,10 +39,17 @@ function Location() {
   const is_favorite = location?.is_favorite ?? false;
   const lat = location?.lat ?? null;
   const lng = location?.lng ?? null;
-  const totalDives = dives.length;
-  const averageDepth = Math.round(dives.reduce((sum, dive) => sum + dive.depth, 0) / totalDives);
-  const deepestDive = Math.max(...dives.map((dive) => dive.depth));
-  const lastDiveDateTimestamp = Math.max(...dives.map((dive) => new Date(dive.date).getTime()));
+  const totalDives = dives?.length ?? 0;
+  const averageDepth =
+    totalDives > 0
+      ? Math.round((dives ?? []).reduce((sum, dive) => sum + dive.depth, 0) / totalDives)
+      : 0;
+  const deepestDive =
+    (dives?.length ?? 0) > 0 ? Math.max(...(dives ?? []).map((dive) => dive.depth)) : 0;
+  const lastDiveDateTimestamp =
+    (dives?.length ?? 0) > 0
+      ? Math.max(...(dives ?? []).map((dive) => new Date(dive.date).getTime()))
+      : -Infinity;
   const lastDiveDate = Number.isFinite(lastDiveDateTimestamp)
     ? new Date(lastDiveDateTimestamp).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -126,7 +132,7 @@ function Location() {
       />
 
       {/* Recent Dives Section */}
-      <LocationRecentDives dives={dives} />
+      <LocationRecentDives dives={dives ?? []} />
     </>
   );
 }

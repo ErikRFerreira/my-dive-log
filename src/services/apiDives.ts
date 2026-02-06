@@ -167,7 +167,7 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
   });
 
   // Attempt to geocode the location in the background if we have a country code
-  const geocodePromise = (async () => {
+  (async () => {
     const countryCode = diveData.locationCountryCode?.trim();
     if (!countryCode) return;
 

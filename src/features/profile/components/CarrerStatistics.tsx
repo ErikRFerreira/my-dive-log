@@ -14,7 +14,7 @@ import {
 } from '@/shared/utils/diveStats';
 
 function CarrerStatistics() {
-  const { dives, isLoading: divesLoading, isError: divesError } = useGetDives();
+  const { dives, isLoading: divesLoading, error: divesError } = useGetDives();
   const unitSystem = useSettingsStore((s) => s.unitSystem);
 
   // Show loading skeletons while fetching data
