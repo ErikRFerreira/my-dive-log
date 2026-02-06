@@ -7,21 +7,27 @@ import { z } from 'zod';
 
 // ========== Enums ==========
 
-export const visibilitySchema = z.enum(['poor', 'fair', 'good', 'excellent']);
-export const currentsSchema = z.enum(['calm', 'mild', 'moderate', 'strong']);
-export const diveTypeSchema = z.enum([
-  'reef',
-  'wreck',
-  'wall',
-  'cave',
-  'drift',
-  'night',
-  'training',
-  'lake-river',
-]);
-export const waterTypeSchema = z.enum(['salt', 'fresh']);
-export const exposureSchema = z.enum(['wet-2mm', 'wet-3mm', 'wet-5mm', 'wet-7mm', 'semi-dry', 'dry']);
-export const gasSchema = z.enum(['air', 'nitrox']);
+export const visibilitySchema = z.enum(['poor', 'fair', 'good', 'excellent'], {
+  errorMap: () => ({ message: 'Please select a valid visibility option' }),
+});
+export const currentsSchema = z.enum(['calm', 'mild', 'moderate', 'strong'], {
+  errorMap: () => ({ message: 'Please select a valid current option' }),
+});
+export const diveTypeSchema = z.enum(
+  ['reef', 'wreck', 'wall', 'cave', 'drift', 'night', 'training', 'lake_river'],
+  {
+    errorMap: () => ({ message: 'Please select a valid dive type' }),
+  }
+);
+export const waterTypeSchema = z.enum(['salt', 'fresh'], {
+  errorMap: () => ({ message: 'Please select a valid water type' }),
+});
+export const exposureSchema = z.enum(['wet-2mm', 'wet-3mm', 'wet-5mm', 'wet-7mm', 'semi-dry', 'dry'], {
+  errorMap: () => ({ message: 'Please select a valid exposure option' }),
+});
+export const gasSchema = z.enum(['air', 'nitrox'], {
+  errorMap: () => ({ message: 'Please select a valid gas type' }),
+});
 
 // ========== Preprocessing Helpers ==========
 

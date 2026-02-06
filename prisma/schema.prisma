@@ -92,6 +92,7 @@ enum dive_type_enum {
   drift
   night
   training
+  lake_river
 
   @@schema("public")
 }

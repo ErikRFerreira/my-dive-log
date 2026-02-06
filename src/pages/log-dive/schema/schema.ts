@@ -9,7 +9,7 @@ const DIVE_TYPES = [
   'drift',
   'night',
   'training',
-  'lake-river',
+  'lake_river',
 ] as const;
 
 const WATER_TYPES = ['', 'salt', 'fresh'] as const;
@@ -78,10 +78,10 @@ export const logDiveSchema = z
     location: z.string().min(1, 'Location is required').trim(),
     maxDepth: requiredNumberString('Max depth'),
     duration: requiredNumberString('Duration'),
-    diveType: z.enum(DIVE_TYPES),
-    waterType: z.enum(WATER_TYPES),
-    exposure: z.enum(EXPOSURE_TYPES),
-    currents: z.enum(CURRENTS),
+    diveType: z.enum(DIVE_TYPES).optional().or(z.literal('')),
+    waterType: z.enum(WATER_TYPES).optional().or(z.literal('')),
+    exposure: z.enum(EXPOSURE_TYPES).optional().or(z.literal('')),
+    currents: z.enum(CURRENTS).optional().or(z.literal('')),
     weight: optionalPositiveIntegerString('Weight'),
     waterTemp: optionalNumberString('Water temperature'),
     unitSystem: z.enum(UNIT_SYSTEMS).default('metric'),

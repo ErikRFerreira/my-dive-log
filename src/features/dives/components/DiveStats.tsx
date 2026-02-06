@@ -121,7 +121,7 @@ function DiveStats({ dive, isEditing }: DiveStatsProps) {
                       <SelectItem value="drift">Drift</SelectItem>
                       <SelectItem value="night">Night</SelectItem>
                       <SelectItem value="training">Training</SelectItem>
-                      <SelectItem value="lake-river">Lake/River</SelectItem>
+                      <SelectItem value="lake_river">Lake/River</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.dive_type && (
@@ -134,7 +134,7 @@ function DiveStats({ dive, isEditing }: DiveStatsProps) {
             />
           ) : (
             <p className="text-2xl font-bold text-foreground capitalize">
-              {dive.dive_type ?? 'N/A'}
+              {dive.dive_type === 'lake_river' ? 'Lake/River' : (dive.dive_type ?? 'N/A')}
             </p>
           )}
         </CardContent>
