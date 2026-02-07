@@ -1,15 +1,8 @@
 import { getCurrentUserId } from './apiAuth';
 import { supabase } from './supabase';
+import type { DivePhoto } from '@/shared/types/domain';
 
-export type DivePhoto = {
-  id: string;
-  dive_id: string;
-  storage_path: string;
-  caption: string | null;
-  sort_order: number;
-  created_at: string;
-  url: string; // derived (signed)
-};
+export type { DivePhoto } from '@/shared/types/domain';
 
 /**
  * Generates a signed URL for accessing a cover photo stored in Supabase Storage.

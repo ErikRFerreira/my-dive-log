@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
-
-const THEME_KEY = 'dive-log:theme';
-
-const getStoredTheme = () => localStorage.getItem(THEME_KEY) as 'light' | 'dark' | null;
+import { STORAGE_KEYS } from '@/shared/constants';
+const getStoredTheme = () => localStorage.getItem(STORAGE_KEYS.theme) as 'light' | 'dark' | null;
 
 function DarkModeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -19,7 +17,7 @@ function DarkModeToggle() {
     const root = document.documentElement;
     if (theme === 'dark') root.classList.add('dark');
     else root.classList.remove('dark');
-    localStorage.setItem(THEME_KEY, theme);
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
   }, [theme]);
 
   // Toggle theme handler

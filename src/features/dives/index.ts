@@ -25,4 +25,11 @@ export { useGenerateSummary } from './hooks/useGenerateSummary';
 export { useGetLocations } from './hooks/useGetLocations';
 
 // Types
-export type { Dive, NewDiveInput, UpdateDivePatch } from './types';
+export type {
+  Dive,
+  NewDiveInput,
+  UpdateDivePatch,
+  CoverPhotoParams,
+  UploadDivePhotoParams,
+  ProcessedMedia,
+} from './types';

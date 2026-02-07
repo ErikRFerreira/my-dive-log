@@ -14,7 +14,8 @@ import type { CarouselApi } from '@/components/ui/carousel';
 import { Image, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
-import type { DivePhoto } from '@/services/apiDivePhotos';
+import type { DivePhoto } from '@/shared/types/domain';
+import type { ProcessedMedia } from '../types';
 import { useUploadDivePhoto } from '../hooks/useUploadDivePhoto';
 import { useDeleteDivePhoto } from '../hooks/useDeleteDivePhoto';
 import { useSetCoverPhoto } from '../hooks/useSetCoverPhoto';
@@ -22,18 +23,6 @@ import { useRemoveCoverPhoto } from '../hooks/useRemoveCoverPhoto';
 import { prepareDiveMedia } from '@/shared/utils/prepareDiveMedia';
 import { PhotoViewerModal } from './PhotoViewerModal';
 import toast from 'react-hot-toast';
-
-/**
- * Represents a media file that has been processed and is ready for upload.
- * Includes both original and compressed file information for user feedback.
- */
-interface ProcessedMedia {
-  id: string;
-  file: File;
-  preview: string;
-  originalSize: number;
-  compressedSize: number;
-}
 
 /**
  * Props for the DiveGalleryCarousel component.

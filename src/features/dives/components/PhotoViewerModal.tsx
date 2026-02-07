@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { DivePhoto } from '@/services/apiDivePhotos';
+import type { DivePhoto } from '@/shared/types/domain';
 
 interface PhotoViewerModalProps {
   photos: DivePhoto[];

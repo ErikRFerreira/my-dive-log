@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { X, Package } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
+import { TAG_ITEM_LIMIT, TAG_LIST_LIMIT } from '@/shared/constants';
 import type { Dive } from '../types';
 
 interface DiveEquipmentProps {
@@ -12,8 +13,6 @@ interface DiveEquipmentProps {
 }
 
 function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
-  const EQUIPMENT_LIMIT = 20;
-  const EQUIPMENT_ITEM_LIMIT = 40;
   const [newItem, setNewItem] = useState('');
 
   const formContext = isEditing ? useFormContext() : null;
@@ -36,7 +35,7 @@ function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
   );
 
   const displayEquipment = isEditing ? fields : baseEquipment.map((value) => ({ value }));
-  const canAddEquipment = fields.length < EQUIPMENT_LIMIT;
+  const canAddEquipment = fields.length < TAG_LIST_LIMIT;
 
   const handleAdd = () => {
     const trimmed = newItem.trim();
@@ -91,9 +90,9 @@ function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
-                  {fields.length}/{EQUIPMENT_LIMIT}
+                  {fields.length}/{TAG_LIST_LIMIT}
                 </span>
-                <span>Max {EQUIPMENT_ITEM_LIMIT} characters per item.</span>
+                <span>Max {TAG_ITEM_LIMIT} characters per item.</span>
               </div>
               <div className="flex gap-2">
                 <Input
@@ -103,7 +102,7 @@ function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
                   placeholder="Add equipment..."
                   className="flex-1"
                   disabled={isSubmitting || !canAddEquipment}
-                  maxLength={EQUIPMENT_ITEM_LIMIT}
+                  maxLength={TAG_ITEM_LIMIT}
                 />
                 <Button
                   onClick={handleAdd}
@@ -116,7 +115,7 @@ function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
               </div>
               {!canAddEquipment && (
                 <p className="text-xs text-muted-foreground">
-                  Limit {EQUIPMENT_LIMIT} items. Remove one to add more.
+                  Limit {TAG_LIST_LIMIT} items. Remove one to add more.
                 </p>
               )}
               {errors.equipment && (

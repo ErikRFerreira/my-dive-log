@@ -1,11 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadDivePhotoToBucket } from '@/services/apiDivePhotos';
 import toast from 'react-hot-toast';
-
-type UploadDivePhotoParams = {
-  diveId: string;
-  file: File;
-}
+import type { UploadDivePhotoParams } from '../types';
 
 /**
  * Hook for uploading a single dive photo to Supabase Storage.

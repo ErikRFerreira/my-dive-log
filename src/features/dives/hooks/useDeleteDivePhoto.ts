@@ -1,11 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteDivePhoto } from '@/services/apiDivePhotos';
+import type { CoverPhotoParams } from '../types';
 import toast from 'react-hot-toast';
-
-type DeleteDivePhotoParams = {
-  photoId: string;
-  diveId: string;
-};
 
 /**
  * Hook for deleting a dive photo.
@@ -15,7 +11,7 @@ export function useDeleteDivePhoto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ photoId }: DeleteDivePhotoParams) => deleteDivePhoto(photoId),
+    mutationFn: ({ photoId }: CoverPhotoParams) => deleteDivePhoto(photoId),
     onSuccess: (_result, variables) => {
       toast.success('Photo deleted successfully');
       queryClient.refetchQueries({ queryKey: ['divePhotos', variables.diveId] });

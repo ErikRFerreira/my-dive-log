@@ -9,6 +9,20 @@ export const PAGINATION_ELLIPSIS_THRESHOLD = 7; // Show ellipsis if more than th
 // Unit systems
 export type UnitSystem = 'metric' | 'imperial';
 
+// Shared value limits
+export const DURATION_LIMIT = 200;
+export const TAG_LIST_LIMIT = 20;
+export const TAG_ITEM_LIMIT = 40;
+export const WATER_TEMP_LIMITS = {
+  metric: { min: -2, max: 40 },
+  imperial: { min: 28, max: 104 },
+} as const;
+export const NITROX_CONFIG = {
+  MIN_O2_PERCENT: 21,
+  MAX_O2_PERCENT: 100,
+  DEFAULT_NITROX: 32,
+} as const;
+
 // Filter defaults
 export const DEFAULT_MAX_DEPTH = 50;
 export const MIN_DEPTH_FILTER = 1;
@@ -53,3 +67,9 @@ export const CERTIFYING_AGENCIES = [
   'Other',
 ] as const;
 
+// Persistent storage keys
+export const STORAGE_KEYS = {
+  theme: 'dive-log:theme',
+  settings: 'dive-log:settings',
+  diveFilter: 'dive-log:dive-filter',
+} as const;

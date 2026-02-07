@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { X, Fish } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
+import { TAG_ITEM_LIMIT, TAG_LIST_LIMIT } from '@/shared/constants';
 import type { Dive } from '../types';
 
 interface DiveWildlifeProps {
@@ -12,8 +13,6 @@ interface DiveWildlifeProps {
 }
 
 function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
-  const WILDLIFE_LIMIT = 20;
-  const WILDLIFE_ITEM_LIMIT = 40;
   const [newItem, setNewItem] = useState('');
 
   const formContext = isEditing ? useFormContext() : null;
@@ -36,7 +35,7 @@ function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
   );
 
   const displayWildlife = isEditing ? fields : baseWildlife.map((value) => ({ value }));
-  const canAddWildlife = fields.length < WILDLIFE_LIMIT;
+  const canAddWildlife = fields.length < TAG_LIST_LIMIT;
 
   const handleAdd = () => {
     const trimmed = newItem.trim();
@@ -91,9 +90,9 @@ function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
             <div className="space-y-2 pt-2 border-border border-t">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
-                  {fields.length}/{WILDLIFE_LIMIT}
+                  {fields.length}/{TAG_LIST_LIMIT}
                 </span>
-                <span>Max {WILDLIFE_ITEM_LIMIT} characters per item.</span>
+                <span>Max {TAG_ITEM_LIMIT} characters per item.</span>
               </div>
               <div className="flex gap-2">
                 <Input
@@ -103,7 +102,7 @@ function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
                   placeholder="Add wildlife..."
                   className="flex-1"
                   disabled={isSubmitting || !canAddWildlife}
-                  maxLength={WILDLIFE_ITEM_LIMIT}
+                  maxLength={TAG_ITEM_LIMIT}
                 />
                 <Button
                   onClick={handleAdd}
@@ -116,7 +115,7 @@ function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
               </div>
               {!canAddWildlife && (
                 <p className="text-xs text-muted-foreground">
-                  Limit {WILDLIFE_LIMIT} items. Remove one to add more.
+                  Limit {TAG_LIST_LIMIT} items. Remove one to add more.
                 </p>
               )}
               {errors.wildlife && (

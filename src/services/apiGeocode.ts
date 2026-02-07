@@ -1,6 +1,4 @@
-import { geocodeResultSchema } from '@/lib/schemas';
-
-type GeocodeResult = { lat: number | null; lng: number | null };
+import type { NullableCoordinates } from '@/shared/types/common';
 
 /**
  * Geocode a location name (and optional country code) to latitude and longitude
@@ -12,7 +10,7 @@ type GeocodeResult = { lat: number | null; lng: number | null };
 export async function geocodeLocation(input: {
   name: string;
   country_code?: string | null;
-}): Promise<GeocodeResult> {
+}): Promise<NullableCoordinates> {
   const res = await fetch('/api/geocode-location', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

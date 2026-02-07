@@ -7,6 +7,7 @@ import type { Control } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NumberInput } from '@/components/ui/number-input';
+import { TAG_ITEM_LIMIT, TAG_LIST_LIMIT } from '@/shared/constants';
 
 import { CYLINDER_SIZES, CYLINDER_TYPES, EXPOSURE_OPTIONS } from '../utils/options';
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
@@ -15,8 +16,6 @@ type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
 
-const EQUIPMENT_LIMIT = 20;
-const EQUIPMENT_ITEM_LIMIT = 40;
 
 /**
  * Step 3 of dive logging wizard: Equipment and exposure protection.
@@ -55,7 +54,7 @@ export default function EquipmentStep({ control }: Props) {
 
   // Temporary input for adding new equipment items
   const [equipmentInput, setEquipmentInput] = useState('');
-  const canAddEquipment = equipment.length < EQUIPMENT_LIMIT;
+  const canAddEquipment = equipment.length < TAG_LIST_LIMIT;
 
   /**
    * Adds an equipment item to the list.
@@ -204,7 +203,7 @@ export default function EquipmentStep({ control }: Props) {
             Equipment Used
           </label>
           <span className="text-xs text-muted-foreground">
-            {equipment.length}/{EQUIPMENT_LIMIT}
+            {equipment.length}/{TAG_LIST_LIMIT}
           </span>
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -232,7 +231,7 @@ export default function EquipmentStep({ control }: Props) {
             id="equipment-input"
             type="text"
             placeholder="Add equipment (e.g., BCD, Regulator)"
-            maxLength={EQUIPMENT_ITEM_LIMIT}
+            maxLength={TAG_ITEM_LIMIT}
             value={equipmentInput}
             onChange={(e) => setEquipmentInput(e.target.value)}
             onKeyDown={(e) => {
@@ -256,11 +255,11 @@ export default function EquipmentStep({ control }: Props) {
         </div>
         {!canAddEquipment && (
           <p className="mt-2 text-xs text-muted-foreground">
-            Limit {EQUIPMENT_LIMIT} items. Remove one to add more.
+            Limit {TAG_LIST_LIMIT} items. Remove one to add more.
           </p>
         )}
         <p className="mt-1 text-xs text-muted-foreground">
-          Max {EQUIPMENT_ITEM_LIMIT} characters per item.
+          Max {TAG_ITEM_LIMIT} characters per item.
         </p>
       </div>
     </div>

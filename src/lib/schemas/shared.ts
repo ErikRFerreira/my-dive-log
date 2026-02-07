@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import {
+  DURATION_LIMIT,
+  TAG_LIST_LIMIT,
+  TAG_ITEM_LIMIT,
+  WATER_TEMP_LIMITS,
+  NITROX_CONFIG,
+} from '@/shared/constants';
 
 /**
  * Shared Zod schemas and preprocessing utilities.
@@ -105,16 +112,4 @@ export const DEPTH_LIMITS = {
   imperial: { min: 0, max: 330 },
 } as const;
 
-export const WATER_TEMP_LIMITS = {
-  metric: { min: -2, max: 40 },
-  imperial: { min: 28, max: 104 },
-} as const;
-
-export const DURATION_LIMIT = 200;
-export const TAG_LIST_LIMIT = 20;
-export const TAG_ITEM_LIMIT = 40;
-
-export const NITROX_CONFIG = {
-  MIN_O2_PERCENT: 21,
-  MAX_O2_PERCENT: 100,
-} as const;
+export { DURATION_LIMIT, TAG_LIST_LIMIT, TAG_ITEM_LIMIT, WATER_TEMP_LIMITS, NITROX_CONFIG };

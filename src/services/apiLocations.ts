@@ -1,7 +1,8 @@
 import { getCurrentUserId } from './apiAuth';
 import { supabase } from './supabase';
 
-import type { Location as DiveLocation } from '@/features/locations';
+import type { NullableCoordinates } from '@/shared/types/common';
+import type { Location as DiveLocation } from '@/shared/types/domain';
 
 export type LocationUpsertInput = {
   userId: string;
@@ -153,7 +154,7 @@ export async function toggleLocationFavorite(
  * @param { lat: number | null; lng: number | null } coords - New coordinates
  * @returns {Promise<DiveLocation>} Updated location data
  */
-export async function updateLocationCoords(id: string, coords: { lat: number | null; lng: number | null }) {
+export async function updateLocationCoords(id: string, coords: NullableCoordinates) {
   const { data, error } = await supabase
     .from('locations')
     .update(coords)

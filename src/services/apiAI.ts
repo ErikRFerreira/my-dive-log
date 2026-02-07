@@ -1,4 +1,4 @@
-import type { Dive } from '@/features/dives/types';
+import type { Dive } from '@/shared/types/domain';
 
 /**
  * Sends a dive object to the API to generate a summary using AI.

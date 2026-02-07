@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DURATION_LIMIT, NITROX_CONFIG, TAG_ITEM_LIMIT, TAG_LIST_LIMIT, WATER_TEMP_LIMITS } from '@/shared/constants';
 
 const DIVE_TYPES = [
   '',
@@ -18,21 +19,9 @@ const CURRENTS = ['', 'calm', 'mild', 'moderate', 'strong'] as const;
 const VISIBILITY = ['', 'poor', 'fair', 'good', 'excellent'] as const;
 const GAS_MIX = ['', 'air', 'nitrox'] as const;
 const UNIT_SYSTEMS = ['metric', 'imperial'] as const;
-const WATER_TEMP_LIMITS = {
-  metric: { min: -2, max: 40 },
-  imperial: { min: 28, max: 104 },
-} as const;
 const DEPTH_LIMITS = {
   metric: 50,
   imperial: 164,
-} as const;
-const DURATION_LIMIT = 200;
-const TAG_LIST_LIMIT = 20;
-const TAG_ITEM_LIMIT = 40;
-const NITROX_CONFIG = {
-  MIN_O2_PERCENT: 21,  // Air
-  MAX_O2_PERCENT: 100, // Pure O2
-  DEFAULT_NITROX: 32,  // EAN32
 } as const;
 
 const isFutureDate = (value: string) => {

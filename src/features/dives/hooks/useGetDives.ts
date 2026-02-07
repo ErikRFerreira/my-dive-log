@@ -4,18 +4,11 @@ import { useMemo } from 'react';
 import { queryRetryConfig } from '@/lib/queryClient';
 
 import type { Location } from '@/features/locations/types';
+import type { DiveFilters } from '@/shared/types/filters';
 
 import { getDives } from '../../../services/apiDives';
 
-export type DiveFilters = {
-  sortBy?: 'date' | 'depth' | 'duration';
-  maxDepth?: number;
-  country?: string;
-  locationId?: string;
-  page?: number;
-  pageSize?: number;
-  searchQuery?: string;
-};
+export type { DiveFilters } from '@/shared/types/filters';
 
 type UseGetDivesOptions = {
   locations?: Location[];

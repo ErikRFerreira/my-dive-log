@@ -1,11 +1,7 @@
 import { removeDiveCoverPhoto } from '@/services/apiDivePhotos';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { CoverPhotoParams } from '../types';
 import toast from 'react-hot-toast';
-
-type SetCoverPhotoParams = {
-  photoId: string;
-  diveId: string;
-};
 
 /**
  * Hook for removing a dive photo as the cover photo.
@@ -15,7 +11,7 @@ export function useRemoveCoverPhoto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ photoId, diveId }: SetCoverPhotoParams) =>
+    mutationFn: ({ photoId, diveId }: CoverPhotoParams) =>
       removeDiveCoverPhoto(photoId, diveId),
 
     onSuccess: () => {

@@ -1,4 +1,4 @@
-import type { UserProfile } from '@/features/profile';
+import type { UserProfile } from '@/shared/types/domain';
 import { supabase } from './supabase';
 
 /**

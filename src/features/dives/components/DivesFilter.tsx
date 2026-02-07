@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
 import type { Location as DiveLocation } from '@/features/locations/';
+import type { SortBy } from '@/shared/types/filters';
 import { DEFAULT_MAX_DEPTH, DEBOUNCE_DELAY, MIN_SEARCH_LENGTH } from '@/shared/constants';
 import DivesFilterHeaderRow from './DivesFilterHeaderRow';
 import DivesFilterPanel from './DivesFilterPanel';
-
-type SortBy = 'date' | 'depth' | 'duration';
 
 type DivesFilterProps = {
   sortBy: SortBy;

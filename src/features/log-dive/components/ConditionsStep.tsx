@@ -1,7 +1,7 @@
 import { Eye, FileText, Thermometer } from 'lucide-react';
 import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
-import type { UnitSystem } from '@/shared/constants';
+import { WATER_TEMP_LIMITS, type UnitSystem } from '@/shared/constants';
 
 import { VISIBILITY_OPTIONS } from '../utils/options';
 import { useController } from 'react-hook-form';
@@ -25,7 +25,7 @@ export default function ConditionsStep({ control, localUnitSystem }: Props) {
     control,
   });
   const temperatureLimits =
-    localUnitSystem === 'metric' ? { min: -2, max: 40 } : { min: 28, max: 104 };
+    localUnitSystem === 'metric' ? WATER_TEMP_LIMITS.metric : WATER_TEMP_LIMITS.imperial;
 
   return (
     <div className="space-y-6">

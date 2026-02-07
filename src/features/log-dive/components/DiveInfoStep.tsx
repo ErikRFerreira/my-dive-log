@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { NumberInput } from '@/components/ui/number-input';
 import { Textarea } from '@/components/ui/textarea';
 import TypeIcon from '@/components/ui/TypeIcon';
+import { TAG_ITEM_LIMIT, TAG_LIST_LIMIT, WATER_TEMP_LIMITS } from '@/shared/constants';
 
 import { CURRENT_OPTIONS, DIVE_TYPES, VISIBILITY_OPTIONS } from '../utils/options';
 
@@ -17,8 +18,6 @@ type Props = {
   control: Control<LogDiveFormInput, unknown, LogDiveFormData>;
 };
 
-const WILDLIFE_LIMIT = 20;
-const WILDLIFE_ITEM_LIMIT = 40;
 
 /**
  * Step 2 of dive logging wizard: Detailed dive information.
@@ -50,7 +49,7 @@ export default function DiveInfoStep({ control }: Props) {
   const { field: notesField, fieldState: notesState } = useController({ name: 'notes', control });
   // Temperature validation ranges based on unit (C: -2 to 40, F: 28 to 104)
   const temperatureLimits =
-    unitSystemField.value === 'metric' ? { min: -2, max: 40 } : { min: 28, max: 104 };
+    unitSystemField.value === 'metric' ? WATER_TEMP_LIMITS.metric : WATER_TEMP_LIMITS.imperial;
 
   // Wildlife observation management
   const { field: wildlifeField } = useController({ name: 'wildlife', control });
@@ -60,7 +59,7 @@ export default function DiveInfoStep({ control }: Props) {
     : [];
   // Temporary input for adding new wildlife tags
   const [wildlifeInput, setWildlifeInput] = useState('');
-  const canAddWildlife = wildlife.length < WILDLIFE_LIMIT;
+  const canAddWildlife = wildlife.length < TAG_LIST_LIMIT;
 
   /**
    * Adds a wildlife observation to the list.
@@ -231,7 +230,7 @@ export default function DiveInfoStep({ control }: Props) {
             Wildlife Observed
           </label>
           <span className="text-xs text-muted-foreground">
-            {wildlife.length}/{WILDLIFE_LIMIT}
+            {wildlife.length}/{TAG_LIST_LIMIT}
           </span>
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -259,7 +258,7 @@ export default function DiveInfoStep({ control }: Props) {
             id="wildlife-input"
             type="text"
             placeholder="Add wildlife (e.g., Sea Turtle, Reef Shark)"
-            maxLength={WILDLIFE_ITEM_LIMIT}
+            maxLength={TAG_ITEM_LIMIT}
             value={wildlifeInput}
             onChange={(e) => setWildlifeInput(e.target.value)}
             onKeyDown={(e) => {
@@ -283,11 +282,11 @@ export default function DiveInfoStep({ control }: Props) {
         </div>
         {!canAddWildlife && (
           <p className="mt-2 text-xs text-muted-foreground">
-            Limit {WILDLIFE_LIMIT} items. Remove one to add more.
+            Limit {TAG_LIST_LIMIT} items. Remove one to add more.
           </p>
         )}
         <p className="mt-1 text-xs text-muted-foreground">
-          Max {WILDLIFE_ITEM_LIMIT} characters per item.
+          Max {TAG_ITEM_LIMIT} characters per item.
         </p>
       </div>
 

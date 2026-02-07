@@ -8,18 +8,7 @@ import { Image, Upload, X } from 'lucide-react';
 import { useUploadDivePhoto } from '../hooks/useUploadDivePhoto';
 import { prepareDiveMedia } from '@/shared/utils/prepareDiveMedia';
 import toast from 'react-hot-toast';
-
-/**
- * Represents a media file processed and ready for upload.
- * Contains original and compressed sizes and a preview URL.
- */
-interface ProcessedMedia {
-  id: string;
-  file: File;
-  preview: string;
-  originalSize: number;
-  compressedSize: number;
-}
+import type { ProcessedMedia } from '../types';
 
 interface DiveGalleryUploadProps {
   diveId: string;

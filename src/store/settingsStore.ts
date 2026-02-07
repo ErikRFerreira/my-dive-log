@@ -1,8 +1,6 @@
-import type { UnitSystem } from '@/shared/constants';
+import { STORAGE_KEYS, type UnitSystem } from '@/shared/constants';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-const STORAGE_KEY = 'dive-log:settings';
 
 const createNamespacedStorage = () =>
   createJSONStorage(() => ({
@@ -27,7 +25,7 @@ export const useSettingsStore = create<SettingsState>()(
       setUnitSystem: (unitSystem) => set({ unitSystem }),
     }),
     {
-      name: STORAGE_KEY,
+      name: STORAGE_KEYS.settings,
       version: 1,
       storage: createNamespacedStorage(),
       partialize: (s) => ({ unitSystem: s.unitSystem }),

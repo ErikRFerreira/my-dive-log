@@ -1,5 +1,5 @@
-import type { Dive, NewDiveInput, UpdateDivePatch } from '@/features/dives/types';
-import type { DiveFilters } from '@/features/dives/hooks/useGetDives';
+import type { Dive, NewDiveInput, UpdateDivePatch } from '@/shared/types/domain';
+import type { DiveFilters } from '@/shared/types/filters';
 import { supabase } from './supabase';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';

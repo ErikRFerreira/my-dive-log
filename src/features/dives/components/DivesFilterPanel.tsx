@@ -5,9 +5,8 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
 
 import type { Location as DiveLocation } from '@/features/locations/';
+import type { SortBy } from '@/shared/types/filters';
 import type { ChangeEvent } from 'react';
-
-type SortBy = 'date' | 'depth' | 'duration';
 
 type DivesFilterPanelProps = {
   show: boolean;
