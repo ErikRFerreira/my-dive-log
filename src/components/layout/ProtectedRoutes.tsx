@@ -1,59 +1,82 @@
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import AuthLoading from '@/components/layout/AuthLoading';
 import { useUser } from '@/features/authentication';
-import { buildDivesQueryKey } from '@/features/dives/hooks/useGetDives';
-import { getDives } from '@/services/apiDives';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router';
 
 type ProtectedRoutesProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Guards authenticated routes and renders auth-related fallback UI.
+ * Keeps users on the current route when auth cannot be verified.
+ */
 function ProtectedRoutes({ children }: ProtectedRoutesProps) {
-  const { user, isLoading } = useUser();
+  const { user, isLoading, isError, error } = useUser();
   const queryClient = useQueryClient();
-  const [isPrefetching, setIsPrefetching] = useState(false);
-  const prefetchStartRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    const userId = user?.id;
-    if (!userId) {
-      setIsPrefetching(false);
-      return;
+  // Normalize unknown query errors to a consistent Error instance for UI rendering.
+  const resolvedError =
+    error instanceof Error ? error : new Error('Unable to verify your session.');
+  const message = resolvedError.message.toLowerCase();
+
+  // Treat "offline" as an actual client connectivity state.
+  const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+  // Classify backend/auth outages separately from true offline state.
+  const isServiceUnavailable =
+    message.includes('project is paused') ||
+    message.includes('service unavailable') ||
+    message.includes('temporarily unavailable') ||
+    message.includes('503') ||
+    message.includes('failed to fetch') ||
+    message.includes('network request failed') ||
+    message.includes('fetch failed');
+
+  // Retry only the auth identity query, avoiding a full page reload.
+  const handleRetry = () => {
+    void queryClient.invalidateQueries({ queryKey: ['user'] });
+  };
+
+  // Auth status is still being resolved.
+  if (isLoading) return <AuthLoading />;
+
+  // Render explicit auth failure states instead of redirecting to login immediately.
+  if (isError) {
+    if (isOffline) {
+      return (
+        <QueryErrorFallback
+          error={resolvedError}
+          title="No Internet Connection"
+          description="Please check your connection and try again later."
+          onRetry={handleRetry}
+        />
+      );
     }
-    // Prefetch the default dives list so the dashboard mounts with warm data.
-    const filters = { sortBy: 'date' as const };
-    let isActive = true;
-    // Start prefetch and record start time to ensure a minimum loader duration.
-    setIsPrefetching(true);
-    prefetchStartRef.current = Date.now();
-    queryClient
-      .prefetchQuery({
-        queryKey: buildDivesQueryKey(userId, filters),
-        queryFn: () => getDives(filters),
-      })
-      .finally(() => {
-        if (!isActive) return;
-        // Hold the loading screen until the progress bar has time to reach 100%.
-        const minMs = 1500; // Minimum loading screen duration
-        const elapsed = prefetchStartRef.current ? Date.now() - prefetchStartRef.current : 0;
-        const remaining = Math.max(0, minMs - elapsed);
-        setTimeout(() => {
-          if (isActive) setIsPrefetching(false);
-        }, remaining);
-      });
 
-    return () => {
-      isActive = false;
-    };
-  }, [queryClient, user?.id]);
+    if (isServiceUnavailable) {
+      return (
+        <QueryErrorFallback
+          error={resolvedError}
+          title="Service Temporarily Unavailable"
+          description="Authentication service is currently unavailable. Please try again later."
+          onRetry={handleRetry}
+        />
+      );
+    }
 
-  if (isLoading || isPrefetching) {
-    // Hold the gate until auth and initial dives prefetch complete.
-    return <AuthLoading />;
+    return (
+      <QueryErrorFallback
+        error={resolvedError}
+        title="Authentication Error"
+        description="We couldn't verify your session right now. Please try again later."
+        onRetry={handleRetry}
+      />
+    );
   }
 
+  // Only redirect when auth resolution succeeded and there is no authenticated user.
   if (!user) return <Navigate to="/login" replace />;
 
   return children;

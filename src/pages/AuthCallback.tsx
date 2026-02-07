@@ -1,12 +1,12 @@
 import { supabase } from '@/services/supabase';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 function AuthCallback() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function finishOAuth() {
@@ -16,30 +16,51 @@ function AuthCallback() {
         const code = url.searchParams.get('code');
 
         if (errorDescription) {
-          toast.error(errorDescription);
-          navigate('/login', { replace: true });
+          setErrorMessage(errorDescription);
           return;
         }
 
         if (code) {
-          await supabase.auth.exchangeCodeForSession(code);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
         }
 
         await queryClient.invalidateQueries({ queryKey: ['user'] });
 
         const { data } = await supabase.auth.getSession();
         navigate(data.session ? '/dashboard' : '/login', { replace: true });
-      } catch (error) {
-        console.error('Auth callback error:', error);
-        toast.error('Sign-in failed. Please try again.');
-        navigate('/login', { replace: true });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Sign-in failed. Please try again.';
+        setErrorMessage(message);
       }
     }
 
-    finishOAuth();
+    void finishOAuth();
   }, [navigate, queryClient]);
 
-  return null;
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-lg border bg-white dark:bg-slate-800 p-6 space-y-4">
+          <h1 className="text-lg font-semibold">Unable to complete sign-in</h1>
+          <p className="text-sm text-muted-foreground">{errorMessage}</p>
+          <button
+            type="button"
+            onClick={() => navigate('/login', { replace: true })}
+            className="h-10 px-4 rounded-md border text-sm font-medium"
+          >
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+      <p className="text-sm text-muted-foreground">Completing sign-in...</p>
+    </div>
+  );
 }
 
 export default AuthCallback;

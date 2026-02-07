@@ -5,9 +5,6 @@ import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './apiLocations';
 import { getCurrentUserId } from './apiAuth';
 import { geocodeLocation } from './apiGeocode';
-import { validateResponse } from '@/lib/validateResponse';
-import { diveResponseSchema, divesResponseSchema, diveSchema } from '@/lib/schemas';
-import { z } from 'zod';
 
 
 /**
@@ -28,7 +25,7 @@ export async function getDiveById(id: string): Promise<Dive | null> {
     .single();
   if (error) throw error;
   
-  return validateResponse(diveResponseSchema, data ?? null, 'getDiveById');
+  return data ?? null;
 }
 
 /**
@@ -143,7 +140,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
     totalCount: count ?? 0,
   };
 
-  return validateResponse(divesResponseSchema, result, 'getDives');
+  return result;
 }
 
 /**
@@ -199,7 +196,7 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
       if (updateError) {
         console.warn('Geocoded coords could not be saved:', updateError);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn('Geocoding failed, continuing without coordinates:', error);
     }
   })();
@@ -237,7 +234,7 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     .single();
   if (error) throw error;
 
-  await validateResponse(diveResponseSchema, data ?? null, 'createDive');
+  await data ?? null;
   return data ?? null;
 }
 
@@ -318,7 +315,7 @@ export async function updateDive(id: string, diveData: UpdateDivePatch): Promise
 
   if (error) throw error;
   
-  return validateResponse(diveResponseSchema, data ?? null, 'updateDive');
+  return data ?? null;
 }
 
 
@@ -337,5 +334,5 @@ export async function getDivesByLocationId(locationId: string) {
     .eq('location_id', locationId)
     .eq('user_id', userId);
   
-  return validateResponse(z.array(diveSchema), data ?? [], 'getDivesByLocationId');
+  return data ?? [];
 }

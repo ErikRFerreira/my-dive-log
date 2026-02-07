@@ -1,7 +1,5 @@
 import type { UserProfile } from '@/features/profile';
 import { supabase } from './supabase';
-import { validateResponse } from '@/lib/validateResponse';
-import { profileResponseSchema, stringResponseSchema } from '@/lib/schemas';
 
 /**
  * Retrieves a user profile from Supabase by user ID.
@@ -20,7 +18,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     .maybeSingle();
 
   if (error) throw error;
-  return validateResponse(profileResponseSchema, data ?? null, 'getUserProfile');
+  return data ?? null;
 }
 
 /**
@@ -45,7 +43,7 @@ export async function upsertUserProfile(
     .maybeSingle();
 
   if (error) throw error;
-  return validateResponse(profileResponseSchema, data, 'upsertUserProfile');
+  return data;
 }
 
 /**
@@ -73,7 +71,7 @@ export async function uploadAvatar(userId: string, file: File) {
 
   if (profileError) throw profileError;
 
-  return validateResponse(stringResponseSchema, path, 'uploadAvatar');
+  return path;
 }
 
 
@@ -89,5 +87,5 @@ export async function getAvatarSignedUrl(path: string) {
     .createSignedUrl(path, 60 * 10); // 10 minutes
 
   if (error) throw error;
-  return validateResponse(stringResponseSchema, data.signedUrl, 'getAvatarSignedUrl');
+  return data.signedUrl;
 }

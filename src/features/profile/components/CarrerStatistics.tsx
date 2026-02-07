@@ -4,6 +4,8 @@ import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import { formatValueWithUnit } from '@/shared/utils/units';
 import SkeletonCard from '@/components/common/SkeletonCard';
+import InlineError from '@/components/common/InlineError';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 import {
   getAverageDepth,
   getDaysSinceMostRecentDive,
@@ -30,7 +32,19 @@ function CarrerStatistics() {
       </>
     );
 
-  if (divesError || !dives) return <div>Error loading career statistics.</div>;
+  if (divesError || !dives) {
+    return (
+      <>
+        <h2 className="text-xl font-semibold text-foreground mb-4">Career Statistics</h2>
+        <InlineError
+          message={getErrorMessage(
+            divesError,
+            'Failed to load career statistics. Please refresh the page.'
+          )}
+        />
+      </>
+    );
+  }
 
   const totalDives = dives.length;
 

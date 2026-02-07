@@ -1,6 +1,6 @@
 function Loading() {
   const size = 32;
-  const color = '#3b82f6';
+  const color = '#00d9ff';
   const strokeWidth = 4;
   const viewBoxSize = 50;
   const radius = 20;

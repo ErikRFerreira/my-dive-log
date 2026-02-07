@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, ChevronRight, Trash2, Star } from 'lucide-react';
 import InlineSpinner from '@/components/common/InlineSpinner';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { ChevronLeft, ChevronRight, Star, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
 import type { DivePhoto } from '@/services/apiDivePhotos';
 
 interface PhotoViewerModalProps {
@@ -12,6 +13,7 @@ interface PhotoViewerModalProps {
   onClose: () => void;
   onDelete: (photoId: string) => void;
   onSetCover: (photoId: string) => void;
+  onRemoveCover: (photoId: string) => void;
   coverPhotoPath?: string | null;
 }
 
@@ -22,6 +24,7 @@ export function PhotoViewerModal({
   onClose,
   onDelete,
   onSetCover,
+  onRemoveCover,
   coverPhotoPath,
 }: PhotoViewerModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -173,10 +176,19 @@ export function PhotoViewerModal({
               </Button>
             )}
             {isCoverPhoto && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary/20 text-primary border border-primary/30">
-                <Star className="h-4 w-4 fill-current" />
-                <span className="text-sm font-medium">Cover Photo</span>
-              </div>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    onRemoveCover(currentPhoto.id);
+                    onClose();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary/20 text-primary border border-primary/30"
+                >
+                  <Star className="h-4 w-4" />
+                  Cover Photo
+                </Button>
+              </>
             )}
           </div>
         </div>

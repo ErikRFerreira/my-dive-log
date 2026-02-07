@@ -1,7 +1,5 @@
-import { supabase } from './supabase';
 import { getCurrentUserId } from './apiAuth';
-import { validateResponse } from '@/lib/validateResponse';
-import { stringResponseSchema, booleanResponseSchema } from '@/lib/schemas';
+import { supabase } from './supabase';
 
 export type DivePhoto = {
   id: string;
@@ -32,7 +30,7 @@ export async function getCoverSignedUrl(
     .createSignedUrl(storagePath, 60 * 60, options as never); // 1 hour
 
   if (error) throw error;
-  return validateResponse(stringResponseSchema, data.signedUrl, 'getCoverSignedUrl');
+  return data.signedUrl;
 }
 
 /**
@@ -86,7 +84,7 @@ export async function uploadDivePhotoToBucket(
     throw dbError;
   }
 
-  return validateResponse(stringResponseSchema, path, 'uploadDivePhotoToBucket');
+  return path;
 }
 
 /**
@@ -136,7 +134,7 @@ export async function deleteDivePhoto(photoId: string): Promise<boolean> {
     console.warn('Failed to delete photo from storage:', storageError);
   }
 
-  return validateResponse(booleanResponseSchema, true, 'deleteDivePhoto');
+  return true;
 }
 
 /**
@@ -170,8 +168,44 @@ export async function setDiveCoverPhoto(photoId: string, diveId: string): Promis
 
   if (updateError) throw updateError;
 
-  return validateResponse(booleanResponseSchema, true, 'setDiveCoverPhoto');
+  return true;
 }
+
+/**
+ * Removes the cover photo designation from a dive photo if it is currently set as the cover.
+ * 
+ * @param {string} photoId - Dive photo primary key.
+ * @param {string} diveId - Dive primary key.
+ * @returns {Promise<boolean>} True when update succeeds.
+ * @throws {Error} When Supabase returns an error.
+ */
+export async function removeDiveCoverPhoto(photoId: string, diveId: string): Promise<boolean> {
+  const userId = await getCurrentUserId();
+
+  // Fetch the photo to get its storage_path
+  const { data: photo, error: fetchError } = await supabase
+    .from('dive_photos')
+    .select('storage_path')
+    .eq('id', photoId)
+    .eq('user_id', userId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  if (!photo) throw new Error('Photo not found');
+
+  // Only clear cover_photo_path if it matches the photo being removed
+  const { error: updateError } = await supabase
+    .from('dives')
+    .update({ cover_photo_path: null })
+    .eq('id', diveId)
+    .eq('user_id', userId)
+    .eq('cover_photo_path', photo.storage_path);
+
+  if (updateError) throw updateError;
+
+  return true;
+}
+
 
 /**
  * Fetches all photos for a given dive, generating signed URLs for access.

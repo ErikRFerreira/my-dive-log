@@ -1,4 +1,4 @@
-import { setDiveCoverPhoto } from '@/services/apiDivePhotos';
+import { removeDiveCoverPhoto } from '@/services/apiDivePhotos';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
@@ -8,18 +8,18 @@ type SetCoverPhotoParams = {
 };
 
 /**
- * Hook for setting a dive photo as the cover photo.
+ * Hook for removing a dive photo as the cover photo.
  * Invalidates dive and location queries on success.
  */
-export function useSetCoverPhoto() {
+export function useRemoveCoverPhoto() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ photoId, diveId }: SetCoverPhotoParams) =>
-      setDiveCoverPhoto(photoId, diveId),
+      removeDiveCoverPhoto(photoId, diveId),
 
     onSuccess: () => {
-      toast.success('Cover photo updated');
+      toast.success('Cover photo removed');
 
       // Invalidate queries to refresh with new cover
       queryClient.invalidateQueries({ queryKey: ['dive'] });
@@ -28,8 +28,7 @@ export function useSetCoverPhoto() {
     },
 
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to set cover photo');
+      toast.error(error.message || 'Failed to remove cover photo');
     },
   });
 }
-

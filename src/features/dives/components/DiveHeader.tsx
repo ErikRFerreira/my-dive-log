@@ -26,6 +26,7 @@ interface DiveHeaderProps {
   onEdit: () => void;
   onSave?: () => void;
   onCancel?: () => void;
+  isPending?: boolean;
 }
 
 function DiveHeader({
@@ -35,11 +36,12 @@ function DiveHeader({
   onEdit,
   onSave,
   onCancel,
+  isPending,
 }: DiveHeaderProps) {
   // Only access form context when editing
   const formContext = isEditing ? useFormContext() : null;
   const { formState } = formContext || {};
-  const { isSubmitting, isDirty } = formState || {};
+  const { isDirty } = formState || {};
 
   return (
     <>
@@ -50,16 +52,16 @@ function DiveHeader({
             <>
               <Button
                 onClick={onSave}
-                disabled={isSubmitting || !isDirty}
+                disabled={isPending || !isDirty}
                 size="sm"
                 className="gap-2 h-9 bg-primary hover:bg-primary/90"
               >
                 <Check className="w-4 h-4" />
-                {isSubmitting ? 'Saving...' : 'Save'}
+                {isPending ? 'Saving...' : 'Save'}
               </Button>
               <Button
                 onClick={onCancel}
-                disabled={isSubmitting}
+                disabled={isPending}
                 size="sm"
                 variant="outline"
                 className="gap-2 h-9"

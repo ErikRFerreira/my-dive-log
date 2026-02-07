@@ -18,6 +18,7 @@ import type { DivePhoto } from '@/services/apiDivePhotos';
 import { useUploadDivePhoto } from '../hooks/useUploadDivePhoto';
 import { useDeleteDivePhoto } from '../hooks/useDeleteDivePhoto';
 import { useSetCoverPhoto } from '../hooks/useSetCoverPhoto';
+import { useRemoveCoverPhoto } from '../hooks/useRemoveCoverPhoto';
 import { prepareDiveMedia } from '@/shared/utils/prepareDiveMedia';
 import { PhotoViewerModal } from './PhotoViewerModal';
 import toast from 'react-hot-toast';
@@ -74,6 +75,7 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
   const uploadPhotoMutation = useUploadDivePhoto();
   const deletePhotoMutation = useDeleteDivePhoto();
   const setCoverPhotoMutation = useSetCoverPhoto();
+  const removeCoverPhotoMutation = useRemoveCoverPhoto();
 
   /**
    * Handles photo selection from the file input.
@@ -117,7 +119,7 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
       }
 
       toast.success('Photo processed and ready to upload');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Processing error:', error);
       toast.error('Failed to process photo');
     } finally {
@@ -150,7 +152,7 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
           carouselApi.scrollNext();
         }
       }, 500);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
@@ -190,7 +192,7 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
       await deletePhotoMutation.mutateAsync({ photoId: photoToDelete, diveId });
       setIsDeleteModalOpen(false);
       setPhotoToDelete(null);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Delete error:', error);
     }
   };
@@ -221,8 +223,17 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
   const handleSetCover = async (photoId: string) => {
     try {
       await setCoverPhotoMutation.mutateAsync({ photoId, diveId });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Set cover error:', error);
+    }
+  };
+
+  /** Removes the cover photo designation from the specified photo. */
+  const handleRemoveCover = async (photoId: string) => {
+    try {
+      await removeCoverPhotoMutation.mutateAsync({ photoId, diveId });
+    } catch (error: unknown) {
+      console.error('Remove cover error:', error);
     }
   };
 
@@ -382,6 +393,7 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
           onClose={() => setIsPhotoViewerOpen(false)}
           onDelete={handlePhotoViewerDelete}
           onSetCover={handleSetCover}
+          onRemoveCover={handleRemoveCover}
           coverPhotoPath={coverPhotoPath}
         />
       )}

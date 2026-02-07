@@ -88,7 +88,7 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
       ]);
 
       toast.success('Photo processed and ready to upload');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error processing media:', error);
       toast.error('Failed to process photo');
     } finally {

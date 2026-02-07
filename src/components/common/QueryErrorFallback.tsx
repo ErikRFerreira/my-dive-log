@@ -40,7 +40,7 @@ function QueryErrorFallback({
                   Try Again
                 </Button>
               )}
-
+              {/* development error details */}
               {import.meta.env.DEV && (
                 <div className="mt-4 p-4 bg-muted rounded-md">
                   <p className="text-xs font-mono text-muted-foreground mb-2">

@@ -8,14 +8,10 @@ function AuthLoading() {
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((current) => {
-        const next = Math.min(100, current + 12);
-        if (next >= 100) {
-          // Stop at 100 to simulate completion before navigation.
-          clearInterval(interval);
-        }
+        const next = Math.min(100, current + 10);
         return next;
       });
-    }, 180);
+    }, 50);
 
     return () => clearInterval(interval);
   }, []);

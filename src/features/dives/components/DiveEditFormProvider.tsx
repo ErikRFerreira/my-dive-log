@@ -15,7 +15,12 @@ type DiveEditFormProviderProps = {
   onSaveSuccess: () => void;
   children:
     | React.ReactNode
-    | ((handleSave: () => void, handleCancel: () => void, saveError: string | null) => React.ReactNode);
+    | ((
+        handleSave: () => void,
+        handleCancel: () => void,
+        saveError: string | null,
+        isPending: boolean
+      ) => React.ReactNode);
 };
 
 /**
@@ -30,7 +35,7 @@ function DiveEditFormProvider({
   children,
 }: DiveEditFormProviderProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
-  const { mutateAsync: updateDive } = useUpdateDive();
+  const { mutateAsync: updateDive, isPending } = useUpdateDive();
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Initialize form with dive data and unit-aware validation
@@ -111,7 +116,7 @@ function DiveEditFormProvider({
       reset(data); // Reset form dirty state after successful save
       setSaveError(null);
       onSaveSuccess();
-    } catch (err) {
+    } catch (err: unknown) {
       // Error handling is done in useUpdateDive hook
       console.error('Save failed:', err);
       setSaveError(
@@ -136,7 +141,9 @@ function DiveEditFormProvider({
   return (
     <ErrorBoundary FallbackComponent={EditErrorFallback} onReset={handleCancel}>
       <FormProvider {...methods}>
-        {typeof children === 'function' ? children(handleSave, handleCancel, saveError) : children}
+        {typeof children === 'function'
+          ? children(handleSave, handleCancel, saveError, isPending)
+          : children}
       </FormProvider>
     </ErrorBoundary>
   );

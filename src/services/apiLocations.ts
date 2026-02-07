@@ -1,7 +1,5 @@
 import { getCurrentUserId } from './apiAuth';
 import { supabase } from './supabase';
-import { validateResponse } from '@/lib/validateResponse';
-import { locationsResponseSchema, locationResponseSchema, stringResponseSchema } from '@/lib/schemas';
 
 import type { Location as DiveLocation } from '@/features/locations';
 
@@ -69,7 +67,7 @@ export async function getOrCreateLocationId(locationData: LocationUpsertInput): 
   
   if (!data?.id) throw new Error('Failed to upsert location');
 
-  return validateResponse(stringResponseSchema, data.id, 'getOrCreateLocationId');
+  return data.id;
 }
 
 /**
@@ -86,7 +84,7 @@ export async function fetchLocationsByUser(userId: string): Promise<DiveLocation
 	.eq('user_id', userId)
 	.order('name', { ascending: true });
 	  if (error) throw error;
-	    return validateResponse(locationsResponseSchema, data ?? null, 'fetchLocationsByUser');
+	    return data ?? null;
 }
 
 /**
@@ -164,5 +162,5 @@ export async function updateLocationCoords(id: string, coords: { lat: number | n
     .single();
 
   if (error) throw error;
-  return validateResponse(locationResponseSchema, data, 'updateLocationCoords');
+  return data;
 }

@@ -52,7 +52,7 @@ function ProfileInformation({ user, profile, isLoading, isSaving, onUpsert }: Pr
     try {
       const prepared = await prepareAvatarUpload(file, { maxBytes: 100_000, maxDimension: 256 });
       await uploadAvatar(prepared);
-    } catch (error) {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to process avatar image.';
       toast.error(message);
     }

@@ -69,16 +69,28 @@ export const useDiveFilterStore = create<DiveFilterState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
       storage: createNamespacedStorage(),
       partialize: (s) => ({
         sortBy: s.sortBy,
         maxDepth: s.maxDepth,
-        currentPage: s.currentPage,
-        searchQuery: s.searchQuery,
         locationId: s.locationId,
         country: s.country,
       }),
+      migrate: (persistedState: unknown, version: number) => {
+        // Handle migration from version 1 to version 2
+        // v1 included currentPage and searchQuery, v2 removes them
+        if (version === 1) {
+          const oldState = persistedState as Record<string, unknown>;
+          return {
+            sortBy: oldState.sortBy ?? DIVE_FILTER_DEFAULTS.sortBy,
+            maxDepth: oldState.maxDepth ?? DIVE_FILTER_DEFAULTS.maxDepth,
+            locationId: oldState.locationId ?? DIVE_FILTER_DEFAULTS.locationId,
+            country: oldState.country ?? DIVE_FILTER_DEFAULTS.country,
+          };
+        }
+        return persistedState as DiveFilterState;
+      },
     }
   )
 );

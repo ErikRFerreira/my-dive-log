@@ -10,7 +10,7 @@ import wreckIcon from '../../assets/icons/wreck.svg?raw';
 const TYPE_ICON_SVGS = {
   cave: caveIcon,
   drift: driftIcon,
-  'lake-river': lakeRiverIcon,
+  lake_river: lakeRiverIcon,
   night: nightIcon,
   reef: reefIcon,
   training: trainingIcon,

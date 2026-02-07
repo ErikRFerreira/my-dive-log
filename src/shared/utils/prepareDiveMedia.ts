@@ -78,7 +78,7 @@ async function convertHeicToJpeg(file: File) {
 
   try {
     heic2any = (await import('heic2any')).default;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('heic2any package is not installed:', error);
     throw new Error('HEIC images require the heic2any package to be installed.');
   }

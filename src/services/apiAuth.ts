@@ -1,6 +1,33 @@
 import { supabase } from './supabase';
-import { validateResponse } from '@/lib/validateResponse';
-import { uuidResponseSchema, authResponseSchema, userResponseSchema, booleanResponseSchema } from '@/lib/schemas';
+
+/**
+ * Convert various auth-related errors into user-friendly messages.
+ * 
+ * @param {unknown} error - The original error thrown during an auth operation.
+ * @param {string} fallbackMessage - A generic message to use if the error cannot be parsed.
+ * @returns {Error} A user-friendly error object.
+ */
+function toFriendlyAuthError(error: unknown, fallbackMessage: string): Error {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return new Error('No internet connection. Please check your network and try again.');
+  }
+
+  const message = error instanceof Error ? error.message : '';
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes('failed to fetch') ||
+    normalized.includes('fetch failed') ||
+    normalized.includes('network request failed') ||
+    normalized.includes('project is paused') ||
+    normalized.includes('service unavailable')
+  ) {
+    return new Error('Authentication service is temporarily unavailable. Please try again shortly.');
+  }
+
+  if (message) return new Error(message);
+  return new Error(fallbackMessage);
+}
 
 /**
  * Get the current authenticated user's ID.
@@ -17,7 +44,7 @@ export async function getCurrentUserId(): Promise<string> {
   if (error) throw error;
   if (!user) throw new Error('User must be authenticated');
 
-  return validateResponse(uuidResponseSchema, user.id, 'getCurrentUserId');
+  return user.id;
 }
 
 /**
@@ -28,14 +55,18 @@ export async function getCurrentUserId(): Promise<string> {
  * @throws {Error} When Supabase returns an auth error.
  */
 export async function login({ email, password }: { email: string; password: string }) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) throw new Error(error.message);
+    if (error) throw error;
 
-  return validateResponse(authResponseSchema, data, 'login');
+    return data;
+  } catch (error) {
+    throw toFriendlyAuthError(error, 'Login failed. Please try again.');
+  }
 }
 
 /**
@@ -49,18 +80,22 @@ export async function login({ email, password }: { email: string; password: stri
  * @throws {Error} When Supabase returns an auth error.
  */
 export async function loginWithGoogle({ redirectTo }: { redirectTo?: string } = {}) {
-  const resolvedRedirectTo =
-    redirectTo ??
-    (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined);
+  try {
+    const resolvedRedirectTo =
+      redirectTo ??
+      (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined);
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: resolvedRedirectTo ? { redirectTo: resolvedRedirectTo } : undefined,
-  });
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: resolvedRedirectTo ? { redirectTo: resolvedRedirectTo } : undefined,
+    });
 
-  if (error) throw new Error(error.message);
+    if (error) throw error;
 
-  return data;
+    return data;
+  } catch (error) {
+    throw toFriendlyAuthError(error, 'Google sign-in failed. Please try again.');
+  }
 }
 
 /**
@@ -81,17 +116,21 @@ export async function requestPasswordReset({
   email: string;
   redirectTo?: string;
 }) {
-  const resolvedRedirectTo =
-    redirectTo ??
-    (typeof window !== 'undefined' ? `${window.location.origin}/auth/reset` : undefined);
+  try {
+    const resolvedRedirectTo =
+      redirectTo ??
+      (typeof window !== 'undefined' ? `${window.location.origin}/auth/reset` : undefined);
 
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: resolvedRedirectTo,
-  });
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: resolvedRedirectTo,
+    });
 
-  if (error) throw new Error(error.message);
+    if (error) throw error;
 
-  return data;
+    return data;
+  } catch (error) {
+    throw toFriendlyAuthError(error, 'Unable to send reset email. Please try again.');
+  }
 }
 
 /**
@@ -157,22 +196,26 @@ export async function registerWithEmail({
   fullName: string;
   emailRedirectTo?: string;
 }) {
-  const resolvedEmailRedirectTo =
-    emailRedirectTo ??
-    (typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined);
+  try {
+    const resolvedEmailRedirectTo =
+      emailRedirectTo ??
+      (typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined);
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName },
-      emailRedirectTo: resolvedEmailRedirectTo,
-    },
-  });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: resolvedEmailRedirectTo,
+      },
+    });
 
-  if (error) throw new Error(error.message);
+    if (error) throw error;
 
-  return data;
+    return data;
+  } catch (error) {
+    throw toFriendlyAuthError(error, 'Registration failed. Please try again.');
+  }
 }
 
 /**
@@ -186,7 +229,7 @@ export async function logout(): Promise<boolean> {
 
   if (error) throw new Error(error.message);
 
-  return validateResponse(booleanResponseSchema, true, 'logout');
+  return true;
 }
 
 /**
@@ -201,10 +244,7 @@ export async function getCurrentUser() {
     error,
   } = await supabase.auth.getUser();
 
-  if (error) throw new Error(error.message);
-
-  // Validate in dev, but cast back to Supabase User type for type compatibility
-  validateResponse(userResponseSchema, user, 'getCurrentUser');
+  if (error) throw error;
   return user;
 }
 

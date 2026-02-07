@@ -40,7 +40,7 @@ function ResetPassword() {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
         setHasSession(!!data.session);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Reset password session error:', error);
         setHasSession(false);
       } finally {
@@ -88,7 +88,9 @@ function ResetPassword() {
 
         <Card className="bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 shadow-lg">
           <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl text-slate-900 dark:text-white">Set a new password</CardTitle>
+            <CardTitle className="text-2xl text-slate-900 dark:text-white">
+              Set a new password
+            </CardTitle>
             <CardDescription>Choose a password with at least 6 characters.</CardDescription>
           </CardHeader>
           <CardContent>

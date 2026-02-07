@@ -1,7 +1,9 @@
 import { DiveGalleryCarousel } from './DiveGalleryCarousel';
 import { DiveGalleryUpload } from './DiveGalleryUpload';
 import InlineSpinner from '@/components/common/InlineSpinner';
+import InlineError from '@/components/common/InlineError';
 import { useGetDivePhotos } from '../hooks/useGetDivePhotos';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
 
 interface DiveGalleryProps {
   diveId: string;
@@ -9,11 +11,23 @@ interface DiveGalleryProps {
 }
 
 export function DiveGallery({ diveId, coverPhotoPath }: DiveGalleryProps) {
-  const { gallery, isLoadingGallery } = useGetDivePhotos(diveId);
+  const { gallery, isLoadingGallery, errorGallery } = useGetDivePhotos(diveId);
 
   // Loading state
   if (isLoadingGallery) {
     return <InlineSpinner />;
+  }
+
+  // Error state
+  if (errorGallery) {
+    return (
+      <InlineError
+        message={getErrorMessage(
+          errorGallery,
+          'Failed to load dive photos. Please try refreshing the page.'
+        )}
+      />
+    );
   }
 
   // Check if we have photos

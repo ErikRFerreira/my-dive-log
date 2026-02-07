@@ -43,7 +43,7 @@ function DiveSummary({ dive, isEditing }: DiveSummaryProps) {
   const handleGenerate = async () => {
     try {
       await generateSummary();
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error('Failed to generate summary. Please try again.');
     }
   };

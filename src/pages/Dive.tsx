@@ -76,10 +76,12 @@ function DivePage() {
     onSave,
     onCancel,
     saveError,
+    isPending,
   }: {
     onSave?: () => void;
     onCancel?: () => void;
     saveError?: string | null;
+    isPending?: boolean;
   }) => (
     <div className="relative z-10 p-8 space-y-6">
       {/* Header */}
@@ -90,6 +92,7 @@ function DivePage() {
         onEdit={handleStartEdit}
         onSave={onSave}
         onCancel={onCancel}
+        isPending={isPending}
       />
 
       {isEditing && saveError ? <InlineError message={saveError} /> : null}
@@ -147,8 +150,8 @@ function DivePage() {
           onCancel={handleCancelEdit}
           onSaveSuccess={handleSaveSuccess}
         >
-          {(handleSave, handleCancel, saveError) =>
-            renderContent({ onSave: handleSave, onCancel: handleCancel, saveError })
+          {(handleSave, handleCancel, saveError, isPending) =>
+            renderContent({ onSave: handleSave, onCancel: handleCancel, saveError, isPending })
           }
         </DiveEditFormProvider>
       ) : (
