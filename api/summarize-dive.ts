@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from './utils/auth';
 
 const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
@@ -17,8 +18,32 @@ type DivePayload = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Validate environment variables
+  const env = getSupabaseEnv();
+  if ('error' in env) {
+    return res.status(500).json({ error: env.error });
+  }
+
+  // Verify authentication
+  const token = getBearerToken(req);
+  if (!token) {
+    return res.status(401).json({ error: 'Missing Authorization bearer token' });
+  }
+
+  const authResult = await verifySupabaseToken(token);
+  if ('error' in authResult) {
+    return res.status(401).json({ error: authResult.error });
   }
 
   try {

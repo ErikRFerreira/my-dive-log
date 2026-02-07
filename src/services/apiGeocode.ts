@@ -1,4 +1,5 @@
 import type { NullableCoordinates } from '@/shared/types/common';
+import { supabase } from './supabase';
 
 /**
  * Geocode a location name (and optional country code) to latitude and longitude
@@ -11,9 +12,20 @@ export async function geocodeLocation(input: {
   name: string;
   country_code?: string | null;
 }): Promise<NullableCoordinates> {
+  // Get the current session token for authentication
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
+
   const res = await fetch('/api/geocode-location', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
     body: JSON.stringify(input),
   });
 

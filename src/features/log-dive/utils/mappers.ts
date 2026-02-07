@@ -44,8 +44,10 @@ export function parseFiniteNumber(raw: string | null | undefined): number | null
  * mapExposure("drysuit") // "dry"
  * mapExposure("other") // null
  */
-export function mapExposure(exposure: V0Exposure): Exposure | null {
+export function mapExposure(exposure: V0Exposure | undefined): Exposure | null {
   switch (exposure) {
+    case undefined:
+      return null;
     case '3mm':
       return 'wet-3mm';
     case '5mm':

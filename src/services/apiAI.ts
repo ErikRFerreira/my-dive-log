@@ -1,4 +1,5 @@
 import type { Dive } from '@/shared/types/domain';
+import { supabase } from './supabase';
 
 /**
  * Sends a dive object to the API to generate a summary using AI.
@@ -8,10 +9,20 @@ import type { Dive } from '@/shared/types/domain';
  * @throws If the API request fails or no summary is returned.
  */
 export async function getDiveSummaryFromAPI(dive: Dive): Promise<string> {
+  // Get the current session token for authentication
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
 
   const res = await fetch(`/api/summarize-dive`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
     body: JSON.stringify({ dive }),
   });
 

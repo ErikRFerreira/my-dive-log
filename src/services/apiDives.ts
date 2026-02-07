@@ -6,6 +6,11 @@ import { getOrCreateLocationId, getOrCreateLocationIdForCurrentUser } from './ap
 import { getCurrentUserId } from './apiAuth';
 import { geocodeLocation } from './apiGeocode';
 
+type SupabaseErrorWithCode = {
+  code?: string | null;
+  message?: string;
+};
+
 
 /**
  * Fetch a single dive by ID from Supabase.
@@ -68,7 +73,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
 
   let query = supabase
     .from('dives')
-    .select('*, locations(id, name, country, country_code, is_favorite)', { count: 'exact' });
+    .select('*, locations!inner(id, name, country, country_code, is_favorite)', { count: 'exact' });
 
   query = query.eq('user_id', userId);
 
@@ -77,19 +82,9 @@ export async function getDives(filters?: DiveFilters): Promise<{
     query = query.lte('depth', filters.maxDepth);
   }
 
-  // Apply country filter
+  // Apply country filter - use join filtering to let the database handle it
   if (filters?.country) {
-    const baseQuery = supabase
-      .from('locations')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('country', filters.country);
-    const locationIds = await fetchLocationIds((from, to) => baseQuery.range(from, to));
-    if (!locationIds.length) {
-      return { dives: [], totalCount: 0 };
-    }
-
-    query = query.in('location_id', locationIds);
+    query = query.eq('locations.country', filters.country);
   }
 
   // Apply location filter (locations table)
@@ -97,7 +92,8 @@ export async function getDives(filters?: DiveFilters): Promise<{
     query = query.eq('location_id', filters.locationId);
   }
 
-  // Apply search filter
+  // Apply search filter.
+  // Keep OR predicates on `dives` columns only; include matching locations via `location_id.in.(...)`.
   if (filters?.searchQuery && filters.searchQuery.trim() !== '') {
     const raw = filters.searchQuery.trim();
     const searchTerm = raw.replace(/[(),]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -121,7 +117,7 @@ export async function getDives(filters?: DiveFilters): Promise<{
   const sortBy = filters?.sortBy || 'date';
   query = query.order(sortBy, { ascending: false });
 
-  // Apply pagination (opt-in).
+  // Apply pagination
   // If the caller doesn't specify pagination, return all matching rows.
   if (filters?.page !== undefined || filters?.pageSize !== undefined) {
     const page = filters?.page ?? 1;
@@ -154,11 +150,12 @@ export async function getDives(filters?: DiveFilters): Promise<{
  */
 export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
   const userId = await getCurrentUserId();
+  const normalizedLocationName = diveData.locationName.replace(/\s+/g, ' ').trim();
 
   // Create or reuse a location entry for this user 
   const locationId = await getOrCreateLocationId({
     userId,
-    name: diveData.locationName,
+    name: normalizedLocationName,
     country: diveData.locationCountry ?? null,
     country_code: diveData.locationCountryCode ?? null,
   });
@@ -170,7 +167,7 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
 
     try {
       const { lat, lng } = await geocodeLocation({
-        name: diveData.locationName,
+        name: normalizedLocationName,
         country_code: countryCode,
       });
 
@@ -232,7 +229,20 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     .insert([insertPayload])
     .select('*, locations(id, name, country, country_code)')
     .single();
-  if (error) throw error;
+  if (error) {
+    const supabaseError = error as SupabaseErrorWithCode;
+    console.error('Dive insert failed after location upsert', {
+      userId,
+      locationId,
+      locationName: normalizedLocationName,
+      date: diveData.date,
+      depth: diveData.depth,
+      duration: diveData.duration,
+      errorCode: supabaseError.code ?? null,
+      errorMessage: supabaseError.message ?? 'Unknown error',
+    });
+    throw error;
+  }
 
   return data ?? null;
 }

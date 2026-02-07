@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { X, Fish } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { TAG_ITEM_LIMIT, TAG_LIST_LIMIT } from '@/shared/constants';
 import type { Dive } from '../types';
 
@@ -23,6 +23,7 @@ function EditableDiveWildlife() {
     control,
     name: 'wildlife',
   });
+  const wildlife = useWatch({ control, name: 'wildlife' }) ?? [];
   const canAddWildlife = fields.length < TAG_LIST_LIMIT;
 
   const handleAdd = () => {
@@ -53,7 +54,7 @@ function EditableDiveWildlife() {
               key={animal.id}
               className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
             >
-              {animal.value}
+              {wildlife[idx]}
               <button
                 type="button"
                 onClick={() => handleRemove(idx)}

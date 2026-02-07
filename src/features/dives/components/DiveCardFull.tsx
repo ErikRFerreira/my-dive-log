@@ -18,7 +18,7 @@ const diveTypeLabels: Record<NonNullable<Dive['dive_type']>, string> = {
   drift: 'DRIFT',
   night: 'NIGHT',
   training: 'TRAINING',
-  'lake-river': 'LAKE/RIVER',
+  lake_river: 'LAKE/RIVER',
 };
 
 const waterTypeLabels: Record<NonNullable<Dive['water_type']>, string> = {

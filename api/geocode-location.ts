@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from './utils/auth';
 
 type Body = {
   name?: string;
@@ -10,10 +11,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
   res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Validate environment variables
+  const env = getSupabaseEnv();
+  if ('error' in env) {
+    return res.status(500).json({ error: env.error });
+  }
+
+  // Verify authentication
+  const token = getBearerToken(req);
+  if (!token) {
+    return res.status(401).json({ error: 'Missing Authorization bearer token' });
+  }
+
+  const authResult = await verifySupabaseToken(token);
+  if ('error' in authResult) {
+    return res.status(401).json({ error: authResult.error });
+  }
 
   try {
     // Vercel parses JSON automatically when `Content-Type: application/json` is provided.
@@ -75,8 +93,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(200).json({ lat, lng });
-  } catch (err: any) {
-    if (err?.statusCode === 400 && `${err?.message ?? ''}`.toLowerCase().includes('invalid json')) {
+  } catch (err: unknown) {
+    const error = err as { statusCode?: number; message?: string };
+    if (error?.statusCode === 400 && `${error?.message ?? ''}`.toLowerCase().includes('invalid json')) {
       return res.status(400).json({
         error: 'Invalid JSON body',
         details:
