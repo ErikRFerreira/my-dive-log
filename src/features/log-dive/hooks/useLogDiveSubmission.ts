@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import type { FieldErrors } from 'react-hook-form';
 import { useAddDive } from '@/features/dives/hooks/useAddDive';
+import { getLocalDateInputValue } from '@/shared/utils/date';
 import { buildNewDivePayload } from '../utils/mappers';
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
 
@@ -78,7 +79,7 @@ export function useLogDiveSubmission({
           if (submitIntentRef.current === 'saveAnother') {
             onResetForm({
               ...defaultValues,
-              date: new Date().toISOString().split('T')[0],
+              date: getLocalDateInputValue(),
             });
             onResetWizard();
             submitIntentRef.current = 'save'; // Reset intent for next submission
@@ -90,7 +91,6 @@ export function useLogDiveSubmission({
         },
         onError: (err: Error) => {
           console.error('Failed to log dive:', err);
-          toast.error('Failed to log dive. Please try again.');
         },
       });
     },

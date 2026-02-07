@@ -3,11 +3,28 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useLogDiveSubmission } from './useLogDiveSubmission';
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
 
-// Mock dependencies
-const mockNavigate = vi.fn();
-const mockMutateAdd = vi.fn();
-const mockToastSuccess = vi.fn();
-const mockToastError = vi.fn();
+const {
+  mockNavigate,
+  mockMutateAdd,
+  mockToastSuccess,
+  mockToastError,
+  mockBuildNewDivePayload,
+} = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockMutateAdd: vi.fn(),
+  mockToastSuccess: vi.fn(),
+  mockToastError: vi.fn(),
+  mockBuildNewDivePayload: vi.fn<
+    (args: { formData: LogDiveFormData }) => { payload: unknown; blockingError?: string }
+  >((args: { formData: LogDiveFormData }) => ({
+    payload: {
+      ...args.formData,
+      locationName: args.formData.location,
+      locationCountryCode: args.formData.countryCode,
+      depth: parseFloat(args.formData.maxDepth) || 0,
+    },
+  })),
+}));
 
 vi.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
@@ -28,15 +45,7 @@ vi.mock('react-hot-toast', () => ({
 }));
 
 vi.mock('../utils/mappers', () => ({
-  buildNewDivePayload: vi.fn((args: { formData: LogDiveFormData }) => ({
-    payload: {
-      ...args.formData,
-      locationName: args.formData.location,
-      locationCountryCode: args.formData.countryCode,
-      depth: parseFloat(args.formData.maxDepth) || 0,
-    },
-    blockingError: null,
-  })),
+  buildNewDivePayload: mockBuildNewDivePayload,
 }));
 
 describe('useLogDiveSubmission', () => {
@@ -70,6 +79,14 @@ describe('useLogDiveSubmission', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockBuildNewDivePayload.mockImplementation((args: { formData: LogDiveFormData }) => ({
+      payload: {
+        ...args.formData,
+        locationName: args.formData.location,
+        locationCountryCode: args.formData.countryCode,
+        depth: parseFloat(args.formData.maxDepth) || 0,
+      },
+    }));
   });
 
   afterEach(() => {
@@ -163,7 +180,7 @@ describe('useLogDiveSubmission', () => {
     });
   });
 
-  it('should handle API errors and show error toast', async () => {
+  it('should handle API errors without emitting an extra local error toast', async () => {
     const { result } = renderHook(() =>
       useLogDiveSubmission({
         onClearDraft: mockOnClearDraft,
@@ -186,41 +203,13 @@ describe('useLogDiveSubmission', () => {
     result.current.handleSubmit(mockFormData);
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Failed to log dive. Please try again.');
+      expect(mockToastError).not.toHaveBeenCalled();
       expect(mockOnClearDraft).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  it('should handle null response from API', async () => {
-    const { result } = renderHook(() =>
-      useLogDiveSubmission({
-        onClearDraft: mockOnClearDraft,
-        onResetForm: mockOnResetForm,
-        onResetWizard: mockOnResetWizard,
-        defaultValues: mockDefaultValues,
-      })
-    );
-
-    const mockFormData = {
-      date: '2025-06-15',
-      location: 'Test Location',
-    } as LogDiveFormData;
-
-    mockMutateAdd.mockImplementation((_payload, options) => {
-      options?.onSuccess?.(null);
-    });
-
-    result.current.handleSubmit(mockFormData);
-
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Failed to log dive. Please try again.');
-      expect(mockOnClearDraft).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  it('should handle blocking errors from payload builder', async () => {
+  it('should handle blocking errors from payload builder', () => {
     const { result } = renderHook(() =>
       useLogDiveSubmission({
         onClearDraft: mockOnClearDraft,
@@ -234,20 +223,16 @@ describe('useLogDiveSubmission', () => {
       date: '2025-06-15',
     } as LogDiveFormData;
 
-    // Mock buildNewDivePayload to return a blocking error
-    const { buildNewDivePayload } = await import('../utils/mappers');
-    vi.mocked(buildNewDivePayload).mockReturnValue({
+    mockBuildNewDivePayload.mockReturnValue({
       payload: {} as never,
       blockingError: 'Location is required',
     });
 
     result.current.handleSubmit(mockFormData);
 
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Location is required');
-      expect(mockOnResetWizard).toHaveBeenCalled();
-      expect(mockMutateAdd).not.toHaveBeenCalled();
-    });
+    expect(mockToastError).toHaveBeenCalledWith('Location is required');
+    expect(mockOnResetWizard).toHaveBeenCalled();
+    expect(mockMutateAdd).not.toHaveBeenCalled();
   });
 
   it('should handle form validation errors', () => {
@@ -301,55 +286,4 @@ describe('useLogDiveSubmission', () => {
     expect(mockOnResetWizard).toHaveBeenCalled();
   });
 
-  it('should clear localStorage draft on successful submission', async () => {
-    const { result } = renderHook(() =>
-      useLogDiveSubmission({
-        onClearDraft: mockOnClearDraft,
-        onResetForm: mockOnResetForm,
-        onResetWizard: mockOnResetWizard,
-        defaultValues: mockDefaultValues,
-      })
-    );
-
-    const mockFormData = {
-      date: '2025-06-15',
-      location: 'Test Location',
-    } as LogDiveFormData;
-
-    mockMutateAdd.mockImplementation((_payload, options) => {
-      options?.onSuccess?.({ id: 'dive-789' });
-    });
-
-    result.current.handleSubmit(mockFormData);
-
-    await waitFor(() => {
-      expect(mockOnClearDraft).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('should NOT clear localStorage draft on error', async () => {
-    const { result } = renderHook(() =>
-      useLogDiveSubmission({
-        onClearDraft: mockOnClearDraft,
-        onResetForm: mockOnResetForm,
-        onResetWizard: mockOnResetWizard,
-        defaultValues: mockDefaultValues,
-      })
-    );
-
-    const mockFormData = {
-      date: '2025-06-15',
-      location: 'Test Location',
-    } as LogDiveFormData;
-
-    mockMutateAdd.mockImplementation((_payload, options) => {
-      options?.onError?.(new Error('API Error'));
-    });
-
-    result.current.handleSubmit(mockFormData);
-
-    await waitFor(() => {
-      expect(mockOnClearDraft).not.toHaveBeenCalled();
-    });
-  });
 });

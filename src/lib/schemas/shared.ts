@@ -65,7 +65,10 @@ export const stringArrayOrNull = (maxItems = 20, maxLength = 40) =>
     (v) => {
       if (v === undefined || v === null) return null;
       if (Array.isArray(v)) {
-        const cleaned = v.map(String).map((s) => s.trim()).filter(Boolean);
+        const cleaned = v
+          .filter((item): item is string => typeof item === 'string')
+          .map((s) => s.trim())
+          .filter(Boolean);
         return cleaned.length ? cleaned : null;
       }
       return v;

@@ -16,6 +16,7 @@ import { createDiveSchema, type CreateDiveInput } from '../schemas/createDiveSch
 import type { NewDiveInput } from '../types';
 import CountryCombobox from './CountryCombobox';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
+import { getLocalDateInputValue } from '@/shared/utils/date';
 
 type SubmittedDive = {
   date: string;
@@ -46,8 +47,8 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
     return map;
   }, []);
 
-  // Get today's date in yyyy-mm-dd format
-  const today = new Date().toISOString().slice(0, 10);
+  // Get today's local date in yyyy-mm-dd format
+  const today = getLocalDateInputValue();
 
   const {
     register,
@@ -105,7 +106,6 @@ function NewDiveForm({ onSubmit, onCancel }: NewDiveFormProps) {
       },
       onError: (err) => {
         console.error('Failed to add dive:', err);
-        toast.error('Failed to log dive. Please try again.');
       },
     });
   };

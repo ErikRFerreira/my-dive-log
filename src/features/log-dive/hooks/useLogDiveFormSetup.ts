@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSettingsStore } from '@/store/settingsStore';
+import { getLocalDateInputValue } from '@/shared/utils/date';
 import { useDraftPersistence } from '../useDraftPersistence';
 import { logDiveSchema } from '../schema/schema';
 import type { LogDiveFormData, LogDiveFormInput } from '../schema/schema';
@@ -30,7 +31,7 @@ export function useLogDiveFormSetup() {
    */
   const defaultValues = useMemo<LogDiveFormInput>(() => {
     return {
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateInputValue(),
       countryCode: '',
       location: '',
       maxDepth: '',

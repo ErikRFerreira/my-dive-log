@@ -14,6 +14,7 @@ import type { Control, UseFormSetValue } from 'react-hook-form';
 
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { COUNTRIES } from '@/shared/data/countries';
+import { getLocalDateInputValue } from '@/shared/utils/date';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
 import InlineError from '@/components/common/InlineError';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -95,7 +96,7 @@ export default function EssentialsStep({ control, setValue }: Props) {
     control,
   });
   const setUnitSystem = useSettingsStore((s) => s.setUnitSystem);
-  const todayString = new Date().toISOString().split('T')[0];
+  const todayString = getLocalDateInputValue();
   const maxDepthLimit = unitSystemField.value === 'imperial' ? 164 : 50;
 
   // Debounce search query to reduce re-renders during typing

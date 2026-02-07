@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { X, Package } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { TAG_ITEM_LIMIT, TAG_LIST_LIMIT } from '@/shared/constants';
 import type { Dive } from '../types';
 
@@ -11,11 +11,6 @@ interface DiveEquipmentProps {
   dive: Dive;
   isEditing: boolean;
 }
-
-type EquipmentFieldItem = {
-  id: string;
-  value: string;
-};
 
 function EditableDiveEquipment() {
   const [newItem, setNewItem] = useState('');
@@ -28,12 +23,13 @@ function EditableDiveEquipment() {
     control,
     name: 'equipment',
   });
+  const equipment = useWatch({ control, name: 'equipment' }) ?? [];
   const canAddEquipment = fields.length < TAG_LIST_LIMIT;
 
   const handleAdd = () => {
     const trimmed = newItem.trim();
     if (!trimmed || !canAddEquipment) return;
-    append({ value: trimmed });
+    append(trimmed);
     setNewItem('');
   };
 
@@ -58,7 +54,7 @@ function EditableDiveEquipment() {
               key={item.id}
               className="flex items-center gap-2 px-3 py-1 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 rounded-full text-sm font-medium"
             >
-              {(item as EquipmentFieldItem).value}
+              {equipment[idx]}
               <button
                 type="button"
                 onClick={() => handleRemove(idx)}
