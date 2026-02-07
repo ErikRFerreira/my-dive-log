@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import LogDivePage from '../LogDivePage';
+import LogDivePage from '@/pages/LogDive';
 
 // Track navigation and mutation calls so we can assert behavior without
 // triggering real navigation or network requests.

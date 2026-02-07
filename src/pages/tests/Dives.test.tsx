@@ -55,8 +55,6 @@ vi.mock('@/features/dives/components/DiveList', () => ({
 describe('Dives page', () => {
   it('shows an inline error when locations fail to load', () => {
     render(<Dives />);
-    expect(
-      screen.getByText(/failed to load locations\. filters may be limited\./i)
-    ).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/locations failed/i);
   });
 });

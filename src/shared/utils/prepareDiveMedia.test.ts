@@ -179,7 +179,7 @@ describe('prepareDiveMedia', () => {
     });
 
     it('should respect custom maxDimension option', async () => {
-      const file = new File(['fake-content'], 'photo.jpg', { type: 'image/jpeg' });
+      const file = new File(['x'.repeat(2_000_000)], 'photo.jpg', { type: 'image/jpeg' });
       
       vi.mocked(imageCompression).mockResolvedValue(
         new File(['compressed'], 'compressed.jpg', { type: 'image/jpeg' })
@@ -244,54 +244,49 @@ describe('prepareDiveMedia', () => {
 
   describe('Filename handling', () => {
     it('should preserve base filename and change extension', async () => {
-      const file = new File(['fake-content'], 'vacation-photo.jpeg', { type: 'image/jpeg' });
+      const file = new File(['x'.repeat(2_000_000)], 'vacation-photo.jpeg', { type: 'image/jpeg' });
       
       vi.mocked(imageCompression).mockResolvedValue(
-        new File(['compressed'], 'compressed.jpg', { type: 'image/jpeg' })
+        new File(['x'.repeat(400_000)], 'compressed.jpg', { type: 'image/jpeg' })
       );
 
-      const result = await prepareDiveMedia(file);
+      const result = await prepareDiveMedia(file, { maxBytes: 500_000 });
       
       expect(result.name).toBe('vacation-photo.jpg');
     });
 
     it('should handle files without extension', async () => {
-      const file = new File(['fake-content'], 'photo', { type: 'image/jpeg' });
+      const file = new File(['x'.repeat(2_000_000)], 'photo', { type: 'image/jpeg' });
       
       vi.mocked(imageCompression).mockResolvedValue(
-        new File(['compressed'], 'compressed.jpg', { type: 'image/jpeg' })
+        new File(['x'.repeat(400_000)], 'compressed.jpg', { type: 'image/jpeg' })
       );
 
-      const result = await prepareDiveMedia(file);
+      const result = await prepareDiveMedia(file, { maxBytes: 500_000 });
       
       expect(result.name).toBe('photo.jpg');
     });
 
     it('should use "photo" as fallback for empty filename', async () => {
-      const file = new File(['fake-content'], '', { type: 'image/jpeg' });
+      const file = new File(['x'.repeat(2_000_000)], '', { type: 'image/jpeg' });
       
       vi.mocked(imageCompression).mockResolvedValue(
-        new File(['compressed'], 'compressed.jpg', { type: 'image/jpeg' })
+        new File(['x'.repeat(400_000)], 'compressed.jpg', { type: 'image/jpeg' })
       );
 
-      const result = await prepareDiveMedia(file);
+      const result = await prepareDiveMedia(file, { maxBytes: 500_000 });
       
       expect(result.name).toBe('photo.jpg');
     });
   });
 
   describe('HEIC conversion errors', () => {
-    it('should throw error if heic2any is not installed', async () => {
+    it('should bubble conversion errors from heic2any', async () => {
       const heicFile = new File(['fake-content'], 'photo.heic', { type: 'image/heic' });
-      
-      // Simulate import failure
-      vi.doMock('heic2any', () => {
-        throw new Error('Cannot find module heic2any');
-      });
+      const heic2any = (await import('heic2any')).default;
+      vi.mocked(heic2any).mockRejectedValue(new Error('Conversion failed'));
 
-      await expect(prepareDiveMedia(heicFile)).rejects.toThrow(
-        'HEIC images require the heic2any package to be installed.'
-      );
+      await expect(prepareDiveMedia(heicFile)).rejects.toThrow('Conversion failed');
     });
   });
 

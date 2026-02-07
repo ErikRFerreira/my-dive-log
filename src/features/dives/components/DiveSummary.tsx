@@ -15,18 +15,21 @@ interface DiveSummaryProps {
   isEditing: boolean;
 }
 
-function DiveSummary({ dive, isEditing }: DiveSummaryProps) {
-  const formContext = isEditing ? useFormContext() : null;
+type EditableDiveSummaryProps = {
+  dive: Dive;
+};
+
+function EditableDiveSummary({ dive }: EditableDiveSummaryProps) {
   const {
     control,
-    formState: { errors = {}, isSubmitting = false } = {},
+    formState: { errors = {}, isSubmitting = false },
     trigger,
     setValue,
-  } = formContext || {};
+  } = useFormContext();
 
   // Debounce validation for better performance
   const debouncedTrigger = useDebouncedCallback(() => {
-    if (trigger) trigger('summary');
+    void trigger('summary');
   }, 500);
 
   const { mutateAsync: generateSummary, isPending: isGenerating } = useMutation<string, Error>({
@@ -43,10 +46,59 @@ function DiveSummary({ dive, isEditing }: DiveSummaryProps) {
   const handleGenerate = async () => {
     try {
       await generateSummary();
-    } catch (error: unknown) {
+    } catch {
       toast.error('Failed to generate summary. Please try again.');
     }
   };
+
+  return (
+    <>
+      <Button
+        onClick={handleGenerate}
+        disabled={isGenerating || isSubmitting}
+        size="sm"
+        className="absolute top-2 right-2 z-10 gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+      >
+        <Sparkles className="w-4 h-4" />
+        {isGenerating ? (
+          <>
+            Generating... <InlineSpinner />
+          </>
+        ) : (
+          'Generate'
+        )}
+      </Button>
+      <Controller
+        name="summary"
+        control={control}
+        render={({ field }) => (
+          <div className="flex-1 flex flex-col">
+            <Textarea
+              value={field.value}
+              onChange={(e) => {
+                field.onChange(e.target.value);
+                debouncedTrigger();
+              }}
+              onBlur={field.onBlur}
+              className="min-h-full h-full resize-none pt-14"
+              placeholder="Add summary..."
+              disabled={isSubmitting}
+              aria-invalid={!!errors.summary}
+              aria-describedby={errors.summary ? 'summary-error' : undefined}
+            />
+            {errors.summary && (
+              <span id="summary-error" className="text-xs text-destructive mt-2" role="alert">
+                {errors.summary?.message as string}
+              </span>
+            )}
+          </div>
+        )}
+      />
+    </>
+  );
+}
+
+function DiveSummary({ dive, isEditing }: DiveSummaryProps) {
 
   return (
     <section className="flex flex-col h-full">
@@ -58,54 +110,8 @@ function DiveSummary({ dive, isEditing }: DiveSummaryProps) {
       <Card className="bg-card-dark border-border-dark rounded-2xl flex-1 flex flex-col">
         <CardContent className="p-6 space-y-4 flex-1 flex flex-col">
           <div className="flex-1 flex flex-col relative">
-            {isEditing && (
-              <Button
-                onClick={handleGenerate}
-                disabled={isGenerating || isSubmitting}
-                size="sm"
-                className="absolute top-2 right-2 z-10 gap-2 bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                <Sparkles className="w-4 h-4" />
-                {isGenerating ? (
-                  <>
-                    Generating... <InlineSpinner />
-                  </>
-                ) : (
-                  'Generate'
-                )}
-              </Button>
-            )}
             {isEditing ? (
-              <Controller
-                name="summary"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex-1 flex flex-col">
-                    <Textarea
-                      value={field.value}
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                        debouncedTrigger();
-                      }}
-                      onBlur={field.onBlur}
-                      className="min-h-full h-full resize-none pt-14"
-                      placeholder="Add summary..."
-                      disabled={isSubmitting}
-                      aria-invalid={!!errors.summary}
-                      aria-describedby={errors.summary ? 'summary-error' : undefined}
-                    />
-                    {errors.summary && (
-                      <span
-                        id="summary-error"
-                        className="text-xs text-destructive mt-2"
-                        role="alert"
-                      >
-                        {errors.summary?.message as string}
-                      </span>
-                    )}
-                  </div>
-                )}
-              />
+              <EditableDiveSummary dive={dive} />
             ) : (
               <p className="text-foreground whitespace-pre-line">{dive.summary ?? 'N/A'}</p>
             )}

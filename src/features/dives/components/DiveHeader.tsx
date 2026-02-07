@@ -29,6 +29,43 @@ interface DiveHeaderProps {
   isPending?: boolean;
 }
 
+type DiveHeaderEditingActionsProps = {
+  onSave: () => void;
+  onCancel: () => void;
+  isPending?: boolean;
+};
+
+function DiveHeaderEditingActions({ onSave, onCancel, isPending }: DiveHeaderEditingActionsProps) {
+  const {
+    formState: { isDirty },
+  } = useFormContext();
+
+  return (
+    <>
+      <Button
+        onClick={onSave}
+        disabled={isPending || !isDirty}
+        size="sm"
+        className="gap-2 h-9 bg-primary hover:bg-primary/90"
+      >
+        <Check className="w-4 h-4" />
+        {isPending ? 'Saving...' : 'Save'}
+      </Button>
+      <Button
+        onClick={onCancel}
+        disabled={isPending}
+        size="sm"
+        variant="outline"
+        className="gap-2 h-9"
+        type="button"
+      >
+        <X className="w-4 h-4" />
+        Cancel
+      </Button>
+    </>
+  );
+}
+
 function DiveHeader({
   dive,
   onOpenDeleteModal,
@@ -38,39 +75,13 @@ function DiveHeader({
   onCancel,
   isPending,
 }: DiveHeaderProps) {
-  // Only access form context when editing
-  const formContext = isEditing ? useFormContext() : null;
-  const { formState } = formContext || {};
-  const { isDirty } = formState || {};
-
   return (
     <>
       <div className="flex items-center justify-between">
         <GoBack />
         <div className="flex items-center gap-2">
           {isEditing && onSave && onCancel ? (
-            <>
-              <Button
-                onClick={onSave}
-                disabled={isPending || !isDirty}
-                size="sm"
-                className="gap-2 h-9 bg-primary hover:bg-primary/90"
-              >
-                <Check className="w-4 h-4" />
-                {isPending ? 'Saving...' : 'Save'}
-              </Button>
-              <Button
-                onClick={onCancel}
-                disabled={isPending}
-                size="sm"
-                variant="outline"
-                className="gap-2 h-9"
-                type="button"
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </Button>
-            </>
+            <DiveHeaderEditingActions onSave={onSave} onCancel={onCancel} isPending={isPending} />
           ) : (
             <Button
               onClick={onEdit}

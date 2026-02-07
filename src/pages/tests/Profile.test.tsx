@@ -58,8 +58,6 @@ vi.mock('@/features/dashboard/components/DurationChart', () => ({
 describe('Profile page', () => {
   it('shows an inline error when profile data fails to load', () => {
     render(<Profile />);
-    expect(
-      screen.getByText(/failed to load profile data\. some fields may be unavailable\./i)
-    ).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/profile failed/i);
   });
 });

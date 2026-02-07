@@ -10,18 +10,49 @@ interface DiveNotesProps {
   isEditing: boolean;
 }
 
-function DiveNotes({ dive, isEditing }: DiveNotesProps) {
-  const formContext = isEditing ? useFormContext() : null;
+function EditableDiveNotes() {
   const {
     control,
-    formState: { errors = {}, isSubmitting = false } = {},
+    formState: { errors = {}, isSubmitting = false },
     trigger,
-  } = formContext || {};
+  } = useFormContext();
 
   // Debounce validation for better performance
   const debouncedTrigger = useDebouncedCallback(() => {
-    if (trigger) trigger('notes');
+    void trigger('notes');
   }, 500);
+
+  return (
+    <Controller
+      name="notes"
+      control={control}
+      render={({ field }) => (
+        <div className="flex-1 flex flex-col">
+          <Textarea
+            value={field.value}
+            onChange={(e) => {
+              field.onChange(e.target.value);
+              debouncedTrigger();
+            }}
+            onBlur={field.onBlur}
+            className="flex-1"
+            placeholder="Add notes..."
+            disabled={isSubmitting}
+            aria-invalid={!!errors.notes}
+            aria-describedby={errors.notes ? 'notes-error' : undefined}
+          />
+          {errors.notes && (
+            <span id="notes-error" className="text-xs text-destructive mt-2" role="alert">
+              {errors.notes?.message as string}
+            </span>
+          )}
+        </div>
+      )}
+    />
+  );
+}
+
+function DiveNotes({ dive, isEditing }: DiveNotesProps) {
 
   return (
     <section className="flex flex-col h-full">
@@ -33,32 +64,7 @@ function DiveNotes({ dive, isEditing }: DiveNotesProps) {
       <Card className="bg-card-dark border-border-dark rounded-2xl h-full flex flex-col">
         <CardContent className="p-6 flex-1 flex flex-col">
           {isEditing ? (
-            <Controller
-              name="notes"
-              control={control}
-              render={({ field }) => (
-                <div className="flex-1 flex flex-col">
-                  <Textarea
-                    value={field.value}
-                    onChange={(e) => {
-                      field.onChange(e.target.value);
-                      debouncedTrigger();
-                    }}
-                    onBlur={field.onBlur}
-                    className="flex-1"
-                    placeholder="Add notes..."
-                    disabled={isSubmitting}
-                    aria-invalid={!!errors.notes}
-                    aria-describedby={errors.notes ? 'notes-error' : undefined}
-                  />
-                  {errors.notes && (
-                    <span id="notes-error" className="text-xs text-destructive mt-2" role="alert">
-                      {errors.notes?.message as string}
-                    </span>
-                  )}
-                </div>
-              )}
-            />
+            <EditableDiveNotes />
           ) : (
             <p className="text-foreground leading-relaxed flex-1">{dive.notes ?? 'N/A'}</p>
           )}

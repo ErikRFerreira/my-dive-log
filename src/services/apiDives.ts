@@ -234,7 +234,6 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
     .single();
   if (error) throw error;
 
-  await data ?? null;
   return data ?? null;
 }
 
