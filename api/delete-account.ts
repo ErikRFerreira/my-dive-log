@@ -2,6 +2,81 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from './utils/auth';
 
+const DIVE_PHOTOS_BUCKET = 'dive-photos';
+const STORAGE_PAGE_SIZE = 1000;
+const STORAGE_REMOVE_BATCH_SIZE = 1000;
+
+type StorageListEntry = {
+  name?: string | null;
+  id?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+function joinStoragePath(parent: string, childName: string): string {
+  return `${parent}/${childName}`.replace(/\/+/g, '/').replace(/\/$/, '');
+}
+
+function isFolderEntry(item: StorageListEntry): boolean {
+  // Supabase list() returns folder-like entries with null id/metadata.
+  return item.id == null || item.metadata == null;
+}
+
+async function deleteAllUserDivePhotos(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string
+): Promise<void> {
+  const rootPrefix = userId.replace(/\/+$/, '');
+  const pendingFolders: string[] = [rootPrefix];
+  const filePaths: string[] = [];
+
+  while (pendingFolders.length > 0) {
+    const currentFolder = pendingFolders.pop();
+    if (!currentFolder) break;
+
+    let offset = 0;
+    while (true) {
+      const { data, error } = await adminClient.storage.from(DIVE_PHOTOS_BUCKET).list(currentFolder, {
+        limit: STORAGE_PAGE_SIZE,
+        offset,
+      });
+
+      if (error) {
+        throw new Error(`Failed to list dive photos: ${error.message}`);
+      }
+
+      const entries = (data ?? []) as StorageListEntry[];
+      if (entries.length === 0) {
+        break;
+      }
+
+      for (const entry of entries) {
+        const name = entry.name?.trim();
+        if (!name || name === '.emptyFolderPlaceholder') continue;
+
+        const fullPath = joinStoragePath(currentFolder, name);
+        if (isFolderEntry(entry)) {
+          pendingFolders.push(fullPath);
+        } else {
+          filePaths.push(fullPath);
+        }
+      }
+
+      if (entries.length < STORAGE_PAGE_SIZE) {
+        break;
+      }
+      offset += STORAGE_PAGE_SIZE;
+    }
+  }
+
+  for (let i = 0; i < filePaths.length; i += STORAGE_REMOVE_BATCH_SIZE) {
+    const batch = filePaths.slice(i, i + STORAGE_REMOVE_BATCH_SIZE);
+    const { error: removeError } = await adminClient.storage.from(DIVE_PHOTOS_BUCKET).remove(batch);
+    if (removeError) {
+      throw new Error(`Failed to remove dive photos: ${removeError.message}`);
+    }
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
   res.setHeader('Vary', 'Origin');
@@ -42,6 +117,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const userId = user.id;
 
+    try {
+      await deleteAllUserDivePhotos(adminClient, userId);
+    } catch (storageErr) {
+      const storageErrorMessage =
+        storageErr instanceof Error ? storageErr.message : 'Failed to cleanup dive photos';
+      console.error('delete-account storage cleanup failed:', storageErrorMessage);
+      return res.status(500).json({ error: storageErrorMessage });
+    }
+
     const { error: divesError } = await adminClient.from('dives').delete().eq('user_id', userId);
     if (divesError) return res.status(500).json({ error: divesError.message });
 
@@ -64,4 +148,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: errorMessage });
   }
 }
-

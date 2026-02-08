@@ -1,7 +1,7 @@
-import Loading from '@/components/common/Loading';
-import NoResults from '@/components/layout/NoResults';
-import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import InlineError from '@/components/common/InlineError';
+import Loading from '@/components/common/Loading';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
+import NoResults from '@/components/layout/NoResults';
 import Button from '@/components/ui/button';
 import { useGetDives } from '@/features/dives/hooks/useGetDives';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
@@ -50,13 +50,13 @@ function Locations() {
       {!isLoading && !error && dives && dives.length === 0 && (
         <NoResults>
           <>
-            No dive locations found. Start by adding your first dive!
+            No dive locations found. Start by logging your first dive!
             <Button
               variant="outline"
               className="mt-2 inline-block w-32"
-              onClick={() => navigate('/dives')}
+              onClick={() => navigate('/log-dive')}
             >
-              Go to Dives
+              Log new dive
             </Button>
           </>
         </NoResults>

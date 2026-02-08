@@ -2,10 +2,11 @@ import NoResults from '@/components/layout/NoResults';
 import Pagination from '@/components/layout/Pagination';
 
 import type { Dive } from '@/features/dives/types';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import DiveCard from './DiveCard';
 import DiveCardFull from './DiveCardFull';
+import { Button } from '@/components/ui/button';
 
 type DiveListProps = {
   dives: Dive[];
@@ -26,6 +27,8 @@ function DiveList({
   onPageChange,
   variant = 'full',
 }: DiveListProps) {
+  const navigate = useNavigate();
+
   if (dives.length === 0) {
     if (hasActiveFilters) {
       return (
@@ -35,7 +38,18 @@ function DiveList({
         </NoResults>
       );
     }
-    return <NoResults>No dives logged yet. Add your first dive by clicking "Add Dive"</NoResults>;
+    return (
+      <NoResults>
+        No dives logged yet. Start by logging your first dive!
+        <Button
+          variant="outline"
+          className="mt-2 inline-block w-32"
+          onClick={() => navigate('/log-dive')}
+        >
+          Log new dive
+        </Button>
+      </NoResults>
+    );
   }
 
   return (

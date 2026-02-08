@@ -11,7 +11,11 @@ import { BookType, Clock, Gauge, Thermometer } from 'lucide-react';
 import { Controller, useFormContext } from 'react-hook-form';
 import type { Dive } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
-import { formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
+import {
+  convertValueBetweenSystems,
+  formatValueWithUnit,
+  getUnitLabel,
+} from '@/shared/utils/units';
 
 interface DiveStatsProps {
   dive: Dive;
@@ -26,6 +30,26 @@ function DiveStats({ dive, isEditing }: DiveStatsProps) {
   // Always call useFormContext - React Hooks must be called unconditionally
   const formContext = useFormContext();
   const { control, formState: { errors = {}, isSubmitting = false } = {} } = formContext || {};
+
+  const toDisplayNumber = (
+    rawMetricValue: number | null | undefined,
+    kind: 'depth' | 'temperature'
+  ): number | '' => {
+    if (rawMetricValue === null || rawMetricValue === undefined) return '';
+    const converted = convertValueBetweenSystems(rawMetricValue, kind, 'metric', unitSystem);
+    if (!Number.isFinite(converted)) return '';
+    return Math.round(converted);
+  };
+
+  const toMetricNumber = (
+    rawDisplayValue: string,
+    kind: 'depth' | 'temperature'
+  ): number | null => {
+    if (rawDisplayValue === '') return null;
+    const parsed = Number(rawDisplayValue);
+    if (!Number.isFinite(parsed)) return null;
+    return convertValueBetweenSystems(parsed, kind, unitSystem, 'metric');
+  };
 
   return (
     <div className="grid md:grid-cols-4 gap-4">
@@ -63,14 +87,30 @@ function DiveStats({ dive, isEditing }: DiveStatsProps) {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <NumberInput
-                          value={field.value ?? ''}
+                          value={
+                            key === 'depth'
+                              ? toDisplayNumber(field.value, 'depth')
+                              : key === 'water_temp'
+                                ? toDisplayNumber(field.value, 'temperature')
+                                : (field.value ?? '')
+                          }
                           onChange={(e) => {
-                            const val = e.target.value === '' ? null : Number(e.target.value);
+                            const raw = e.target.value;
+                            if (key === 'depth') {
+                              field.onChange(toMetricNumber(raw, 'depth'));
+                              return;
+                            }
+                            if (key === 'water_temp') {
+                              field.onChange(toMetricNumber(raw, 'temperature'));
+                              return;
+                            }
+                            const val = raw === '' ? null : Number(raw);
                             field.onChange(val);
                           }}
                           onBlur={field.onBlur}
                           disabled={isSubmitting}
                           className="text-base"
+                          min={key === 'duration' || key === 'depth' ? 1 : undefined}
                           aria-invalid={!!errors[key]}
                           aria-describedby={errors[key] ? `${key}-error` : undefined}
                         />

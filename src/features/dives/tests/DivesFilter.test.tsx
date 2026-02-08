@@ -130,14 +130,29 @@ describe('DivesFilter', () => {
       expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('reef');
     });
 
-    it('should clear search when X button is clicked', async () => {
-      render(<DivesFilter {...defaultProps} searchQuery="reef" />);
+    it('should clear search without resetting other filters when X button is clicked', async () => {
+      render(
+        <DivesFilter
+          {...defaultProps}
+          showFilters={true}
+          searchQuery="reef"
+          country="Australia"
+          maxDepth={30}
+        />
+      );
 
       const clearButton = screen.getByLabelText(/clear search/i);
       fireEvent.click(clearButton);
 
       expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('');
-      expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
+      expect(defaultProps.onReset).not.toHaveBeenCalled();
+
+      const selects = screen.getAllByRole('combobox');
+      const countrySelect = selects[1] as HTMLSelectElement;
+      expect(countrySelect.value).toBe('Australia');
+
+      const depthSlider = screen.getByRole('slider') as HTMLInputElement;
+      expect(depthSlider.value).toBe('30');
     });
 
     it('should debounce multiple rapid search inputs', async () => {

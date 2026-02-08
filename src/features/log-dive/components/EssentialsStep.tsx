@@ -16,6 +16,7 @@ import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
 import { COUNTRIES } from '@/shared/data/countries';
 import { getLocalDateInputValue } from '@/shared/utils/date';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
+import { convertValueBetweenSystems } from '@/shared/utils/units';
 import InlineError from '@/components/common/InlineError';
 import { useSettingsStore } from '@/store/settingsStore';
 
@@ -99,6 +100,37 @@ export default function EssentialsStep({ control, setValue }: Props) {
   const todayString = getLocalDateInputValue();
   const maxDepthLimit = unitSystemField.value === 'imperial' ? 164 : 50;
 
+  const normalizeDepthValue = (raw: string, targetUnit: 'metric' | 'imperial') => {
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return raw;
+    const rounded = Math.round(parsed);
+    const clamped = Math.max(1, Math.min(targetUnit === 'imperial' ? 164 : 50, rounded));
+    return String(clamped);
+  };
+
+  const switchUnitSystem = (nextUnit: 'metric' | 'imperial') => {
+    const prevUnit = unitSystemField.value as 'metric' | 'imperial';
+    if (prevUnit === nextUnit) return;
+
+    const currentDepthRaw = String(maxDepthField.value ?? '').trim();
+    if (currentDepthRaw) {
+      const currentDepth = Number(currentDepthRaw);
+      if (Number.isFinite(currentDepth)) {
+        const convertedDepth = convertValueBetweenSystems(
+          currentDepth,
+          'depth',
+          prevUnit,
+          nextUnit
+        );
+        const nextDepth = normalizeDepthValue(String(convertedDepth), nextUnit);
+        setValue('maxDepth', nextDepth, { shouldDirty: true, shouldValidate: true });
+      }
+    }
+
+    unitSystemField.onChange(nextUnit);
+    setUnitSystem(nextUnit);
+  };
+
   // Debounce search query to reduce re-renders during typing
   const debouncedQuery = useDebouncedValue(countryQuery, 150);
 
@@ -178,10 +210,7 @@ export default function EssentialsStep({ control, setValue }: Props) {
           >
             <button
               type="button"
-              onClick={() => {
-                unitSystemField.onChange('metric');
-                setUnitSystem('metric');
-              }}
+              onClick={() => switchUnitSystem('metric')}
               role="radio"
               aria-checked={unitSystemField.value === 'metric'}
               className={`px-3 py-1 text-xs ${
@@ -194,10 +223,7 @@ export default function EssentialsStep({ control, setValue }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => {
-                unitSystemField.onChange('imperial');
-                setUnitSystem('imperial');
-              }}
+              onClick={() => switchUnitSystem('imperial')}
               role="radio"
               aria-checked={unitSystemField.value === 'imperial'}
               className={`px-3 py-1 text-xs ${
@@ -363,7 +389,16 @@ export default function EssentialsStep({ control, setValue }: Props) {
               }
               maxDepthField.onChange(num < 1 ? '1' : val);
             }}
-            onBlur={maxDepthField.onBlur}
+            onBlur={() => {
+              const raw = String(maxDepthField.value ?? '').trim();
+              if (raw && unitSystemField.value) {
+                // ensure unit system exists
+                const normalized = normalizeDepthValue(raw, unitSystemField.value);
+                if (normalized !== raw) {
+                  maxDepthField.onChange(normalized);
+                }
+              }
+            }}
             min={1}
             max={maxDepthLimit}
             aria-invalid={Boolean(maxDepthState.error?.message)}

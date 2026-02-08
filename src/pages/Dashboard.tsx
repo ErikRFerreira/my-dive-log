@@ -1,11 +1,13 @@
 import Loading from '@/components/common/Loading';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import NoResults from '@/components/layout/NoResults';
+import { Button } from '@/components/ui/button';
 import DepthChart from '@/features/dashboard/components/DepthChart';
 import MonthlyChart from '@/features/dashboard/components/MonthlyChart';
 import StatsList from '@/features/dashboard/components/StatsList';
 import DiveList from '@/features/dives/components/DiveList';
 import { useGetDives } from '@/features/dives/hooks/useGetDives';
+import { useNavigate } from 'react-router';
 
 function Dashboard() {
   const {
@@ -18,6 +20,7 @@ function Dashboard() {
 
   const hasDives = (allDives?.length ?? 0) > 0;
   const lastThreeDives = (allDives ?? []).slice(0, 3);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -38,7 +41,16 @@ function Dashboard() {
           description="Unable to load your diving statistics. Please check your connection and try again."
         />
       ) : !hasDives ? (
-        <NoResults>No dives logged yet. Start by adding your first dive!</NoResults>
+        <NoResults>
+          No dives logged yet. Start by logging your first dive!
+          <Button
+            variant="outline"
+            className="mt-2 inline-block w-32"
+            onClick={() => navigate('/log-dive')}
+          >
+            Log new dive
+          </Button>
+        </NoResults>
       ) : (
         <>
           {/* Stats list grid */}

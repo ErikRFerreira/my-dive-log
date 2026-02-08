@@ -11,6 +11,9 @@ type SupabaseErrorWithCode = {
   message?: string;
 };
 
+const DIVE_PHOTOS_BUCKET = 'dive-photos';
+const STORAGE_REMOVE_BATCH_SIZE = 1000;
+
 
 /**
  * Fetch a single dive by ID from Supabase.
@@ -256,6 +259,35 @@ export async function createDive(diveData: NewDiveInput): Promise<Dive | null> {
  */
 export async function deleteDive(id: string): Promise<boolean> {
   const userId = await getCurrentUserId();
+
+  // Delete all photos for the dive, including storage objects, to avoid orphaned files and Supabase foreign key issues.
+  const { data: photos, error: photosError } = await supabase
+    .from('dive_photos')
+    .select('storage_path')
+    .eq('dive_id', id)
+    .eq('user_id', userId);
+  if (photosError) throw photosError;
+  
+  const storagePaths = Array.from(
+    new Set(
+      (photos ?? [])
+        .map((photo) => photo.storage_path)
+        .filter((path): path is string => typeof path === 'string' && path.length > 0)
+    )
+  );
+
+  for (let i = 0; i < storagePaths.length; i += STORAGE_REMOVE_BATCH_SIZE) {
+    const batch = storagePaths.slice(i, i + STORAGE_REMOVE_BATCH_SIZE);
+    const { error: storageError } = await supabase.storage.from(DIVE_PHOTOS_BUCKET).remove(batch);
+    if (storageError) throw storageError;
+  }
+
+  const { error: deletePhotosError } = await supabase
+    .from('dive_photos')
+    .delete()
+    .eq('dive_id', id)
+    .eq('user_id', userId);
+  if (deletePhotosError) throw deletePhotosError;
 
   const { error } = await supabase.from('dives').delete().eq('id', id).eq('user_id', userId);
   if (error) throw error;

@@ -80,7 +80,6 @@ function DivesFilter({
   const handleClearSearch = () => {
     setLocalSearchQuery('');
     onSearchQueryChange?.('');
-    onReset();
   };
 
   const handleResetClick = () => {
