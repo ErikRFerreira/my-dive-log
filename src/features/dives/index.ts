@@ -23,6 +23,7 @@ export { useDeleteDive } from './hooks/useDeleteDive';
 export { useUpdateDive } from './hooks/useUpdateDive';
 export { useGenerateSummary } from './hooks/useGenerateSummary';
 export { useGetLocations } from './hooks/useGetLocations';
+export { useDepthRange } from './hooks/useDepthRange';
 
 // Types
 export type {

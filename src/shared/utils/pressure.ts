@@ -165,3 +165,28 @@ export function nitroxTrack(value: number) {
   const base = '#1f2937';
   return `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${base} ${percent}%, ${base} 100%)`;
 }
+
+/**
+ * Generates a CSS linear gradient for a depth filter slider.
+ * 
+ * Creates a gradient showing the selected depth range:
+ * - Left portion: Filled with primary/cyan color
+ * - Right portion: Muted gray background
+ * 
+ * @param value - Current depth filter value
+ * @param minValue - Minimum depth value
+ * @param maxValue - Maximum depth value
+ * @returns CSS gradient string for use in style attribute
+ * 
+ * @example
+ * depthFilterTrack(25, 1, 50) // 50% fill
+ * depthFilterTrack(1, 1, 50) // 0% fill
+ * depthFilterTrack(50, 1, 50) // 100% fill
+ */
+export function depthFilterTrack(value: number, minValue: number, maxValue: number) {
+  const range = maxValue - minValue;
+  const percent = range > 0 ? ((value - minValue) / range) * 100 : 0;
+  const color = '#00d9ff'; // Primary blue color
+  const base = '#e5e7eb'; // Light gray
+  return `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${base} ${percent}%, ${base} 100%)`;
+}

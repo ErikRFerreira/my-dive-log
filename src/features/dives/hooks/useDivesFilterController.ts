@@ -1,4 +1,3 @@
-import { DEFAULT_MAX_DEPTH } from '@/shared/constants';
 import { useDiveFilterStore } from '@/store/diveFilterStore';
 
 export function useDivesFilterController() {
@@ -46,17 +45,11 @@ export function useDivesFilterController() {
     setCurrentPage(1);
   };
 
-  const handleReset = () => {
+  const handleReset = (actualMaxDepthInMeters: number) => {
     resetFilters();
+    setMaxDepth(actualMaxDepthInMeters);
     setCurrentPage(1);
   };
-
-  const hasActiveFilters =
-    maxDepth < DEFAULT_MAX_DEPTH ||
-    locationId !== null ||
-    country !== null ||
-    sortBy !== 'date' ||
-    searchQuery.trim() !== '';
 
   return {
     showFilters,
@@ -74,6 +67,5 @@ export function useDivesFilterController() {
     setPageAndCountry,
     setPageAndLocationId,
     handleReset,
-    hasActiveFilters,
   };
 }

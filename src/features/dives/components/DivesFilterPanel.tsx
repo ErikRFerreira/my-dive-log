@@ -1,12 +1,12 @@
 import Button from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MAX_DEPTH_FILTER, MIN_DEPTH_FILTER } from '@/shared/constants';
 import { useSettingsStore } from '@/store/settingsStore';
-import { formatValueWithUnit } from '@/shared/utils/units';
+import { depthFilterTrack } from '@/shared/utils/pressure';
 
 import type { Location as DiveLocation } from '@/features/locations/';
 import type { SortBy } from '@/shared/types/filters';
 import type { ChangeEvent } from 'react';
+import { Anchor, ArrowDownUp, Globe, MapPin } from 'lucide-react';
 
 type DivesFilterPanelProps = {
   show: boolean;
@@ -20,6 +20,8 @@ type DivesFilterPanelProps = {
   isLoadingLocations: boolean;
   filteredLocations: DiveLocation[];
   localMaxDepth: number;
+  minDepthForSlider: number;
+  maxDepthForSlider: number;
   onMaxDepthChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onResetClick: () => void;
 };
@@ -38,6 +40,8 @@ export default function DivesFilterPanel({
   localMaxDepth,
   onMaxDepthChange,
   onResetClick,
+  minDepthForSlider,
+  maxDepthForSlider,
 }: DivesFilterPanelProps) {
   const unitSystem = useSettingsStore((s) => s.unitSystem);
 
@@ -47,7 +51,10 @@ export default function DivesFilterPanel({
     <Card className="bg-card border-border/60 p-4 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label className="text-sm font-semibold text-foreground block mb-2">Sort By</label>
+          <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+            <ArrowDownUp className="w-3.5 h-3.5 text-primary" />
+            Sort By
+          </label>
           <select
             value={sortBy}
             onChange={(e) => onSortByChange(e.target.value as SortBy)}
@@ -60,7 +67,10 @@ export default function DivesFilterPanel({
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground block mb-2">Country</label>
+          <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+            <Globe className="w-3.5 h-3.5 text-primary" />
+            Country
+          </label>
           <select
             value={derivedCountry}
             onChange={(e) => {
@@ -80,7 +90,10 @@ export default function DivesFilterPanel({
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground block mb-2">Location</label>
+          <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+            <MapPin className="w-3.5 h-3.5 text-primary" />
+            Location
+          </label>
           <select
             value={locationId ?? 'all'}
             onChange={(e) => {
@@ -100,17 +113,33 @@ export default function DivesFilterPanel({
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-foreground block mb-2">
-            Max Depth: {formatValueWithUnit(localMaxDepth, 'depth', unitSystem)}
+          <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+            <Anchor className="w-3.5 h-3.5 text-primary inline-block mr-1" />
+            Max Depth: {localMaxDepth} {unitSystem === 'imperial' ? 'ft' : 'm'}
           </label>
           <input
             type="range"
-            min={MIN_DEPTH_FILTER}
-            max={MAX_DEPTH_FILTER}
+            min={minDepthForSlider}
+            max={maxDepthForSlider}
             value={localMaxDepth}
             onChange={onMaxDepthChange}
-            className="w-full"
+            className="w-full mt-1 rounded-full appearance-none range-blue"
+            style={{
+              ['--range-track' as string]: depthFilterTrack(
+                localMaxDepth,
+                minDepthForSlider,
+                maxDepthForSlider
+              ),
+            }}
           />
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>
+              {minDepthForSlider} {unitSystem === 'imperial' ? 'ft' : 'm'}
+            </span>
+            <span>
+              {maxDepthForSlider} {unitSystem === 'imperial' ? 'ft' : 'm'}
+            </span>
+          </div>
         </div>
       </div>
 

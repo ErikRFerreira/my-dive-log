@@ -1,6 +1,7 @@
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import AuthLoading from '@/components/layout/AuthLoading';
 import { useUser } from '@/features/authentication';
+import { isUnauthenticatedAuthError } from '@/services/apiAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate } from 'react-router';
 
@@ -20,6 +21,7 @@ function ProtectedRoutes({ children }: ProtectedRoutesProps) {
   const resolvedError =
     error instanceof Error ? error : new Error('Unable to verify your session.');
   const message = resolvedError.message.toLowerCase();
+  const isUnauthenticatedAuthState = isUnauthenticatedAuthError(resolvedError);
 
   // Treat "offline" as an actual client connectivity state.
   const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -44,6 +46,10 @@ function ProtectedRoutes({ children }: ProtectedRoutesProps) {
 
   // Render explicit auth failure states instead of redirecting to login immediately.
   if (isError) {
+    if (isUnauthenticatedAuthState) {
+      return <Navigate to="/login" replace />;
+    }
+
     if (isOffline) {
       return (
         <QueryErrorFallback

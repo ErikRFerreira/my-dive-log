@@ -40,8 +40,19 @@ vi.mock('@/features/dives/hooks/useDivesFilterController', () => ({
     setPageAndCountry: vi.fn(),
     setPageAndLocationId: vi.fn(),
     handleReset: vi.fn(),
-    hasActiveFilters: false,
   }),
+}));
+
+vi.mock('@/features/dives/hooks/useDepthRange', () => ({
+  useDepthRange: () => ({
+    minDepth: 1,
+    maxDepth: 148,
+    isLoading: false,
+  }),
+}));
+
+vi.mock('@/store/settingsStore', () => ({
+  useSettingsStore: () => 'imperial',
 }));
 
 vi.mock('@/features/dives/components/DivesFilter', () => ({

@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import type { Location as DiveLocation } from '@/features/locations/';
 import type { SortBy } from '@/shared/types/filters';
 import { DEFAULT_MAX_DEPTH, DEBOUNCE_DELAY, MIN_SEARCH_LENGTH } from '@/shared/constants';
+import { convertValueBetweenSystems } from '@/shared/utils/units';
+import { useSettingsStore } from '@/store/settingsStore';
 import DivesFilterHeaderRow from './DivesFilterHeaderRow';
 import DivesFilterPanel from './DivesFilterPanel';
 
@@ -17,6 +19,8 @@ type DivesFilterProps = {
   filteredCount: number;
   totalCount: number;
   searchQuery?: string;
+  minDepthForSlider: number;
+  maxDepthForSlider: number;
   onToggleFilters: () => void;
   onSearchQueryChange?: (query: string) => void;
   onSortByChange: (sortBy: SortBy) => void;
@@ -37,6 +41,8 @@ function DivesFilter({
   filteredCount,
   totalCount,
   searchQuery,
+  minDepthForSlider,
+  maxDepthForSlider,
   onToggleFilters,
   onSearchQueryChange,
   onSortByChange,
@@ -47,7 +53,14 @@ function DivesFilter({
 }: DivesFilterProps) {
   // If a locationId is set, always show filters
   const filtersVisible = showFilters || !!locationId;
-  const [localMaxDepth, setLocalMaxDepth] = useState(maxDepth);
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
+  // Convert maxDepth from meters (stored) to current unit system for slider
+  const initialLocalMaxDepth = useMemo(() => {
+    return Math.round(convertValueBetweenSystems(maxDepth, 'depth', 'metric', unitSystem));
+  }, [maxDepth, unitSystem]);
+
+  const [localMaxDepth, setLocalMaxDepth] = useState(initialLocalMaxDepth);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || '');
   const selectedCountry = country ?? '';
 
@@ -83,7 +96,10 @@ function DivesFilter({
   };
 
   const handleResetClick = () => {
-    setLocalMaxDepth(DEFAULT_MAX_DEPTH);
+    const resetDepth = Math.round(
+      convertValueBetweenSystems(DEFAULT_MAX_DEPTH, 'depth', 'metric', unitSystem)
+    );
+    setLocalMaxDepth(resetDepth);
     setLocalSearchQuery('');
     onSearchQueryChange?.('');
     onReset();
@@ -113,11 +129,17 @@ function DivesFilter({
   };
 
   const handleMaxDepthChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newDepth = Number(e.target.value);
-    setLocalMaxDepth(newDepth);
+    const newDepthInCurrentUnits = Number(e.target.value);
+    setLocalMaxDepth(newDepthInCurrentUnits);
+
     if (maxDepthDebounceTimerRef.current) clearTimeout(maxDepthDebounceTimerRef.current);
+
     maxDepthDebounceTimerRef.current = setTimeout(() => {
-      onMaxDepthChange(newDepth);
+      // Convert from current unit system back to meters for the filter/API
+      const newDepthInMeters = Math.round(
+        convertValueBetweenSystems(newDepthInCurrentUnits, 'depth', unitSystem, 'metric')
+      );
+      onMaxDepthChange(newDepthInMeters);
     }, DEBOUNCE_DELAY);
   };
 
@@ -127,8 +149,11 @@ function DivesFilter({
   }, [searchQuery]);
 
   useEffect(() => {
-    setLocalMaxDepth(maxDepth);
-  }, [maxDepth]);
+    const convertedDepth = Math.round(
+      convertValueBetweenSystems(maxDepth, 'depth', 'metric', unitSystem)
+    );
+    setLocalMaxDepth(convertedDepth);
+  }, [maxDepth, unitSystem]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -157,6 +182,8 @@ function DivesFilter({
         derivedCountry={derivedCountry}
         countriesInLocations={countriesInLocations}
         locationId={locationId}
+        minDepthForSlider={minDepthForSlider}
+        maxDepthForSlider={maxDepthForSlider}
         onCountryChange={onCountryChange}
         onLocationIdChange={onLocationIdChange}
         isLoadingLocations={isLoadingLocations}

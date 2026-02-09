@@ -1,5 +1,34 @@
 import { supabase } from './supabase';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof error.message === 'string'
+  ) {
+    return error.message;
+  }
+  return '';
+}
+
+/**
+ * Detects auth errors that should be treated as an unauthenticated state.
+ */
+export function isUnauthenticatedAuthError(error: unknown): boolean {
+  const normalized = getErrorMessage(error).toLowerCase();
+
+  return (
+    normalized.includes('auth session missing') ||
+    normalized.includes('session missing') ||
+    normalized.includes('invalid jwt') ||
+    normalized.includes('jwt expired') ||
+    normalized.includes('refresh token not found') ||
+    normalized.includes('invalid refresh token')
+  );
+}
+
 /**
  * Convert various auth-related errors into user-friendly messages.
  * 
@@ -12,7 +41,7 @@ function toFriendlyAuthError(error: unknown, fallbackMessage: string): Error {
     return new Error('No internet connection. Please check your network and try again.');
   }
 
-  const message = error instanceof Error ? error.message : '';
+  const message = getErrorMessage(error);
   const normalized = message.toLowerCase();
 
   if (
@@ -244,7 +273,10 @@ export async function getCurrentUser() {
     error,
   } = await supabase.auth.getUser();
 
-  if (error) throw error;
+  if (error) {
+    if (isUnauthenticatedAuthError(error)) return null;
+    throw error;
+  }
   return user;
 }
 

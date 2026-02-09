@@ -7,9 +7,11 @@ import DivesFilter from '@/features/dives/components/DivesFilter';
 import { useDivesFilterController } from '@/features/dives/hooks/useDivesFilterController';
 import { useGetDives } from '@/features/dives/hooks/useGetDives';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
-import { DEFAULT_MAX_DEPTH, ITEMS_PER_PAGE } from '@/shared/constants';
+import { useDepthRange } from '@/features/dives/hooks/useDepthRange';
+import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
 import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
+import { useSettingsStore } from '@/store/settingsStore';
 import { Download } from 'lucide-react';
 
 function Dives() {
@@ -29,7 +31,6 @@ function Dives() {
     setPageAndCountry,
     setPageAndLocationId,
     handleReset,
-    hasActiveFilters,
   } = useDivesFilterController();
   const {
     locations,
@@ -38,10 +39,20 @@ function Dives() {
     error: locationsError,
   } = useGetLocations();
 
+  const unitSystem = useSettingsStore((s) => s.unitSystem);
+
+  // Get absolute min/max depth from ALL dives (unfiltered) for slider bounds
+  const { minDepth: minDepthForSlider, maxDepth: maxDepthForSlider } = useDepthRange(unitSystem);
+
+  // Convert maxDepthForSlider back to meters for comparison and reset (store expects metric values)
+  const maxDepthInMeters = Math.round(
+    unitSystem === 'imperial' ? maxDepthForSlider / 3.28084 : maxDepthForSlider
+  );
+
   // Fetch dives with server-side filtering and pagination
   const filters = {
     sortBy,
-    maxDepth: maxDepth < DEFAULT_MAX_DEPTH ? maxDepth : undefined,
+    maxDepth: maxDepth < maxDepthInMeters ? maxDepth : undefined,
     locationId: locationId ?? undefined,
     country: country ?? undefined,
     page: currentPage,
@@ -52,7 +63,16 @@ function Dives() {
   const { dives, totalCount, isLoading, isFetching, error, refetch } = useGetDives(filters, {
     locations,
   });
+
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    maxDepth < maxDepthInMeters ||
+    locationId !== null ||
+    country !== null ||
+    sortBy !== 'date' ||
+    searchQuery.trim() !== '';
 
   return (
     <>
@@ -105,16 +125,18 @@ function Dives() {
               country={country}
               isLoadingLocations={isLoadingLocations}
               showFilters={showFilters}
-              onToggleFilters={toggleShowFilters}
               filteredCount={dives?.length ?? 0}
               totalCount={totalCount}
               searchQuery={searchQuery}
+              minDepthForSlider={minDepthForSlider}
+              maxDepthForSlider={maxDepthForSlider}
+              onToggleFilters={toggleShowFilters}
               onSearchQueryChange={setPageAndSearchQuery}
               onSortByChange={setPageAndSortBy}
               onMaxDepthChange={setPageAndMaxDepth}
               onCountryChange={setPageAndCountry}
               onLocationIdChange={setPageAndLocationId}
-              onReset={handleReset}
+              onReset={() => handleReset(maxDepthInMeters)}
             />
           </section>
           <section aria-busy={isFetching}>

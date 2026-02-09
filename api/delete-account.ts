@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from './utils/auth';
 
 const DIVE_PHOTOS_BUCKET = 'dive-photos';
@@ -12,17 +12,36 @@ type StorageListEntry = {
   metadata?: Record<string, unknown> | null;
 };
 
+/**
+ * Joins a parent storage path with a child name, normalizing slashes.
+ * @param parent - The parent folder path
+ * @param childName - The child file or folder name
+ * @returns A normalized path with no duplicate or trailing slashes
+ */
 function joinStoragePath(parent: string, childName: string): string {
   return `${parent}/${childName}`.replace(/\/+/g, '/').replace(/\/$/, '');
 }
 
+/**
+ * Determines if a storage entry represents a folder or a file.
+ * Folders have null id and metadata in Supabase storage listings.
+ * @param item - The storage list entry to check
+ * @returns True if the entry is a folder, false if it's a file
+ */
 function isFolderEntry(item: StorageListEntry): boolean {
   // Supabase list() returns folder-like entries with null id/metadata.
   return item.id == null || item.metadata == null;
 }
 
+/**
+ * Recursively deletes all dive photos for a user from Supabase storage.
+ * Traverses the user's folder structure, collecting all file paths, then removes them in batches.
+ * @param adminClient - Supabase admin client with service role permissions
+ * @param userId - The user ID whose photos should be deleted
+ * @throws {Error} If listing or removing files fails
+ */
 async function deleteAllUserDivePhotos(
-  adminClient: ReturnType<typeof createClient>,
+  adminClient: SupabaseClient,
   userId: string
 ): Promise<void> {
   const rootPrefix = userId.replace(/\/+$/, '');
@@ -77,6 +96,18 @@ async function deleteAllUserDivePhotos(
   }
 }
 
+/**
+ * Serverless API handler for user account deletion.
+ * Requires JWT authentication. Deletes all user data including:
+ * - Dive photos from storage
+ * - Dive records
+ * - Location records
+ * - Profile record
+ * - Auth user account
+ * @param req - Vercel request object (must include Authorization header)
+ * @param res - Vercel response object
+ * @returns JSON response with success status or error message
+ */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
   res.setHeader('Vary', 'Origin');

@@ -214,3 +214,39 @@ export function formatValueWithUnit(
   return `${formatValue(value, kind, unitSystem, options)} ${getUnitLabel(kind, unitSystem)}`;
 }
 
+/**
+ * Computes depth range (min/max) from an array of dives.
+ * Returns values converted to the specified unit system, rounded to whole numbers.
+ * 
+ * @param dives - Array of dives
+ * @param unitSystem - Target unit system for the range
+ * @returns Object with minDepth and maxDepth, or null if no valid dives
+ * 
+ * @example
+ * const dives = [{ depth: 10 }, { depth: 30 }, { depth: 20 }];
+ * computeDepthRange(dives, 'metric') // { minDepth: 10, maxDepth: 30 }
+ * computeDepthRange(dives, 'imperial') // { minDepth: 33, maxDepth: 98 }
+ */
+export function computeDepthRange(
+  dives: Array<{ depth: number }> | null | undefined,
+  unitSystem: UnitSystem
+): { minDepth: number; maxDepth: number } | null {
+  if (!dives || dives.length === 0) {
+    return null;
+  }
+
+  const depths = dives.map((dive) => dive.depth).filter((d) => d > 0);
+  
+  if (depths.length === 0) {
+    return null;
+  }
+
+  const minDepthMetric = Math.min(...depths);
+  const maxDepthMetric = Math.max(...depths);
+
+  // Convert to target unit system and round
+  const minDepth = Math.round(convertValue(minDepthMetric, 'depth', unitSystem));
+  const maxDepth = Math.round(convertValue(maxDepthMetric, 'depth', unitSystem));
+
+  return { minDepth, maxDepth };
+}
