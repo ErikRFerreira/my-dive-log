@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
 import type { Location as DiveLocation } from '@/features/locations/';
 import type { SortBy } from '@/shared/types/filters';
@@ -81,6 +81,13 @@ function DivesFilter({
   const searchDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const maxDepthDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const cancelPendingDebounces = useCallback(() => {
+    if (searchDebounceTimerRef.current) clearTimeout(searchDebounceTimerRef.current);
+    if (maxDepthDebounceTimerRef.current) clearTimeout(maxDepthDebounceTimerRef.current);
+    searchDebounceTimerRef.current = null;
+    maxDepthDebounceTimerRef.current = null;
+  }, []);
+
   const selectedLocationLabel = useMemo(() => {
     if (!locationId) return null;
     return locations.find((l) => l.id === locationId)?.name ?? null;
@@ -91,11 +98,13 @@ function DivesFilter({
   const derivedCountry = selectedLocation?.country ?? country ?? '';
 
   const handleClearSearch = () => {
+    cancelPendingDebounces();
     setLocalSearchQuery('');
     onSearchQueryChange?.('');
   };
 
   const handleResetClick = () => {
+    cancelPendingDebounces();
     const resetDepth = Math.round(
       convertValueBetweenSystems(DEFAULT_MAX_DEPTH, 'depth', 'metric', unitSystem)
     );
@@ -158,10 +167,9 @@ function DivesFilter({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (searchDebounceTimerRef.current) clearTimeout(searchDebounceTimerRef.current);
-      if (maxDepthDebounceTimerRef.current) clearTimeout(maxDepthDebounceTimerRef.current);
+      cancelPendingDebounces();
     };
-  }, []);
+  }, [cancelPendingDebounces]);
 
   return (
     <div className="space-y-4">

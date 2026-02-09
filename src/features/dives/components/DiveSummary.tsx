@@ -43,12 +43,8 @@ function EditableDiveSummary({ dive }: EditableDiveSummaryProps) {
     },
   });
 
-  const handleGenerate = async () => {
-    try {
-      await generateSummary();
-    } catch {
-      toast.error('Failed to generate summary. Please try again.');
-    }
+  const handleGenerate = () => {
+    void generateSummary();
   };
 
   return (

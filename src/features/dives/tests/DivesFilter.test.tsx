@@ -45,6 +45,8 @@ describe('DivesFilter', () => {
     filteredCount: 10,
     totalCount: 10,
     searchQuery: '',
+    minDepthForSlider: 0, // Add this
+    maxDepthForSlider: 100, // Add this
     onToggleFilters: vi.fn(),
     onSearchQueryChange: vi.fn(),
     onSortByChange: vi.fn(),
@@ -356,6 +358,26 @@ describe('DivesFilter', () => {
       fireEvent.click(resetButton);
 
       expect(defaultProps.onReset).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cancel pending search and depth debounces when reset is clicked', () => {
+      render(<DivesFilter {...defaultProps} showFilters={true} />);
+
+      const searchInput = screen.getByPlaceholderText(/search dives/i);
+      fireEvent.change(searchInput, { target: { value: 'reef' } });
+
+      const depthSlider = screen.getByRole('slider');
+      fireEvent.change(depthSlider, { target: { value: '30' } });
+
+      const resetButton = screen.getByRole('button', { name: /reset/i });
+      fireEvent.click(resetButton);
+
+      vi.advanceTimersByTime(DEBOUNCE_DELAY);
+
+      expect(defaultProps.onSearchQueryChange).toHaveBeenCalledTimes(1);
+      expect(defaultProps.onSearchQueryChange).toHaveBeenCalledWith('');
+      expect(defaultProps.onSearchQueryChange).not.toHaveBeenCalledWith('reef');
+      expect(defaultProps.onMaxDepthChange).not.toHaveBeenCalledWith(30);
     });
 
     it('should reset local state when external reset occurs', () => {

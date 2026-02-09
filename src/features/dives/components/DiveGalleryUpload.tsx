@@ -133,11 +133,8 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
       URL.revokeObjectURL(media.preview);
       setSelectedMedia([]);
       setShowMediaUpload(false);
-
-      toast.success('Photo uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload photo');
     } finally {
       setIsUploading(false);
     }
