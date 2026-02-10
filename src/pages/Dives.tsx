@@ -1,18 +1,15 @@
 import InlineError from '@/components/common/InlineError';
 import Loading from '@/components/common/Loading';
 import QueryErrorFallback from '@/components/common/QueryErrorFallback';
-import Button from '@/components/ui/button';
 import DiveList from '@/features/dives/components/DiveList';
 import DivesFilter from '@/features/dives/components/DivesFilter';
+import { useDepthRange } from '@/features/dives/hooks/useDepthRange';
 import { useDivesFilterController } from '@/features/dives/hooks/useDivesFilterController';
 import { useGetDives } from '@/features/dives/hooks/useGetDives';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
-import { useDepthRange } from '@/features/dives/hooks/useDepthRange';
 import { ITEMS_PER_PAGE } from '@/shared/constants';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
-import { exportDivesToCsv } from '@/shared/utils/exportToCSV';
 import { useSettingsStore } from '@/store/settingsStore';
-import { Download } from 'lucide-react';
 
 function Dives() {
   const {
@@ -81,18 +78,6 @@ function Dives() {
           <h1 className="text-3xl font-bold text-foreground">Dive History</h1>
           <p className="text-muted-foreground mt-1">Browse and manage all your recorded dives</p>
         </div>
-        {dives && dives.length > 0 && (
-          <div className="flex gap-2">
-            <Button
-              onClick={() => exportDivesToCsv(dives ?? [])}
-              variant="outline"
-              className="gap-2 w-fit bg-transparent"
-            >
-              <Download className="w-4 h-4" />
-              Export to Excel
-            </Button>
-          </div>
-        )}
       </header>
 
       {isLocationsError && (

@@ -19,13 +19,13 @@ function DangerZone() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="max-[991px]:p-4">
         <CardTitle className="flex items-center gap-2">
           <TriangleAlert className="text-destructive" />
           Danger Zone
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-[991px]:p-4">
         <Dialog>
           <DialogTrigger asChild>
             <Button

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/select';
 import { BookType, Clock, Gauge, Thermometer } from 'lucide-react';
 import { Controller, useFormContext } from 'react-hook-form';
+
 import type { Dive } from '../types';
 import { useSettingsStore } from '@/store/settingsStore';
 import {
@@ -74,7 +75,7 @@ function DiveStats({ dive, isEditing }: DiveStatsProps) {
             key={key}
             className="bg-card-dark/40 backdrop-blur-[5px] border-2 border-[#232a33] rounded-2xl"
           >
-            <CardContent className="p-6">
+            <CardContent className="p-6 max-[991px]:p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Icon className="w-5 h-5 text-primary" />
                 <p className="text-sm text-muted-foreground">{label}</p>

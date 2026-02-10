@@ -343,8 +343,8 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
             </CarouselItem>
           )}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <CarouselPrevious className="hidden lg:flex" />
+        <CarouselNext className="hidden lg:flex" />
       </Carousel>
 
       {/* Delete Confirmation Modal */}

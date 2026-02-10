@@ -1,8 +1,9 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Shield } from 'lucide-react';
+
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import Loading from '@/components/common/Loading';
 import { useEffect, useMemo, useState } from 'react';
@@ -72,14 +73,14 @@ function ProfileSettings({ isUserLoading, user }: ProfileSettingsProps) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="max-[991px]:p-4">
         <CardTitle className="flex items-center gap-2">
           <Shield className="w-5 h-5" />
           Profile Settings
         </CardTitle>
         <CardDescription>Manage your personal information and account settings</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 max-[991px]:p-4">
         {isUserLoading ? (
           <Loading />
         ) : !user ? (

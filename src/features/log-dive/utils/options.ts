@@ -4,7 +4,7 @@ import type { V0Exposure, V0GasMix } from './types';
 export const DIVE_TYPES: Array<{ value: DiveType; label: string; icon: string }> = [
   { value: 'cave', label: 'Cave', icon : 'cave' },
   { value: 'drift', label: 'Drift', icon: 'drift' },
-  { value: 'lake_river', label: 'Lake/River', icon: 'lake-river'},
+  { value: 'lake_river', label: 'Lake/River', icon: 'lake_river'},
   { value: 'night', label: 'Night', icon: 'night'},
   { value: 'reef', label: 'Reef', icon: 'reef'},
   { value: 'training', label: 'Training', icon: 'training'},

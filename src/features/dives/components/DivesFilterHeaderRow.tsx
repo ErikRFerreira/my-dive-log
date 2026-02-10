@@ -1,6 +1,7 @@
 import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronDown, Search, X } from 'lucide-react';
+
 import type { ChangeEvent } from 'react';
 
 import { DEFAULT_MAX_DEPTH, MIN_SEARCH_LENGTH } from '@/shared/constants';
@@ -37,7 +38,9 @@ export default function DivesFilterHeaderRow({
         className="gap-2"
       >
         Filters & Sort
-        <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`}
+        />
       </Button>
 
       {localMaxDepth < DEFAULT_MAX_DEPTH && (
@@ -52,7 +55,7 @@ export default function DivesFilterHeaderRow({
         </span>
       )}
 
-      <div className="inline-flex items-center gap-3">
+      <div className="inline-flex items-center gap-3 max-[991px]:w-full">
         <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
         <Input
           type="text"
@@ -70,4 +73,3 @@ export default function DivesFilterHeaderRow({
     </div>
   );
 }
-

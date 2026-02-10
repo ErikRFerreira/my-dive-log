@@ -1,6 +1,7 @@
+import AddDive from '@/features/dives/components/AddDive';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
-import AddDive from '@/features/dives/components/AddDive';
+
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -26,7 +27,7 @@ function AppLayout() {
           aria-hidden="true"
         />
       )}
-      <main className="col-start-1 row-start-2 min-[992px]:col-start-2 p-8 max-[991px]:p-4 space-y-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
+      <main className="col-start-1 row-start-2 min-[992px]:col-start-2 p-8 max-[991px]:p-4 max-[991px]:pb-12 space-y-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
         <Outlet />
       </main>
       <AddDive />
@@ -35,4 +36,3 @@ function AppLayout() {
 }
 
 export default AppLayout;
-

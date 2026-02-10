@@ -17,14 +17,14 @@ function Units() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="max-[991px]:p-4">
         <CardTitle className="flex items-center gap-2">
           <Ruler className="w-5 h-5" />
           Units
         </CardTitle>
         <CardDescription>Choose your preferred unit system</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 max-[991px]:p-4">
         <div className="space-y-2">
           <Label htmlFor="unitSystem">Measurement System</Label>
           <Select value={unitSystem} onValueChange={(value) => setUnitSystem(value as UnitSystem)}>

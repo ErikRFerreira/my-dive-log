@@ -1,8 +1,9 @@
-import Loading from '@/components/common/Loading';
-import GoBack from '@/components/ui/GoBack';
-import QueryErrorFallback from '@/components/common/QueryErrorFallback';
 import InlineError from '@/components/common/InlineError';
+import Loading from '@/components/common/Loading';
+import QueryErrorFallback from '@/components/common/QueryErrorFallback';
+import GoBack from '@/components/ui/GoBack';
 import DeleteDiveModal from '@/features/dives/components/DeleteDiveModal';
+import DiveBackground from '@/features/dives/components/DiveBackground';
 import DiveEditFormProvider from '@/features/dives/components/DiveEditFormProvider';
 import DiveEquipment from '@/features/dives/components/DiveEquipment';
 import DiveGallery from '@/features/dives/components/DiveGallery';
@@ -15,7 +16,6 @@ import DiveWildlife from '@/features/dives/components/DiveWildlife';
 import GasUsage from '@/features/dives/components/GasUsage';
 import { useDeleteDive } from '@/features/dives/hooks/useDeleteDive';
 import { useGetDive } from '@/features/dives/hooks/useGetDive';
-import DiveBackground from '@/features/dives/components/DiveBackground';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -83,7 +83,7 @@ function DivePage() {
     saveError?: string | null;
     isPending?: boolean;
   }) => (
-    <div className="relative z-10 p-8 space-y-6">
+    <div className="relative z-10 p-8 space-y-6 max-[991px]:p-0">
       {/* Header */}
       <DiveHeader
         dive={dive}
@@ -137,7 +137,7 @@ function DivePage() {
   );
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 max-[991px]:mt-6">
       {/* Background */}
       {coverPhotoUrl || dive.dive_type ? (
         <DiveBackground coverPhotoUrl={coverPhotoUrl} diveType={dive.dive_type} />
