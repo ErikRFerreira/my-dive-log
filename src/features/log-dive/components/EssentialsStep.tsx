@@ -204,7 +204,7 @@ export default function EssentialsStep({ control, setValue }: Props) {
         <div>
           <label className="text-sm font-medium text-foreground mb-2 block">Units</label>
           <div
-            className="inline-flex rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden"
+            className="inline-flex rounded-md border border-slate-700 overflow-hidden"
             role="radiogroup"
             aria-label="Unit system"
           >
@@ -457,3 +457,4 @@ export default function EssentialsStep({ control, setValue }: Props) {
     </div>
   );
 }
+

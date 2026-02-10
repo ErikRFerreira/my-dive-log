@@ -96,7 +96,7 @@ function DiveHeader({
             <Button
               onClick={onOpenDeleteModal}
               variant="outline"
-              className="gap-2 bg-[#0f1419]/20 backdrop-blur-[20px] border-[#1e2936]/80 text-red-500 hover:bg-red-50/20 dark:hover:bg-red-900/20 hover:text-red-600 disabled:opacity-60"
+              className="gap-2 bg-[#0f1419]/20 backdrop-blur-[20px] border-[#1e2936]/80 text-red-500 hover:bg-red-50/20 hover:bg-red-900/20 hover:text-red-600 disabled:opacity-60"
             >
               <Trash2 className="w-4 h-4" />
               Delete Dive

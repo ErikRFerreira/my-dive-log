@@ -31,9 +31,9 @@ function LocationCard({
   return (
     <Card
       key={id}
-      className="border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow overflow-hidden"
+      className="border-slate-700 hover:shadow-lg transition-shadow overflow-hidden"
     >
-      <CardHeader className="pb-3 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-slate-800 dark:to-slate-700">
+      <CardHeader className="pb-3 bg-gradient-to-r from-slate-800 to-slate-700">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg text-foreground">{name}</CardTitle>
@@ -44,7 +44,7 @@ function LocationCard({
           </div>
           <button
             onClick={() => toggleFavoriteMutate({ id, isFavorite: !isFavorite })}
-            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+            className="p-2 hover:bg-slate-700 rounded-full transition-colors"
           >
             {isTogglingFavorite ? (
               <InlineSpinner />
@@ -89,3 +89,4 @@ function LocationCard({
 }
 
 export default LocationCard;
+

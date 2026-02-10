@@ -11,8 +11,8 @@ export default function NitroxMod({ nitroxPercent, depthUnit }: Props) {
   const depthLabel = depthUnit === 'metric' ? 'meters' : 'feet';
 
   return (
-    <div className="rounded-lg border border-teal-200/60 dark:border-teal-900/60 bg-teal-50/60 dark:bg-teal-950/40 px-4 py-3">
-      <p className="text-xs uppercase tracking-wide text-teal-600 dark:text-teal-300">
+    <div className="rounded-lg border border-teal-900/60 bg-teal-950/40 px-4 py-3">
+      <p className="text-xs uppercase tracking-wide text-teal-300">
         Max Operating Depth (MOD)
       </p>
       <p className="text-lg font-semibold text-foreground">
@@ -21,3 +21,4 @@ export default function NitroxMod({ nitroxPercent, depthUnit }: Props) {
     </div>
   );
 }
+

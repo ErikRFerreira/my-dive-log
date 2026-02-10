@@ -93,8 +93,8 @@ export default function EquipmentStep({ control }: Props) {
               aria-checked={exposureField.value === option.value}
               className={`p-4 rounded-lg border-2 transition-all hover:border-purple-400 ${
                 exposureField.value === option.value
-                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-purple-500 bg-purple-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-sm font-medium">{option.label}</div>
@@ -122,8 +122,8 @@ export default function EquipmentStep({ control }: Props) {
               aria-checked={cylinderTypeField.value === type.value}
               className={`p-4 rounded-lg border-2 transition-all hover:border-orange-400 ${
                 cylinderTypeField.value === type.value
-                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-orange-500 bg-orange-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-base font-medium">{type.label}</div>
@@ -151,8 +151,8 @@ export default function EquipmentStep({ control }: Props) {
               aria-checked={cylinderSizeField.value === size.value}
               className={`p-4 rounded-lg border-2 transition-all hover:border-teal-400 ${
                 cylinderSizeField.value === size.value
-                  ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-teal-500 bg-teal-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-sm font-medium">{size.label}</div>
@@ -210,7 +210,7 @@ export default function EquipmentStep({ control }: Props) {
           {equipment.map((item, index) => (
             <span
               key={`${item}-${index}`}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-200"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-teal-900 text-teal-200"
             >
               {item}
               <button
@@ -265,3 +265,4 @@ export default function EquipmentStep({ control }: Props) {
     </div>
   );
 }
+

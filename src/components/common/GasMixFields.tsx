@@ -62,8 +62,8 @@ export default function GasMixFields({
             disabled={disabled}
             className={`p-4 rounded-lg border-2 transition-all hover:border-teal-400 disabled:opacity-50 disabled:cursor-not-allowed ${
               gasMix === 'air'
-                ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
-                : 'border-slate-200 dark:border-slate-700'
+                ? 'border-teal-500 bg-teal-950'
+                : 'border-slate-700'
             }`}
           >
             <div className="text-base font-medium">Air</div>
@@ -74,8 +74,8 @@ export default function GasMixFields({
             disabled={disabled}
             className={`p-4 rounded-lg border-2 transition-all hover:border-teal-400 disabled:opacity-50 disabled:cursor-not-allowed ${
               gasMix === 'nitrox'
-                ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
-                : 'border-slate-200 dark:border-slate-700'
+                ? 'border-teal-500 bg-teal-950'
+                : 'border-slate-700'
             }`}
           >
             <div className="text-base font-medium">Nitrox</div>
@@ -85,7 +85,7 @@ export default function GasMixFields({
 
       {/* Nitrox Percentage Slider */}
       {gasMix === 'nitrox' && (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-4 space-y-4">
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 space-y-4">
           <div className="flex items-center justify-between">
             <label htmlFor="nitrox-percent-range" className="text-sm font-medium text-foreground">
               <Sparkles className="w-4 h-4 inline mr-2 text-yellow-500" aria-hidden="true" />
@@ -188,3 +188,4 @@ export default function GasMixFields({
     </div>
   );
 }
+

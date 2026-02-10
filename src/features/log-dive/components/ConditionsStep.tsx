@@ -82,8 +82,8 @@ export default function ConditionsStep({ control, localUnitSystem }: Props) {
               aria-checked={visibilityField.value === option.value}
               className={`p-4 rounded-lg border-2 transition-all hover:border-teal-400 ${
                 visibilityField.value === option.value
-                  ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-teal-500 bg-teal-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-base font-medium">{option.label}</div>
@@ -120,3 +120,4 @@ export default function ConditionsStep({ control, localUnitSystem }: Props) {
     </div>
   );
 }
+

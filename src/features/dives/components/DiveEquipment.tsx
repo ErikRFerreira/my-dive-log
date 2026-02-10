@@ -52,7 +52,7 @@ function EditableDiveEquipment() {
           fields.map((item, idx) => (
             <div
               key={item.id}
-              className="flex items-center gap-2 px-3 py-1 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 rounded-full text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1 bg-teal-900 text-teal-100 rounded-full text-sm font-medium"
             >
               {equipment[idx]}
               <button
@@ -133,7 +133,7 @@ function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
                 baseEquipment.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 px-3 py-1 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 rounded-full text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-1 bg-teal-900 text-teal-100 rounded-full text-sm font-medium"
                   >
                     {item}
                   </div>
@@ -148,3 +148,4 @@ function DiveEquipment({ dive, isEditing }: DiveEquipmentProps) {
 }
 
 export default DiveEquipment;
+

@@ -58,7 +58,7 @@ export default function DivesFilterPanel({
           <select
             value={sortBy}
             onChange={(e) => onSortByChange(e.target.value as SortBy)}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-background text-foreground dark:bg-slate-800"
+            className="w-full px-3 py-2 border border-slate-600 rounded bg-background text-foreground"
           >
             <option value="date">Date (Newest)</option>
             <option value="depth">Depth (Deepest)</option>
@@ -78,7 +78,7 @@ export default function DivesFilterPanel({
               onLocationIdChange(null);
             }}
             disabled={!!locationId}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-background text-foreground dark:bg-slate-800"
+            className="w-full px-3 py-2 border border-slate-600 rounded bg-background text-foreground"
           >
             <option value="">All Countries</option>
             {countriesInLocations.map((country) => (
@@ -101,7 +101,7 @@ export default function DivesFilterPanel({
               onLocationIdChange(next === 'all' ? null : next);
             }}
             disabled={isLoadingLocations}
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded bg-background text-foreground dark:bg-slate-800"
+            className="w-full px-3 py-2 border border-slate-600 rounded bg-background text-foreground"
           >
             <option value="all">All Locations</option>
             {filteredLocations.map((location) => (
@@ -149,3 +149,4 @@ export default function DivesFilterPanel({
     </Card>
   );
 }
+

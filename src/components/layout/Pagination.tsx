@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import Button from '../ui/button';
 import { PAGINATION_ELLIPSIS_THRESHOLD } from '@/shared/constants';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+
+import Button from '../ui/button';
 
 type PaginationProps = {
   currentPage: number;
@@ -60,7 +61,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) 
         title="First page"
       >
         <ChevronsLeft className="w-4 h-4" />
-        First
+        <span className="hidden lg:inline">First</span>
       </Button>
 
       <Button
@@ -71,7 +72,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) 
         title="Previous page"
       >
         <ChevronLeft className="w-4 h-4" />
-        Previous
+        <span className="hidden lg:inline">Previous</span>
       </Button>
 
       <div className="flex items-center gap-1">
@@ -105,7 +106,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) 
         disabled={currentPage === totalPages}
         title="Next page"
       >
-        Next
+        <span className="hidden lg:inline">Next</span>
         <ChevronRight className="w-4 h-4" />
       </Button>
 
@@ -116,7 +117,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) 
         disabled={currentPage === totalPages}
         title="Last page"
       >
-        Last
+        <span className="hidden lg:inline">Last</span>
         <ChevronsRight className="w-4 h-4" />
       </Button>
     </div>

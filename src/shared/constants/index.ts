@@ -69,7 +69,6 @@ export const CERTIFYING_AGENCIES = [
 
 // Persistent storage keys
 export const STORAGE_KEYS = {
-  theme: 'dive-log:theme',
   settings: 'dive-log:settings',
   diveFilter: 'dive-log:dive-filter',
 } as const;

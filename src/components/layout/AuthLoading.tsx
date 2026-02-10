@@ -17,7 +17,7 @@ function AuthLoading() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
       <div className="flex w-full max-w-md flex-col items-center gap-12 px-6">
         <span
           aria-hidden="true"
@@ -34,3 +34,4 @@ function AuthLoading() {
 }
 
 export default AuthLoading;
+

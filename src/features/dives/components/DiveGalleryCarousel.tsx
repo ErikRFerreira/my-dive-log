@@ -308,7 +308,7 @@ export function DiveGalleryCarousel({ photos, diveId, coverPhotoPath }: DiveGall
                       </div>
                       <div className="flex justify-between">
                         <span>Processed:</span>
-                        <span className="text-green-600 dark:text-green-400">
+                        <span className="text-green-400">
                           {formatFileSize(selectedMedia.compressedSize)}
                         </span>
                       </div>

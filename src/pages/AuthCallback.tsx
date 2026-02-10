@@ -40,8 +40,8 @@ function AuthCallback() {
 
   if (errorMessage) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-lg border bg-white dark:bg-slate-800 p-6 space-y-4">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-lg border bg-slate-800 p-6 space-y-4">
           <h1 className="text-lg font-semibold">Unable to complete sign-in</h1>
           <p className="text-sm text-muted-foreground">{errorMessage}</p>
           <button
@@ -57,10 +57,11 @@ function AuthCallback() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
       <p className="text-sm text-muted-foreground">Completing sign-in...</p>
     </div>
   );
 }
 
 export default AuthCallback;
+

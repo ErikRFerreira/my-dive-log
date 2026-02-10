@@ -5,75 +5,11 @@
 @plugin 'tailwindcss-animate';
 /*@import 'tw-animate-css';*/
 
-@custom-variant dark (&:is(.dark *));
-
 /* ------------------------------------------------------------
-   LIGHT MODE (default variables)
+   DARK MODE (default variables)
    ------------------------------------------------------------ */
 :root {
-  /* Bright surface + same cyan brand */
-  --background: 210 33% 98%; /* near-white with cool tint */
-  --foreground: 215 25% 12%; /* deep charcoal text */
-
-  --card: 210 30% 97%;
-  --card-foreground: 215 25% 12%;
-
-  --popover: 210 30% 97%;
-  --popover-foreground: 215 25% 12%;
-
-  --primary: 189 100% 42%; /* slightly deeper than dark mode cyan for contrast on white */
-  --primary-foreground: 0 0% 100%;
-
-  --secondary: 215 25% 92%;
-  --secondary-foreground: 215 25% 12%;
-
-  --muted: 215 20% 94%;
-  --muted-foreground: 215 12% 40%;
-
-  --accent: 189 100% 42%;
-  --accent-foreground: 0 0% 100%;
-
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-
-  --border: 215 18% 86%;
-  --input: 215 18% 86%;
-  --ring: 189 100% 42%;
-
-  /* Charts (light mode – slightly darker for visibility) */
-  --chart-1: 189 100% 42%;
-  --chart-2: 200 90% 40%;
-  --chart-3: 210 80% 38%;
-  --chart-4: 170 90% 36%;
-  --chart-5: 195 85% 40%;
-
-  --radius: 0.75rem;
-
-  /* Sidebar (light) */
-  --sidebar: 210 30% 97%;
-  --sidebar-foreground: 215 25% 12%;
-  --sidebar-primary: 189 100% 42%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 215 20% 94%;
-  --sidebar-accent-foreground: 215 25% 12%;
-  --sidebar-border: 215 18% 86%;
-  --sidebar-ring: 189 100% 42%;
-
-  /* ------------------------------------------------------------
-     Bridge tokens for your HTML screens
-     ------------------------------------------------------------ */
-  --background-light: var(--background);
-  --background-dark: 215 25% 12%; /* used by `dark:bg-background-dark` in some HTML */
-  --surface-dark: 215 22% 16%; /* used by `bg-surface-dark` in some HTML */
-  --primary-solid: var(--primary);
-}
-
-/* ------------------------------------------------------------
-   DARK MODE (v0 palette)
-   ------------------------------------------------------------ */
-.dark {
-  /* Updated to very dark charcoal background with bright cyan accent */
-  --background: 215 25% 12%; /* #1a1f2e */
+  --background: 215 25% 12%;
   --foreground: 0 0% 100%;
 
   --card: 215 22% 16%;
@@ -82,7 +18,7 @@
   --popover: 215 25% 14%;
   --popover-foreground: 0 0% 100%;
 
-  --primary: 189 100% 50%; /* #00d9ff */
+  --primary: 189 100% 50%;
   --primary-foreground: 215 25% 12%;
 
   --secondary: 215 20% 22%;
@@ -107,7 +43,8 @@
   --chart-4: 170 90% 50%;
   --chart-5: 195 85% 55%;
 
-  /* Sidebar (dark) */
+  --radius: 0.75rem;
+
   --sidebar: 215 22% 14%;
   --sidebar-foreground: 0 0% 100%;
   --sidebar-primary: 189 100% 50%;
@@ -117,7 +54,6 @@
   --sidebar-border: 215 18% 28%;
   --sidebar-ring: 189 100% 50%;
 
-  /* Bridge tokens */
   --background-light: 210 33% 98%;
   --background-dark: var(--background);
   --surface-dark: var(--card);
@@ -228,7 +164,7 @@
   }
 }
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
 input[type='range'] {
@@ -316,3 +252,4 @@ input[type='number']::-webkit-outer-spin-button::after {
   font-size: 8px;
   color: white;
 }
+

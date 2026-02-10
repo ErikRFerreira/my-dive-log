@@ -52,7 +52,7 @@ function EditableDiveWildlife() {
           fields.map((animal, idx) => (
             <div
               key={animal.id}
-              className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1 bg-blue-900 text-blue-100 rounded-full text-sm font-medium"
             >
               {wildlife[idx]}
               <button
@@ -133,7 +133,7 @@ function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
                 baseWildlife.map((animal, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-1 bg-blue-900 text-blue-100 rounded-full text-sm font-medium"
                   >
                     {animal}
                   </div>
@@ -148,3 +148,4 @@ function DiveWildlife({ dive, isEditing }: DiveWildlifeProps) {
 }
 
 export default DiveWildlife;
+

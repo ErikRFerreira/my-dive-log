@@ -3,11 +3,11 @@ import { RegisterForm } from '@/features/authentication';
 
 function Register() {
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 overflow-x-hidden bg-slate-50 dark:bg-slate-900">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 overflow-x-hidden bg-slate-900">
       {/* Subtle Ambient Background Effects */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-15%] left-[-15%] w-[60vw] h-[60vw] bg-blue-600/10 dark:bg-blue-500/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-600/5 dark:bg-blue-500/5 rounded-full blur-[100px]"></div>
+        <div className="absolute top-[-15%] left-[-15%] w-[60vw] h-[60vw] bg-blue-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-500/5 rounded-full blur-[100px]"></div>
       </div>
 
       {/* Main Card Container */}
@@ -26,10 +26,10 @@ function Register() {
             />
           </div>
           <div className="flex flex-col items-center justify-center text-center gap-1">
-            <h1 className="text-[28px] font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+            <h1 className="text-[28px] font-bold tracking-tight text-white leading-tight">
               Dive Log
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-base font-normal">
+            <p className="text-slate-400 text-base font-normal">
               Create your account
             </p>
           </div>
@@ -43,3 +43,4 @@ function Register() {
 }
 
 export default Register;
+

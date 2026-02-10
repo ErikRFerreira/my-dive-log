@@ -49,18 +49,18 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
             <Waves className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">Dive Master</span>
+            <span className="text-2xl font-bold text-white">Dive Master</span>
           </div>
         </div>
 
-        <Card className="bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 shadow-lg">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg">
           <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl text-slate-900 dark:text-white">
+            <CardTitle className="text-2xl text-white">
               Forgot your password?
             </CardTitle>
             <CardDescription>We’ll email you a link to reset it.</CardDescription>
@@ -68,7 +68,7 @@ function ForgotPassword() {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">
+                <Label htmlFor="email" className="text-slate-300">
                   Email
                 </Label>
                 <Input
@@ -78,7 +78,7 @@ function ForgotPassword() {
                   autoComplete="email"
                   aria-invalid={!!errors.email}
                   disabled={isBusy || didSubmit}
-                  className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                  className="bg-slate-700 border-slate-600"
                   {...register('email')}
                 />
                 {errors.email?.message && (
@@ -96,11 +96,11 @@ function ForgotPassword() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+            <div className="mt-6 text-center text-sm text-slate-400">
               Remembered it?{' '}
               <button
                 onClick={() => navigate('/login')}
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                className="text-blue-400 hover:text-blue-300 font-medium"
               >
                 Back to sign in
               </button>
@@ -113,3 +113,4 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
+

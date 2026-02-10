@@ -20,7 +20,7 @@ export function WizardProgress({ currentStep, totalSteps, stepLabels }: WizardPr
             {idx > 0 && (
               <div
                 className={`flex-1 h-1 transition-all mx-1 ${
-                  s <= currentStep ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'
+                  s <= currentStep ? 'bg-primary' : 'bg-slate-700'
                 }`}
               />
             )}
@@ -29,14 +29,14 @@ export function WizardProgress({ currentStep, totalSteps, stepLabels }: WizardPr
                 s < currentStep
                   ? 'bg-primary text-black'
                   : s === currentStep
-                    ? 'bg-primary text-black ring-4 ring-primary/80 dark:ring-primary/80'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                    ? 'bg-primary text-black ring-4 ring-primary/80 ring-primary/80'
+                    : 'bg-slate-700 text-slate-500'
               }`}
             >
               {s === currentStep && (
                 <span
                   aria-hidden="true"
-                  className="absolute -inset-3 rounded-full border-[3px] border-primary/80 dark:border-primary/80 animate-[pulse-ring_1.6s_ease-out_infinite]"
+                  className="absolute -inset-3 rounded-full border-[3px] border-primary/80 animate-[pulse-ring_1.6s_ease-out_infinite]"
                 />
               )}
               {s < currentStep ? <Check className="w-5 h-5" /> : s}
@@ -57,3 +57,4 @@ export function WizardProgress({ currentStep, totalSteps, stepLabels }: WizardPr
     </div>
   );
 }
+

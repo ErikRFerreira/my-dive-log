@@ -95,8 +95,8 @@ export default function DiveInfoStep({ control }: Props) {
               aria-checked={diveTypeField.value === type.value}
               className={`p-4 rounded-lg border-2 transition-all text-center hover:border-teal-400 ${
                 diveTypeField.value === type.value
-                  ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-teal-500 bg-teal-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="flex justify-center items-center my-2">
@@ -127,8 +127,8 @@ export default function DiveInfoStep({ control }: Props) {
               aria-checked={waterTypeField.value === type}
               className={`p-4 rounded-lg border-2 transition-all hover:border-blue-400 ${
                 waterTypeField.value === type
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-blue-500 bg-blue-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-base font-medium capitalize">{type}water</div>
@@ -155,8 +155,8 @@ export default function DiveInfoStep({ control }: Props) {
               aria-checked={currentsField.value === option.value}
               className={`p-4 rounded-lg border-2 transition-all hover:border-blue-400 ${
                 currentsField.value === option.value
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-blue-500 bg-blue-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-base font-medium">{option.label}</div>
@@ -213,8 +213,8 @@ export default function DiveInfoStep({ control }: Props) {
               aria-checked={visibilityField.value === option.value}
               className={`p-4 rounded-lg border-2 transition-all hover:border-teal-400 ${
                 visibilityField.value === option.value
-                  ? 'border-teal-500 bg-teal-50 dark:bg-teal-950'
-                  : 'border-slate-200 dark:border-slate-700'
+                  ? 'border-teal-500 bg-teal-950'
+                  : 'border-slate-700'
               }`}
             >
               <div className="text-base font-medium">{option.label}</div>
@@ -237,7 +237,7 @@ export default function DiveInfoStep({ control }: Props) {
           {wildlife.map((item, index) => (
             <span
               key={`${item}-${index}`}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-900 text-blue-200"
             >
               {item}
               <button
@@ -315,3 +315,4 @@ export default function DiveInfoStep({ control }: Props) {
     </div>
   );
 }
+

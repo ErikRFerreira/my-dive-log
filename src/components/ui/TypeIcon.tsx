@@ -32,7 +32,7 @@ function TypeIconBase({ icon, color = 'text-primary' }: TypeIconProps) {
   return (
     <div
       aria-hidden="true"
-      className={`z-10 flex w-10 h-10 items-center justify-center ${color} [&>svg]:h-10 [&>svg]:w-10`}
+      className={`z-10 flex w-10 h-10 max-[991px]:w-6 max-[991px]:h-6 items-center justify-center ${color} [&>svg]:h-10 [&>svg]:w-10`}
       dangerouslySetInnerHTML={{ __html: resolvedIcon }}
     />
   );

@@ -1,16 +1,4 @@
-import { LogOut, Menu } from 'lucide-react';
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Button from '../ui/button';
-import DarkModeToggle from '../ui/DarkModeToggle';
-import { useLogout } from '@/features/authentication/hooks/useLogout';
-import InlineSpinner from '../common/InlineSpinner';
-import { useUser } from '@/features/authentication/hooks/useUser';
-import { getUserAvatarData } from '@/shared/utils/userAvatar';
-import { useGetProfile } from '@/features/profile/hooks/useGetProfile';
-import { useAvatarSignedUrl } from '@/features/profile/hooks/useAvatarSignedUrl';
-import { getAvatarDisplay } from '@/shared/utils/avatarDisplay';
-import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogClose,
@@ -21,6 +9,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useLogout } from '@/features/authentication/hooks/useLogout';
+import { useUser } from '@/features/authentication/hooks/useUser';
+import { useAvatarSignedUrl } from '@/features/profile/hooks/useAvatarSignedUrl';
+import { useGetProfile } from '@/features/profile/hooks/useGetProfile';
+import { getAvatarDisplay } from '@/shared/utils/avatarDisplay';
+import { getUserAvatarData } from '@/shared/utils/userAvatar';
+import { LogOut, Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import InlineSpinner from '../common/InlineSpinner';
+import Button from '../ui/button';
 
 type HeaderProps = {
   isSidebarOpen: boolean;
@@ -99,7 +98,6 @@ function Header({ isSidebarOpen, onToggleSidebar }: HeaderProps) {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <DarkModeToggle />
         <Dialog>
           <DialogTrigger asChild>
             <Button

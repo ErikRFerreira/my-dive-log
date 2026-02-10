@@ -41,13 +41,13 @@ export default function DivesFilterHeaderRow({
       </Button>
 
       {localMaxDepth < DEFAULT_MAX_DEPTH && (
-        <span className="text-sm bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 px-2 py-1 rounded">
+        <span className="text-sm bg-teal-900 text-teal-100 px-2 py-1 rounded">
           Max Depth: {formatValueWithUnit(localMaxDepth, 'depth', unitSystem)}
         </span>
       )}
 
       {selectedLocationLabel && (
-        <span className="text-sm bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-100 px-2 py-1 rounded">
+        <span className="text-sm bg-teal-900 text-teal-100 px-2 py-1 rounded">
           Location: {selectedLocationLabel}
         </span>
       )}
@@ -70,3 +70,4 @@ export default function DivesFilterHeaderRow({
     </div>
   );
 }
+

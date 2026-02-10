@@ -16,7 +16,7 @@ function Error() {
     'Something went wrong.';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-foreground flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-950 text-foreground flex items-center justify-center p-6">
       <div className="max-w-lg w-full text-center space-y-3">
         <h1 className="text-3xl font-bold">{title}</h1>
         <p className="text-muted-foreground">{details}</p>
@@ -29,3 +29,4 @@ function Error() {
 }
 
 export default Error;
+

@@ -65,7 +65,7 @@ function LogDivePage() {
   const onSubmit = form.handleSubmit(handleSubmit, handleSubmitError);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 p-6">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <Button variant="ghost" onClick={onCancel} className="mb-4 -ml-2">
@@ -86,13 +86,13 @@ function LogDivePage() {
           stepLabels={['Essentials', 'Dive Details', 'Equipment', 'Gas Usage']}
         />
 
-        <Card className="p-8 max-[991px]:px-6 max-[991px]:-mt-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl">
+        <Card className="p-8 max-[991px]:px-6 max-[991px]:-mt-4 bg-slate-900 border-slate-800 shadow-xl">
           {wizard.step === 1 && <EssentialsStep control={form.control} setValue={form.setValue} />}
           {wizard.step === 2 && <DiveInfoStep control={form.control} />}
           {wizard.step === 3 && <EquipmentStep control={form.control} />}
           {wizard.step === 4 && <GasUsageStep control={form.control} />}
 
-          <div className="flex justify-between mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
             <Button
               variant="outline"
               onClick={wizard.handleBack}
@@ -146,3 +146,4 @@ function LogDivePage() {
 }
 
 export default LogDivePage;
+

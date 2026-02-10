@@ -242,7 +242,7 @@ export function DiveGalleryUpload({ diveId }: DiveGalleryUploadProps) {
                     </div>
                     <div className="flex justify-between">
                       <span>Processed:</span>
-                      <span className="text-green-600 dark:text-green-400">
+                      <span className="text-green-400">
                         {formatFileSize(selectedMedia[0].compressedSize)}
                       </span>
                     </div>

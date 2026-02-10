@@ -77,28 +77,28 @@ function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
             <Waves className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold text-slate-900 dark:text-white">Dive Master</span>
+            <span className="text-2xl font-bold text-white">Dive Master</span>
           </div>
         </div>
 
-        <Card className="bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 shadow-lg">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg">
           <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl text-slate-900 dark:text-white">
+            <CardTitle className="text-2xl text-white">
               Set a new password
             </CardTitle>
             <CardDescription>Choose a password with at least 6 characters.</CardDescription>
           </CardHeader>
           <CardContent>
             {!isReady ? (
-              <div className="text-sm text-slate-600 dark:text-slate-400">Checking reset link…</div>
+              <div className="text-sm text-slate-400">Checking reset link…</div>
             ) : !hasSession ? (
               <div className="space-y-4">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-400">
                   This reset link is invalid or expired. Please request a new one.
                 </p>
                 <Button
@@ -112,7 +112,7 @@ function ResetPassword() {
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="password" className="text-slate-300">
                     New password
                   </Label>
                   <Input
@@ -121,7 +121,7 @@ function ResetPassword() {
                     autoComplete="new-password"
                     aria-invalid={!!errors.password}
                     disabled={isBusy}
-                    className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                    className="bg-slate-700 border-slate-600"
                     {...register('password')}
                   />
                   {errors.password?.message && (
@@ -130,7 +130,7 @@ function ResetPassword() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="confirmPassword" className="text-slate-300">
                     Confirm password
                   </Label>
                   <Input
@@ -139,7 +139,7 @@ function ResetPassword() {
                     autoComplete="new-password"
                     aria-invalid={!!errors.confirmPassword}
                     disabled={isBusy}
-                    className="bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
+                    className="bg-slate-700 border-slate-600"
                     {...register('confirmPassword')}
                   />
                   {errors.confirmPassword?.message && (
@@ -172,3 +172,4 @@ function ResetPassword() {
 }
 
 export default ResetPassword;
+

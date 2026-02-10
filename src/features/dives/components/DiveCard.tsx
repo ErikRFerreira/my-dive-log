@@ -40,7 +40,7 @@ function DiveCard({ dive }: DiveCardProps) {
     <Card
       role="listitem"
       aria-label={`Dive at ${diveLocationDisplay} on ${formattedDate}`}
-      className="bg-card-dark border-border-dark p-4 rounded-2xl cursor-pointer hover:border-cyan-400/50 transition-all"
+      className="bg-card-dark border-border-dark p-4 max-[991px]:p-2 rounded-2xl cursor-pointer hover:border-cyan-400/50 transition-all"
       onClick={() => navigate(`/dives/${dive.id}`)}
     >
       <div className="flex items-center gap-4">
