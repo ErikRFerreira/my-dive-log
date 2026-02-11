@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield } from 'lucide-react';
+import { Eye, EyeOff, Shield } from 'lucide-react';
 
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import Loading from '@/components/common/Loading';
@@ -35,6 +35,8 @@ function ProfileSettings({ isUserLoading, user }: ProfileSettingsProps) {
   const [confirmEmailDraft, setConfirmEmailDraft] = useState('');
   const [passwordDraft, setPasswordDraft] = useState('');
   const [confirmPasswordDraft, setConfirmPasswordDraft] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     setEmailDraft(user?.email ?? '');
@@ -134,14 +136,26 @@ function ProfileSettings({ isUserLoading, user }: ProfileSettingsProps) {
             <form className="space-y-3" onSubmit={handleSavePassword}>
               <div className="space-y-2">
                 <Label htmlFor="password">New password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={passwordDraft}
-                  onChange={(e) => setPasswordDraft(e.target.value)}
-                  disabled={!canEditCredentials || isBusy}
-                />
+                <div className="relative flex items-center">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={passwordDraft}
+                    onChange={(e) => setPasswordDraft(e.target.value)}
+                    disabled={!canEditCredentials || isBusy}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    disabled={!canEditCredentials || isBusy}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
                 {helperText ? (
                   <p className="text-xs text-muted-foreground">{helperText}</p>
                 ) : (
@@ -150,14 +164,26 @@ function ProfileSettings({ isUserLoading, user }: ProfileSettingsProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm new password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirmPasswordDraft}
-                  onChange={(e) => setConfirmPasswordDraft(e.target.value)}
-                  disabled={!canEditCredentials || isBusy}
-                />
+                <div className="relative flex items-center">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={confirmPasswordDraft}
+                    onChange={(e) => setConfirmPasswordDraft(e.target.value)}
+                    disabled={!canEditCredentials || isBusy}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    disabled={!canEditCredentials || isBusy}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
                 {canEditCredentials &&
                 !helperText &&
                 passwordDraft.trim().length > 0 &&

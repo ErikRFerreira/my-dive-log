@@ -1,18 +1,19 @@
-import { useMutation } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router';
-import { Waves } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
+import DiverIcon from '@/assets/icons/diver.svg';
+import InlineSpinner from '@/components/common/InlineSpinner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InlineSpinner from '@/components/common/InlineSpinner';
+import { forgotPasswordSchema } from '@/features/authentication/schemas/authSchemas';
+
+import type { ForgotPasswordFormValues } from '@/features/authentication/schemas/authSchemas';
 import { requestPasswordReset } from '@/services/apiAuth';
-import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/features/authentication/schemas/authSchemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router';
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -53,16 +54,22 @@ function ForgotPassword() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
-            <Waves className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold text-white">Dive Master</span>
+            <img
+              src={DiverIcon}
+              alt="Diver"
+              className="w-10 h-10"
+              style={{
+                filter:
+                  'invert(42%) sepia(94%) saturate(1876%) hue-rotate(195deg) brightness(98%) contrast(101%)',
+              }}
+            />
+            <span className="text-2xl font-bold text-white">Dive Log</span>
           </div>
         </div>
 
         <Card className="bg-slate-800 border-slate-700 shadow-lg">
           <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl text-white">
-              Forgot your password?
-            </CardTitle>
+            <CardTitle className="text-2xl text-white">Forgot your password?</CardTitle>
             <CardDescription>We’ll email you a link to reset it.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -89,7 +96,7 @@ function ForgotPassword() {
               <Button
                 type="submit"
                 disabled={isBusy || didSubmit || !currentEmail}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full bg-primary"
               >
                 Send reset link
                 {isBusy && <InlineSpinner />}
@@ -113,4 +120,3 @@ function ForgotPassword() {
 }
 
 export default ForgotPassword;
-

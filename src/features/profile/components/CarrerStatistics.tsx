@@ -1,11 +1,7 @@
+import InlineError from '@/components/common/InlineError';
+import SkeletonCard from '@/components/common/SkeletonCard';
 import StatCard from '@/components/common/StatCard';
 import { useGetDives } from '@/features/dives/hooks/useGetDives';
-import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
-import { useSettingsStore } from '@/store/settingsStore';
-import { formatValueWithUnit } from '@/shared/utils/units';
-import SkeletonCard from '@/components/common/SkeletonCard';
-import InlineError from '@/components/common/InlineError';
-import { getErrorMessage } from '@/shared/utils/errorMessage';
 import {
   getAverageDepth,
   getDaysSinceMostRecentDive,
@@ -14,6 +10,10 @@ import {
   getTotalDiveDurationMinutes,
   getUniqueLocationCount,
 } from '@/shared/utils/diveStats';
+import { getErrorMessage } from '@/shared/utils/errorMessage';
+import { convertValue, formatValueWithUnit, getUnitLabel } from '@/shared/utils/units';
+import { useSettingsStore } from '@/store/settingsStore';
+import { Award, Clock, Target, TrendingUp, Trophy, Waves } from 'lucide-react';
 
 function CarrerStatistics() {
   const { dives, isLoading: divesLoading, error: divesError } = useGetDives();
@@ -54,6 +54,18 @@ function CarrerStatistics() {
   const averageDepth = getAverageDepth(dives);
   const longestDive = getLongestDiveDuration(dives);
   const uniqueLocations = getUniqueLocationCount(dives);
+  const totalDiveTimeHours = totalDiveTime / 60;
+  const formattedTotalDiveTime = `${totalDiveTimeHours.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  })}h`;
+  const formattedAverageDepth = `${convertValue(averageDepth, 'depth', unitSystem).toLocaleString(
+    undefined,
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    }
+  )} ${getUnitLabel('depth', unitSystem)}`;
 
   return (
     <section>
@@ -68,7 +80,7 @@ function CarrerStatistics() {
 
         <StatCard
           title="Total Dive Time"
-          value={`${(totalDiveTime / 60).toFixed(1)}h`}
+          value={formattedTotalDiveTime}
           description="Time underwater"
           icon={<Clock className="w-42 h-42" />}
         />
@@ -89,7 +101,7 @@ function CarrerStatistics() {
 
         <StatCard
           title="Average Depth"
-          value={formatValueWithUnit(averageDepth, 'depth', unitSystem, { fractionDigits: 1 })}
+          value={formattedAverageDepth}
           description="Across all dives"
           icon={<TrendingUp className="w-42 h-42" />}
         />
@@ -110,7 +122,7 @@ function CarrerStatistics() {
 
         <StatCard
           title="Species Documented"
-          value={87}
+          value={'Comming Soon!'}
           description="Marine life identified"
           icon={<Award className="w-42 h-42" />}
         />

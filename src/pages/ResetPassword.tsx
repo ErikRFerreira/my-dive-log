@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
-import { Waves } from 'lucide-react';
+import { Eye, EyeOff, Waves } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -22,6 +22,8 @@ function ResetPassword() {
   const navigate = useNavigate();
   const [isReady, setIsReady] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -115,15 +117,26 @@ function ResetPassword() {
                   <Label htmlFor="password" className="text-slate-300">
                     New password
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    aria-invalid={!!errors.password}
-                    disabled={isBusy}
-                    className="bg-slate-700 border-slate-600"
-                    {...register('password')}
-                  />
+                  <div className="relative flex items-center">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      aria-invalid={!!errors.password}
+                      disabled={isBusy}
+                      className="bg-slate-700 border-slate-600 pr-10"
+                      {...register('password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 text-slate-400 hover:text-blue-400 transition-colors flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      disabled={isBusy}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   {errors.password?.message && (
                     <p className="text-xs text-destructive">{errors.password.message}</p>
                   )}
@@ -133,15 +146,26 @@ function ResetPassword() {
                   <Label htmlFor="confirmPassword" className="text-slate-300">
                     Confirm password
                   </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    aria-invalid={!!errors.confirmPassword}
-                    disabled={isBusy}
-                    className="bg-slate-700 border-slate-600"
-                    {...register('confirmPassword')}
-                  />
+                  <div className="relative flex items-center">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      aria-invalid={!!errors.confirmPassword}
+                      disabled={isBusy}
+                      className="bg-slate-700 border-slate-600 pr-10"
+                      {...register('confirmPassword')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                      className="absolute right-3 text-slate-400 hover:text-blue-400 transition-colors flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      disabled={isBusy}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   {errors.confirmPassword?.message && (
                     <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
                   )}
