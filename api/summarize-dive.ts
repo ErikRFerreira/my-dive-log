@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
-import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from "../src/server/auth.js";
 
 const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
