@@ -1,7 +1,8 @@
 export const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 export const MODEL_SEED = 42;
-export const MODEL_TEMPERATURE = 0.2;
-export const MODEL_MAX_TOKENS = 260;
+export const MODEL_TEMPERATURE = 0.3;
+export const MODEL_MAX_TOKENS = 280;
+export const PROMPT_VERSION = 'dive-insight-v2';
 
 export const DIVE_TYPE_LABELS: Record<string, string> = {
   reef: 'Reef',
@@ -45,10 +46,11 @@ export const CURRENT_LABELS: Record<string, string> = {
 export const GAS_LABELS: Record<string, string> = {
   air: 'Air',
   nitrox: 'Nitrox',
+  trimix: 'Trimix',
 };
 
-export const DEFAULT_SUMMARY = 'No summary available for this dive.';
-export const DEFAULT_SIMILAR_LOCATIONS =
-  'Not enough information to suggest similar environments.';
-export const DEFAULT_TIPS = 'No specific tips for this dive.';
-export const DEFAULT_FUTURE_PRACTICE = 'No specific recommendations.';
+export const DEFAULT_RECAP = 'Insufficient detail for a factual recap.';
+export const NO_MEANINGFUL_INSIGHT_TEXT =
+  'Not enough information for a meaningful insight beyond the recap.';
+export const NO_BASELINE_COMPARISON = 'No historical baseline available for comparison.';
+export const NO_SPECIFIC_RECOMMENDATIONS = 'No specific recommendations.';

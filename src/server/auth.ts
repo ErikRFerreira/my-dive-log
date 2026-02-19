@@ -1,5 +1,5 @@
 import type { VercelRequest } from '@vercel/node';
-import { createClient, type User } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 
 /**
  * Extracts the Bearer token from the Authorization header
@@ -69,4 +69,24 @@ export async function verifySupabaseToken(
   }
 
   return { user };
+}
+
+/**
+ * Creates a Supabase client scoped to the authenticated user token.
+ */
+export function createSupabaseUserClient(token: string): SupabaseClient | { error: string } {
+  const env = getSupabaseEnv();
+  if ('error' in env) {
+    return { error: env.error };
+  }
+
+  const { supabaseUrl, supabaseAnonKey } = env;
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  });
 }

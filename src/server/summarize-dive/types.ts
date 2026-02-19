@@ -3,7 +3,17 @@ export type DiveLocationPayload = {
   country?: string | null;
 };
 
+export type DiverProfilePayload = {
+  cert_level?: string | null;
+  total_dives?: number | null;
+  average_depth?: number | null;
+  average_duration?: number | null;
+  recent_dives_30d?: number | null;
+  average_rmv?: number | null;
+};
+
 export type DivePayload = {
+  id?: string | null;
   location?: string | null;
   country?: string | null;
   locationName?: string | null;
@@ -29,35 +39,111 @@ export type DivePayload = {
   equipment?: string[] | null;
   wildlife?: string[] | null;
   notes?: string | null;
+  average_depth?: number | null;
 };
 
-export type NormalizedDiveContext = {
+export type DiveContext = {
+  id?: string;
+  date: string;
   location: string;
   country: string | null;
-  date: string;
-  depth: number | null;
-  duration: number | null;
-  waterTemp: number | null;
+  maxDepthMeters: number | null;
+  averageDepthMeters: number | null;
+  durationMinutes: number | null;
+  waterTempCelsius: number | null;
   visibility: string | null;
   diveType: string | null;
   waterType: string | null;
   exposure: string | null;
   currents: string | null;
-  weight: number | null;
   gas: string | null;
-  startPressure: number | null;
-  endPressure: number | null;
-  airUsage: number | null;
+  startPressureBar: number | null;
+  endPressureBar: number | null;
+  gasUsedBar: number | null;
   cylinderType: string | null;
-  cylinderSize: number | null;
+  cylinderSizeLiters: number | null;
+  notes: string | null;
   equipment: string[] | null;
   wildlife: string[] | null;
-  notes: string;
 };
 
-export type ModelSummaryResponse = {
-  summary?: unknown;
-  similar_locations?: unknown;
-  tips?: unknown;
-  future_practice?: unknown;
+export type DiverProfile = {
+  certificationLevel: string | null;
+  totalLoggedDives: number;
+  avgDepth: number | null;
+  avgDuration: number | null;
+  recentDives30d: number;
+  avgEstimatedRMV?: number | null;
+};
+
+export type DiveSignal = {
+  code: string;
+  severity: 'low' | 'medium' | 'high';
+  message: string;
+  source: 'context' | 'metrics' | 'profile';
+};
+
+export type ComputedMetrics = {
+  estimatedRMV: number | null;
+  gasEfficiencyComparedToAverage: string | null;
+  depthComparedToAverage: string | null;
+  durationComparedToAverage: string | null;
+};
+
+export type DiveInsightRecommendation = {
+  action: string;
+  rationale: string;
+};
+
+export type DiveInsightContent = {
+  text: string;
+  baseline_comparison: string;
+  evidence: string[];
+};
+
+export type DiveInsightResponse = {
+  recap: string;
+  dive_insight: DiveInsightContent;
+  recommendations: DiveInsightRecommendation[] | 'No specific recommendations.';
+};
+
+export type ParseDiveInsightResult =
+  | { ok: true; data: DiveInsightResponse }
+  | { ok: false; error: string; fallback: DiveInsightResponse };
+
+export type StoredDiveInsight = {
+  promptVersion: string;
+  model: string;
+  inputHash: string;
+  generatedAt: string;
+  insight: DiveInsightResponse;
+  metrics: ComputedMetrics;
+  signals: DiveSignal[];
+};
+
+export type DiveInsightResponseMeta = {
+  cached: boolean;
+  model: string;
+  promptVersion: string;
+  generatedAt: string;
+};
+
+export type DiveInsightApiResponse = {
+  insight: DiveInsightResponse;
+  summary: string;
+  meta: DiveInsightResponseMeta;
+};
+
+export type DiveInsightRequest = {
+  dive: DivePayload;
+  profile?: DiverProfilePayload;
+  signals?: DiveSignal[];
+  regenerate?: boolean;
+};
+
+export type BuildDiveInsightPromptInput = {
+  dive: DiveContext;
+  profile: DiverProfile;
+  signals: DiveSignal[];
+  metrics: ComputedMetrics;
 };

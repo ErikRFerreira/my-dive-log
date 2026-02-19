@@ -9,6 +9,7 @@ import type {
 import { supabase } from './supabase';
 
 export type DiveSummaryPayload = {
+  id?: string | null;
   date?: string | null;
   depth?: number | null;
   duration?: number | null;
@@ -41,14 +42,58 @@ export type DiveSummaryPayload = {
   locationCountryCode?: string | null;
 };
 
+export type DiveInsightProfilePayload = {
+  cert_level?: string | null;
+  total_dives?: number | null;
+  average_depth?: number | null;
+  average_duration?: number | null;
+  recent_dives_30d?: number | null;
+  average_rmv?: number | null;
+};
+
 /**
- * Sends a dive object to the API to generate a summary using AI.
+ * Strict Dive Insight response from /api/summarize-dive.
+ */
+export type DiveInsightResponse = {
+  recap: string;
+  dive_insight: {
+    text: string;
+    baseline_comparison: string;
+    evidence: string[];
+  };
+  recommendations: Array<{
+    action: string;
+    rationale: string;
+  }> | 'No specific recommendations.';
+};
+
+export type DiveInsightApiResponse = {
+  insight: DiveInsightResponse;
+  summary: string;
+  meta: {
+    cached: boolean;
+    model: string;
+    promptVersion: string;
+    generatedAt: string;
+  };
+};
+
+type DiveInsightApiError = { error?: string };
+
+/**
+ * Sends a dive object to the API and returns the typed Dive Insight payload.
  *
  * @param {DiveSummaryPayload} dive - The dive payload to summarize.
- * @returns {Promise<string>} Resolves to the generated summary string.
- * @throws If the API request fails or no summary is returned.
+ * @param {DiveInsightProfilePayload} profile - Optional diver profile context.
+ * @param {boolean} regenerate - If true, bypasses cache and forces new generation.
+ * @returns {Promise<DiveInsightApiResponse>} Structured insight response.
+ * @throws If the API request fails or returns an invalid shape.
  */
-export async function getDiveSummaryFromAPI(dive: DiveSummaryPayload): Promise<string> {
+export async function generateDiveInsightFromAPI(
+  dive: DiveSummaryPayload,
+  profile?: DiveInsightProfilePayload,
+  regenerate = false
+): Promise<DiveInsightApiResponse> {
   // Get the current session token for authentication
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
@@ -63,14 +108,14 @@ export async function getDiveSummaryFromAPI(dive: DiveSummaryPayload): Promise<s
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ dive }),
+    body: JSON.stringify({ dive, profile, regenerate }),
   });
 
   const bodyText = await res.text();
-  let data: { summary?: string; error?: string } = {};
+  let data: DiveInsightApiResponse & DiveInsightApiError = {} as DiveInsightApiResponse & DiveInsightApiError;
 
   try {
-    data = bodyText ? JSON.parse(bodyText) : {};
+    data = bodyText ? JSON.parse(bodyText) : ({} as DiveInsightApiResponse & DiveInsightApiError);
   } catch {
     // if it's not JSON, keep data as {}
   }
@@ -80,9 +125,29 @@ export async function getDiveSummaryFromAPI(dive: DiveSummaryPayload): Promise<s
     throw new Error(msg);
   }
 
-  if (!data.summary) {
-    throw new Error(data.error || 'No summary returned from API');
+  if (
+    !data.summary ||
+    !data.insight ||
+    !data.meta ||
+    typeof data.meta.cached !== 'boolean' ||
+    typeof data.meta.model !== 'string' ||
+    typeof data.meta.promptVersion !== 'string' ||
+    typeof data.meta.generatedAt !== 'string'
+  ) {
+    throw new Error(data.error || 'Invalid Dive Insight response shape');
   }
 
+  return data;
+}
+
+/**
+ * Legacy convenience helper for existing UI flows that only need text summary.
+ */
+export async function getDiveSummaryFromAPI(
+  dive: DiveSummaryPayload,
+  profile?: DiveInsightProfilePayload,
+  regenerate = false
+): Promise<string> {
+  const data = await generateDiveInsightFromAPI(dive, profile, regenerate);
   return data.summary;
 }

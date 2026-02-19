@@ -1,50 +1,108 @@
-import type { NormalizedDiveContext } from './types.js';
+import type { ComputedMetrics, DiveContext, DiverProfile, DiveSignal } from './types.js';
 
-export function extractSignals(context: NormalizedDiveContext): string[] {
-  const signals: string[] = [];
+function pushSignal(
+  signals: DiveSignal[],
+  code: string,
+  severity: DiveSignal['severity'],
+  message: string,
+  source: DiveSignal['source']
+) {
+  signals.push({ code, severity, message, source });
+}
 
-  if (context.waterTemp !== null && context.waterTemp <= 20) {
-    signals.push('Cold-water exposure likely affected comfort and thermal management.');
+export function extractSignals(
+  dive: DiveContext,
+  profile: DiverProfile,
+  metrics: ComputedMetrics
+): DiveSignal[] {
+  const signals: DiveSignal[] = [];
+
+  if (dive.waterTempCelsius !== null && dive.waterTempCelsius <= 20) {
+    pushSignal(
+      signals,
+      'cold_water',
+      'medium',
+      'Cold-water exposure likely increased thermal load and breathing demand.',
+      'context'
+    );
   }
 
-  if (context.currents === 'Moderate' || context.currents === 'Strong') {
-    signals.push('Current management demand appears elevated.');
+  if (dive.currents === 'Moderate' || dive.currents === 'Strong') {
+    pushSignal(
+      signals,
+      'current_load',
+      'medium',
+      'Current management demand was elevated.',
+      'context'
+    );
   }
 
-  if (context.diveType === 'Cave') {
-    signals.push('Overhead environment profile requires strict guideline discipline.');
+  if (dive.diveType === 'Cave') {
+    pushSignal(
+      signals,
+      'overhead_environment',
+      'high',
+      'Overhead environment profile requires disciplined team and guideline procedures.',
+      'context'
+    );
   }
 
-  if (context.visibility === 'Poor' || context.visibility === 'Fair') {
-    signals.push('Limited visibility likely affected navigation and communication.');
+  if (dive.visibility === 'Poor' || dive.visibility === 'Fair') {
+    pushSignal(
+      signals,
+      'limited_visibility',
+      'medium',
+      'Limited visibility likely increased navigation and communication complexity.',
+      'context'
+    );
   }
 
-  if (context.depth !== null && context.depth >= 30) {
-    signals.push('Deeper profile likely increased gas and decompression planning demands.');
+  if (dive.maxDepthMeters !== null && dive.maxDepthMeters >= 30) {
+    pushSignal(
+      signals,
+      'deep_profile',
+      'high',
+      'Depth profile likely increased gas demand and decompression planning workload.',
+      'context'
+    );
   }
 
-  if (context.duration !== null && context.duration >= 50) {
-    signals.push('Extended bottom-time profile.');
+  if (dive.durationMinutes !== null && dive.durationMinutes >= 50) {
+    pushSignal(signals, 'long_duration', 'medium', 'Extended bottom-time profile.', 'context');
   }
 
-  if (context.gas?.startsWith('Nitrox')) {
-    signals.push('Nitrox was used; gas planning awareness remains relevant.');
+  if (dive.gas?.startsWith('Nitrox')) {
+    pushSignal(
+      signals,
+      'nitrox_used',
+      'low',
+      'Nitrox was used; oxygen exposure planning remains relevant.',
+      'context'
+    );
+  }
+
+  if (profile.totalLoggedDives > 0 && profile.totalLoggedDives < 25) {
+    pushSignal(
+      signals,
+      'early_experience_band',
+      'low',
+      'Diver appears to be in an early experience band (<25 logged dives).',
+      'profile'
+    );
+  }
+
+  if (
+    metrics.gasEfficiencyComparedToAverage &&
+    metrics.gasEfficiencyComparedToAverage.toLowerCase().includes('decreased')
+  ) {
+    pushSignal(
+      signals,
+      'gas_efficiency_drop',
+      'medium',
+      'Gas efficiency dropped compared to the diver baseline.',
+      'metrics'
+    );
   }
 
   return signals;
-}
-
-export function inferEnvironmentHints(context: NormalizedDiveContext): string[] {
-  const hints: string[] = [];
-  const locationLower = context.location.toLowerCase();
-
-  if (locationLower.includes('cenote')) {
-    hints.push('High-confidence inference: this environment is likely a cenote.');
-  } else if (context.diveType === 'Cave' && context.waterType === 'Fresh water') {
-    hints.push('High-confidence inference: this was likely a freshwater overhead cave environment.');
-  } else if (context.diveType === 'Drift' && (context.currents === 'Moderate' || context.currents === 'Strong')) {
-    hints.push('High-confidence inference: this profile likely emphasized drift/current diving techniques.');
-  }
-
-  return hints;
 }

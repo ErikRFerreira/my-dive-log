@@ -1,64 +1,80 @@
-import { extractSignals, inferEnvironmentHints } from './signals.js';
-import type { NormalizedDiveContext } from './types.js';
+import {
+  NO_BASELINE_COMPARISON,
+  NO_MEANINGFUL_INSIGHT_TEXT,
+  NO_SPECIFIC_RECOMMENDATIONS,
+  PROMPT_VERSION,
+} from './constants.js';
+import { hasHistoricalBaseline } from './metrics.js';
+import type { BuildDiveInsightPromptInput } from './types.js';
 
-function displayValue(value: string | number | null | undefined, suffix = ''): string {
-  if (value === null || value === undefined || value === '') return 'N/A';
-  return `${value}${suffix}`;
+function inferToneInstruction(certificationLevel: string | null): string {
+  if (!certificationLevel) return 'Use a neutral professional tone.';
+
+  const normalized = certificationLevel.toLowerCase();
+
+  if (normalized.includes('open water') || normalized.includes('beginner')) {
+    return 'Basic safety framing is allowed when directly justified by provided data.';
+  }
+
+  if (
+    normalized.includes('advanced') ||
+    normalized.includes('rescue') ||
+    normalized.includes('tec') ||
+    normalized.includes('instructor')
+  ) {
+    return 'Avoid obvious beginner advice. Keep feedback technical and specific.';
+  }
+
+  return 'Use a neutral professional tone.';
 }
 
-function formatList(items: string[] | null): string {
-  if (!items || items.length === 0) return 'N/A';
-  return items.join(', ');
-}
-
-export function buildPrompt(context: NormalizedDiveContext): string {
-  const signals = extractSignals(context);
-  const environmentHints = inferEnvironmentHints(context);
-  const locationLine = context.country ? `${context.location}, ${context.country}` : context.location;
+export function buildDiveInsightPrompt(input: BuildDiveInsightPromptInput): string {
+  const { dive, profile, signals, metrics } = input;
+  const hasBaseline = hasHistoricalBaseline(profile);
+  const toneInstruction = inferToneInstruction(profile.certificationLevel);
 
   return `
-You are generating a concise scuba dive log summary.
+You generate structured Dive Insight output for a scuba log product.
 
-Return valid JSON only with this exact shape:
+Prompt version: ${PROMPT_VERSION}
+
+Hard output rules:
+1) Return strict JSON only.
+2) Output must follow this exact schema:
 {
-  "summary": "<2-3 concise sentences focused on factual dive recap>",
-  "similar_locations": "<1 line with 1-2 environment suggestions, or 'Not enough information to suggest similar environments.'>",
-  "tips": "<1 line with one safety reminder and one conservation tip when relevant, or 'No specific tips for this dive.'>",
-  "future_practice": "<1 line with one actionable training focus, or 'No specific recommendations.'>"
+  "recap": "<max 2 factual sentences>",
+  "dive_insight": {
+    "text": "<meaningful insight text OR exact anti-filler text>",
+    "baseline_comparison": "<historical comparison sentence OR exact no-baseline text>",
+    "evidence": ["<short references to metrics/signals used>"]
+  },
+  "recommendations": [
+    { "action": "<concrete action>", "rationale": "<why this is justified by provided data>" }
+  ]
 }
+or set "recommendations" to exactly "${NO_SPECIFIC_RECOMMENDATIONS}" when no justified recommendation exists.
 
-Dive details:
-- Location: ${locationLine}
-- Date: ${context.date}
-- Max depth: ${displayValue(context.depth, ' m')}
-- Duration: ${displayValue(context.duration, ' min')}
-- Water temperature: ${displayValue(context.waterTemp, ' C')}
-- Dive type: ${displayValue(context.diveType)}
-- Visibility: ${displayValue(context.visibility)}
-- Water type: ${displayValue(context.waterType)}
-- Exposure: ${displayValue(context.exposure)}
-- Currents: ${displayValue(context.currents)}
-- Weight: ${displayValue(context.weight, ' kg')}
-- Gas: ${displayValue(context.gas)}
-- Start pressure: ${displayValue(context.startPressure, ' bar')}
-- End pressure: ${displayValue(context.endPressure, ' bar')}
-- Gas used: ${displayValue(context.airUsage, ' bar')}
-- Cylinder: ${context.cylinderType ?? 'N/A'}${context.cylinderSize !== null ? ` (${context.cylinderSize} L)` : ''}
-- Equipment: ${formatList(context.equipment)}
-- Wildlife: ${formatList(context.wildlife)}
-- Notes: ${context.notes}
+3) Never fabricate facts, values, events, risks, wildlife, or history.
+4) Use only provided data blocks below.
+5) Keep total output under ~300 tokens.
+6) If no meaningful value-add insight beyond recap is possible, set:
+"dive_insight.text": "${NO_MEANINGFUL_INSIGHT_TEXT}"
+7) Generic advice is prohibited unless explicitly justified by provided signals or metrics.
+8) If recommendations are generic or unsupported, output "${NO_SPECIFIC_RECOMMENDATIONS}".
+9) ${toneInstruction}
 
-Risk and profile signals:
-${signals.length > 0 ? signals.map((signal) => `- ${signal}`).join('\n') : '- No notable risk signals provided.'}
+Historical comparison rule (mandatory):
+- hasBaseline: ${hasBaseline ? 'true' : 'false'}
+- If hasBaseline=true, baseline_comparison MUST include at least one comparison about depth, duration, or gas efficiency.
+- If hasBaseline=false, baseline_comparison MUST be exactly "${NO_BASELINE_COMPARISON}".
 
-Environment and inference hints:
-${environmentHints.length > 0 ? environmentHints.map((hint) => `- ${hint}`).join('\n') : '- None'}
+Data blocks (authoritative):
+dive = ${JSON.stringify(dive, null, 2)}
 
-Rules:
-- Use only the details above.
-- Do not fabricate species, events, conditions, or training outcomes.
-- High-confidence inference is allowed only when strongly supported by details and signals.
-- If confidence is low, keep statements generic.
-- Keep total content concise and practical.
+profile = ${JSON.stringify(profile, null, 2)}
+
+signals = ${JSON.stringify(signals, null, 2)}
+
+metrics = ${JSON.stringify(metrics, null, 2)}
   `.trim();
 }

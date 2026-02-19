@@ -58,6 +58,7 @@ export function buildSummaryPayloadFromDraft(
     trimNullableString(draftValues.country) ?? dive.locations?.country ?? null;
 
   return {
+    id: dive.id,
     location: locationName,
     country: locationCountry,
     locations: {
