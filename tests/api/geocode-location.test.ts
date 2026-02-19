@@ -11,13 +11,13 @@ const {
   verifySupabaseTokenMock: vi.fn(),
 }));
 
-vi.mock('../utils/auth', () => ({
+vi.mock('../../src/server/auth', () => ({
   getSupabaseEnv: getSupabaseEnvMock,
   getBearerToken: getBearerTokenMock,
   verifySupabaseToken: verifySupabaseTokenMock,
 }));
 
-import handler from '../geocode-location';
+import handler from '../../api/geocode-location';
 
 describe('api/geocode-location', () => {
   beforeEach(() => {

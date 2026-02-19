@@ -13,7 +13,7 @@ const {
   createClientMock: vi.fn(),
 }));
 
-vi.mock('../utils/auth', () => ({
+vi.mock('../../src/server/auth', () => ({
   getSupabaseEnv: getSupabaseEnvMock,
   getBearerToken: getBearerTokenMock,
   verifySupabaseToken: verifySupabaseTokenMock,
@@ -23,7 +23,7 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: createClientMock,
 }));
 
-import handler from '../delete-account';
+import handler from '../../api/delete-account';
 
 function makeRequest(method: string, body: unknown = {}) {
   return {

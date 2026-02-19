@@ -13,7 +13,7 @@ const {
   groqCreateMock: vi.fn(),
 }));
 
-vi.mock('../utils/auth', () => ({
+vi.mock('../../src/server/auth', () => ({
   getSupabaseEnv: getSupabaseEnvMock,
   getBearerToken: getBearerTokenMock,
   verifySupabaseToken: verifySupabaseTokenMock,
@@ -29,7 +29,7 @@ vi.mock('groq-sdk', () => ({
   },
 }));
 
-import handler from '../summarize-dive';
+import handler from '../../api/summarize-dive';
 
 describe('api/summarize-dive', () => {
   beforeEach(() => {
