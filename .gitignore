@@ -10,13 +10,19 @@ gitleaks-report.json
 report.json
 .gitleaks.toml
 
+# Dependencies
 node_modules
+
+# Production build
 dist
+build
 dist-ssr
+
+# Env files
 *.local
 .env
-.env.*
-
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
@@ -29,9 +35,15 @@ dist-ssr
 *.sln
 *.sw?
 
+# Prisma
 /generated/prisma
 
+# Vercel
 .vercel
+
+# IDE
+.cursor
+.codex
 
 # Playwright
 /test-results/
@@ -39,3 +51,7 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# OS
+.DS_Store
+Thumbs.db
