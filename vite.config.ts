@@ -20,23 +20,6 @@ export default defineConfig({
             return 'media-compress';
           }
 
-          if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
-            return 'vendor-react';
-          }
-
-          if (
-            id.includes('@tanstack/react-query') ||
-            id.includes('@supabase/supabase-js') ||
-            id.includes('react-router') ||
-            id.includes('zod')
-          ) {
-            return 'vendor-core';
-          }
-
-          if (id.includes('leaflet') || id.includes('react-leaflet') || id.includes('recharts')) {
-            return 'vendor-visual';
-          }
-
           return undefined;
         },
       },
