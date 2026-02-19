@@ -5,8 +5,6 @@
  * and compresses media to stay within size and dimension limits.
  */
 
-import imageCompression from 'browser-image-compression';
-
 /** Maximum file size in bytes after compression (1MB) */
 const DEFAULT_MAX_BYTES = 1_000_000;
 /** Maximum width or height in pixels for compressed images */
@@ -89,6 +87,13 @@ async function convertHeicToJpeg(file: File) {
 }
 
 /**
+ * Lazily loads browser-image-compression so the main app bundle stays smaller.
+ */
+async function loadImageCompression() {
+  return (await import('browser-image-compression')).default;
+}
+
+/**
  * Prepares and compresses an image file for dive media upload.
  *
  * Handles HEIC/HEIF conversion, image compression, and size validation.
@@ -120,6 +125,7 @@ export async function prepareDiveMedia(
   const baseFile = isHeicFile(file) ? await convertHeicToJpeg(file) : file;
   const outputType = getOutputType(baseFile);
   const outputName = getOutputName(baseFile.name, outputType);
+  const imageCompression = await loadImageCompression();
 
   if (baseFile.size <= maxBytes) {
     return baseFile;
