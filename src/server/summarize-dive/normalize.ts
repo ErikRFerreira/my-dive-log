@@ -5,8 +5,8 @@ import {
   GAS_LABELS,
   VISIBILITY_LABELS,
   WATER_TYPE_LABELS,
-} from './constants';
-import type { DivePayload, NormalizedDiveContext } from './types';
+} from './constants.js';
+import type { DivePayload, NormalizedDiveContext } from './types.js';
 
 function toNullableString(value: unknown): string | null {
   if (typeof value !== 'string') return null;

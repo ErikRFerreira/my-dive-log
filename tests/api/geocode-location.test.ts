@@ -11,7 +11,7 @@ const {
   verifySupabaseTokenMock: vi.fn(),
 }));
 
-vi.mock('../../src/server/auth', () => ({
+vi.mock('../../src/server/auth.js', () => ({
   getSupabaseEnv: getSupabaseEnvMock,
   getBearerToken: getBearerTokenMock,
   verifySupabaseToken: verifySupabaseTokenMock,

@@ -1,4 +1,4 @@
-import type { NormalizedDiveContext } from './types';
+import type { NormalizedDiveContext } from './types.js';
 
 export function extractSignals(context: NormalizedDiveContext): string[] {
   const signals: string[] = [];

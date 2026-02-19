@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth.js';
 
 const DIVE_PHOTOS_BUCKET = 'dive-photos';
 const STORAGE_PAGE_SIZE = 1000;

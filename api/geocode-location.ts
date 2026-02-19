@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth.js';
 
 type Body = {
   name?: string;

@@ -3,8 +3,8 @@ import {
   DEFAULT_SIMILAR_LOCATIONS,
   DEFAULT_SUMMARY,
   DEFAULT_TIPS,
-} from './constants';
-import type { ModelSummaryResponse } from './types';
+} from './constants.js';
+import type { ModelSummaryResponse } from './types.js';
 
 export function parseModelJson(content: string): ModelSummaryResponse | null {
   const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/i);

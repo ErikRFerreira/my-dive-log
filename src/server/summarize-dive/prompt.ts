@@ -1,5 +1,5 @@
-import { extractSignals, inferEnvironmentHints } from './signals';
-import type { NormalizedDiveContext } from './types';
+import { extractSignals, inferEnvironmentHints } from './signals.js';
+import type { NormalizedDiveContext } from './types.js';
 
 function displayValue(value: string | number | null | undefined, suffix = ''): string {
   if (value === null || value === undefined || value === '') return 'N/A';

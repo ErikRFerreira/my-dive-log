@@ -1,16 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
-import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from '../src/server/auth.js';
 import {
   MODEL,
   MODEL_MAX_TOKENS,
   MODEL_SEED,
   MODEL_TEMPERATURE,
-} from '../src/server/summarize-dive/constants';
-import { parseModelJson, formatSummaryResponse } from '../src/server/summarize-dive/format';
-import { normalizeDiveContext } from '../src/server/summarize-dive/normalize';
-import { buildPrompt } from '../src/server/summarize-dive/prompt';
-import type { DivePayload } from '../src/server/summarize-dive/types';
+} from '../src/server/summarize-dive/constants.js';
+import { parseModelJson, formatSummaryResponse } from '../src/server/summarize-dive/format.js';
+import { normalizeDiveContext } from '../src/server/summarize-dive/normalize.js';
+import { buildPrompt } from '../src/server/summarize-dive/prompt.js';
+import type { DivePayload } from '../src/server/summarize-dive/types.js';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
