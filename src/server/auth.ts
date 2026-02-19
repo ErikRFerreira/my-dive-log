@@ -21,8 +21,8 @@ export function getBearerToken(req: VercelRequest): string | null {
  *          Environment variables or error object
  */
 export function getSupabaseEnv(): { supabaseUrl: string; supabaseAnonKey: string } | { error: string } {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl) {
     return { error: 'Missing Supabase URL environment variable' };
