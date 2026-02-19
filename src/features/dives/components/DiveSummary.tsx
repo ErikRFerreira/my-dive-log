@@ -61,7 +61,7 @@ function EditableDiveSummary({ dive }: EditableDiveSummaryProps) {
             Generating... <InlineSpinner />
           </>
         ) : (
-          'Generate'
+          'Generate AI Summary'
         )}
       </Button>
       <Controller
@@ -95,7 +95,6 @@ function EditableDiveSummary({ dive }: EditableDiveSummaryProps) {
 }
 
 function DiveSummary({ dive, isEditing }: DiveSummaryProps) {
-
   return (
     <section className="flex flex-col h-full">
       <div className="flex items-center gap-2 mb-3 px-2">

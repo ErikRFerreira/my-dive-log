@@ -6,6 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+gitleaks-report.json
+report.json
+.gitleaks.toml
 
 node_modules
 dist
@@ -13,6 +16,7 @@ dist-ssr
 *.local
 .env
 .env.*
+
 
 # Editor directories and files
 .vscode/*
@@ -28,3 +32,10 @@ dist-ssr
 /generated/prisma
 
 .vercel
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
