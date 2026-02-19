@@ -1,21 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Groq from 'groq-sdk';
-import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from "../src/server/auth.js";
-
-const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+import { getBearerToken, verifySupabaseToken, getSupabaseEnv } from './utils/auth';
+import { MODEL, MODEL_MAX_TOKENS, MODEL_SEED, MODEL_TEMPERATURE } from './summarize-dive/constants';
+import { parseModelJson, formatSummaryResponse } from './summarize-dive/format';
+import { normalizeDiveContext } from './summarize-dive/normalize';
+import { buildPrompt } from './summarize-dive/prompt';
+import type { DivePayload } from './summarize-dive/types';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
-
-type DivePayload = {
-  location?: string | null;
-  country?: string | null;
-  date?: string | null;
-  depth?: number | null;
-  duration?: number | null;
-  notes?: string | null;
-};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
@@ -54,63 +48,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing dive payload' });
     }
 
-    const {
-      location = 'an unknown site',
-      country = '',
-      date = 'an unknown date',
-      depth = 0,
-      duration = 0,
-      notes = 'no additional notes',
-    } = dive;
-
-    const prompt = `
-You are generating a short scuba dive log summary.
-
-Return the result in exactly this structure:
-
-Summary:
-<2–3 concise sentences summarizing this dive for a dive logbook.>
-
-Similar locations:
-<- Recommend 1–2 types of dive environments the diver might enjoy.
-If unsure, say: "Not enough information to suggest similar environments.">
-
-Tips:
-<- Provide 1 brief safety reminder AND 1 environmental conservation tip if appropriate.
-Otherwise say: "No specific tips for this dive.">
-
-Future practice:
-<- Suggest 1 future dive skill or training activity if appropriate.
-Otherwise say: "No specific recommendations.">
-
-Details:
-- Location: ${location}${country ? `, ${country}` : ''}
-- Date: ${date}
-- Max depth: ${depth} m
-- Duration: ${duration} min
-- Notes: ${notes}
-
-Rules:
-- Use ONLY the information provided.
-- Do NOT invent details.
-- Keep the total output under 120 words.
-    `.trim();
+    const context = normalizeDiveContext(dive);
+    const prompt = buildPrompt(context);
 
     const completion = await groq.chat.completions.create({
       model: MODEL,
       messages: [
-        { role: 'system', content: 'You write concise scuba dive log summaries.' },
+        {
+          role: 'system',
+          content:
+            'You write concise scuba dive log summaries and return strict JSON when requested.',
+        },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.4,
-      max_tokens: 200,
+      temperature: MODEL_TEMPERATURE,
+      max_tokens: MODEL_MAX_TOKENS,
+      seed: MODEL_SEED,
+      response_format: { type: 'json_object' },
     });
 
-    const summary = completion.choices?.[0]?.message?.content?.trim();
+    const modelContent = completion.choices?.[0]?.message?.content?.trim();
 
-    if (!summary) {
+    if (!modelContent) {
       return res.status(500).json({ error: 'No summary returned from model' });
     }
+
+    const parsed = parseModelJson(modelContent);
+    const summary = formatSummaryResponse(parsed, parsed ? undefined : modelContent);
 
     return res.status(200).json({ summary });
   } catch (err: unknown) {

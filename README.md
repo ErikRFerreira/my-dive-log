@@ -130,6 +130,7 @@ Core references:
 
 - [Supabase RLS policies](./docs/SUPABASE_RLS.md)
 - [API authentication for serverless routes](./docs/security/api-authentication.md)
+- [AI summary generation internals](./docs/ai-summary-generation.md)
 - [Database schema / data model (Prisma)](./prisma/schema.prisma)
 - [SQL maintenance script: cleanup unused locations](./docs/sql/cleanup-unused-locations.sql)
 - [AI prompt notes](./docs/ai-prompts.md)
