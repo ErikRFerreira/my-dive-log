@@ -2,6 +2,7 @@ import DivePage from '@/pages/Dive';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { Dive as DiveType } from '@/features/dives/types';
 import type { ReactNode } from 'react';
 
@@ -86,13 +87,7 @@ vi.mock('@/components/ui/GoBack', () => ({
 }));
 
 vi.mock('@/components/common/QueryErrorFallback', () => ({
-  default: ({
-    title,
-    onRetry,
-  }: {
-    title: string;
-    onRetry?: () => void;
-  }) => (
+  default: ({ title, onRetry }: { title: string; onRetry?: () => void }) => (
     <div>
       <p>{title}</p>
       {onRetry ? (
@@ -213,10 +208,6 @@ vi.mock('@/features/dives/components/DiveEquipment', () => ({
 
 vi.mock('@/features/dives/components/DiveWildlife', () => ({
   default: () => <div>Wildlife</div>,
-}));
-
-vi.mock('@/features/dives/components/DiveSummary', () => ({
-  default: () => <div>Summary</div>,
 }));
 
 vi.mock('@/features/dives/components/DiveBackground', () => ({

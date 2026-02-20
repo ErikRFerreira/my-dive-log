@@ -16,7 +16,6 @@ The app is built around a user-owned data model: each authenticated diver can ma
 - Location management with map visualization and favorites
 - Dashboard statistics and charts
 - Photo upload and gallery support for dives
-- AI-assisted dive summary generation
 - Account deletion flow with full user-data cleanup
 
 ## Tech Stack
@@ -37,7 +36,6 @@ High-level request flow:
 2. Client-side features read/write core entities (dives, locations, profiles, photos) through Supabase.
 3. For external integrations, the client calls protected Vercel API routes:
    - `/api/geocode-location` (Nominatim geocoding)
-   - `/api/summarize-dive` (AI summary generation)
    - `/api/delete-account` (secure account/data deletion)
 4. API routes validate bearer tokens, verify the user with Supabase, and then process the request.
 5. Supabase Row Level Security (RLS) enforces per-user data access at the database layer.
@@ -130,7 +128,6 @@ Core references:
 
 - [Supabase RLS policies](./docs/SUPABASE_RLS.md)
 - [API authentication for serverless routes](./docs/security/api-authentication.md)
-- [AI summary generation internals](./docs/ai-summary-generation.md)
 - [Database schema / data model (Prisma)](./prisma/schema.prisma)
 - [SQL maintenance script: cleanup unused locations](./docs/sql/cleanup-unused-locations.sql)
 - [AI prompt notes](./docs/ai-prompts.md)

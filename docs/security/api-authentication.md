@@ -19,13 +19,6 @@ Implemented: February 7, 2026
 - **Authentication**: Required (JWT Bearer token)
 - **Rate Limit**: None (protected by auth)
 
-### 2. `/api/summarize-dive`
-
-- **Purpose**: Generates AI-powered dive log summaries using Groq API
-- **Method**: POST
-- **Authentication**: Required (JWT Bearer token)
-- **Rate Limit**: None (protected by auth)
-
 ### 3. `/api/delete-account`
 
 - **Purpose**: Deletes user account and all associated data
@@ -172,7 +165,6 @@ curl -X POST https://your-app.vercel.app/api/geocode-location \
 - `VITE_SUPABASE_URL` or `SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY` or `SUPABASE_ANON_KEY`
 - `NOMINATIM_USER_AGENT` (for geocoding endpoint)
-- `GROQ_API_KEY` (for summarize endpoint)
 - `SUPABASE_SERVICE_ROLE_KEY` (for delete-account endpoint only)
 
 ### Development (.env.local)
