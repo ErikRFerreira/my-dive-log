@@ -11,7 +11,6 @@ import DiveHeader from '@/features/dives/components/DiveHeader';
 import DiveInformation from '@/features/dives/components/DiveInformation';
 import DiveNotes from '@/features/dives/components/DiveNotes';
 import DiveStats from '@/features/dives/components/DiveStats';
-import DiveSummary from '@/features/dives/components/DiveSummary';
 import DiveWildlife from '@/features/dives/components/DiveWildlife';
 import GasUsage from '@/features/dives/components/GasUsage';
 import { useDeleteDive } from '@/features/dives/hooks/useDeleteDive';
@@ -121,9 +120,6 @@ function DivePage() {
         {/* Wildlife */}
         <DiveWildlife dive={dive} isEditing={isEditing} />
       </div>
-
-      {/* Summary */}
-      <DiveSummary dive={dive} isEditing={isEditing} />
 
       {/* Delete Dive Modal */}
       <DeleteDiveModal
