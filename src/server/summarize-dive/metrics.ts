@@ -1,8 +1,17 @@
-import type { ComputedMetrics, DiveContext, DiverProfile } from './types.js';
+import type {
+  BaselinesBundle,
+  ComparisonResult,
+  ComputedMetrics,
+  DiveContext,
+  DiverProfile,
+} from './types.js';
 
 const DEPTH_DELTA_THRESHOLD_METERS = 1;
 const DURATION_DELTA_THRESHOLD_MINUTES = 5;
 const GAS_EFFICIENCY_DELTA_THRESHOLD_RATIO = 0.1;
+const GLOBAL_BASELINE_MIN = 5;
+const LOCATION_BASELINE_MIN = 3;
+const RECENT_BASELINE_MIN = 3;
 
 function round(value: number): number {
   return Number(value.toFixed(1));
@@ -56,72 +65,99 @@ export function computeEstimatedRMV(params: {
   return round(rmv);
 }
 
-function compareDepth(currentDepth: number | null, avgDepth: number | null): string | null {
-  if (currentDepth === null || avgDepth === null) return null;
-
-  const delta = round(currentDepth - avgDepth);
-  if (Math.abs(delta) < DEPTH_DELTA_THRESHOLD_METERS) {
-    return `Depth is in line with your baseline (within ~${DEPTH_DELTA_THRESHOLD_METERS} m).`;
-  }
-
-  if (delta > 0) {
-    return `Deeper than your average by ~${Math.abs(delta)} m.`;
-  }
-
-  return `Shallower than your average by ~${Math.abs(delta)} m.`;
+function rmvConfidence(estimatedRMV: number | null, averageDepthSource: DiveContext['averageDepthSource']): ComputedMetrics['rmvConfidence'] {
+  if (estimatedRMV === null) return 'missing';
+  if (averageDepthSource === 'logged') return 'measured';
+  if (averageDepthSource === 'estimated') return 'estimated';
+  return 'missing';
 }
 
-function compareDuration(currentDuration: number | null, avgDuration: number | null): string | null {
-  if (currentDuration === null || avgDuration === null) return null;
+function addComparison(params: {
+  kind: ComparisonResult['kind'];
+  baseline: ComparisonResult['baseline'];
+  current: number | null;
+  baselineValue: number | null;
+  sampleSize: number;
+  minSamples: number;
+  evidence: string[];
+}): ComparisonResult | null {
+  const { kind, baseline, current, baselineValue, sampleSize, minSamples, evidence } = params;
+  if (current === null || baselineValue === null) return null;
+  if (!Number.isFinite(current) || !Number.isFinite(baselineValue)) return null;
+  if (sampleSize < minSamples) return null;
 
-  const delta = round(currentDuration - avgDuration);
-  if (Math.abs(delta) < DURATION_DELTA_THRESHOLD_MINUTES) {
-    return `Duration is close to your baseline (within ~${DURATION_DELTA_THRESHOLD_MINUTES} min).`;
+  const delta = round(current - baselineValue);
+  const percent =
+    baselineValue !== 0 && baselineValue !== null ? round((delta / baselineValue) * 100) : null;
+
+  let score = 0;
+  if (kind === 'rmv') {
+    const ratio = percent !== null ? Math.abs(percent) / 100 : 0;
+    score = ratio;
+  } else if (kind === 'depth') {
+    score = Math.abs(delta) / DEPTH_DELTA_THRESHOLD_METERS;
+  } else {
+    score = Math.abs(delta) / DURATION_DELTA_THRESHOLD_MINUTES;
   }
 
-  if (delta > 0) {
-    return `Longer bottom time than usual by ~${Math.abs(delta)} min.`;
+  let text: string;
+  if (kind === 'depth') {
+    text =
+      Math.abs(delta) < DEPTH_DELTA_THRESHOLD_METERS
+        ? `Depth is in line with ${baseline} baseline (±${DEPTH_DELTA_THRESHOLD_METERS} m).`
+        : delta > 0
+        ? `Depth deeper than ${baseline} average by ~${Math.abs(delta)} m.`
+        : `Depth shallower than ${baseline} average by ~${Math.abs(delta)} m.`;
+  } else if (kind === 'duration') {
+    text =
+      Math.abs(delta) < DURATION_DELTA_THRESHOLD_MINUTES
+        ? `Duration matches ${baseline} baseline (±${DURATION_DELTA_THRESHOLD_MINUTES} min).`
+        : delta > 0
+        ? `Bottom time longer than ${baseline} average by ~${Math.abs(delta)} min.`
+        : `Bottom time shorter than ${baseline} average by ~${Math.abs(delta)} min.`;
+  } else {
+    if (percent !== null && Math.abs(percent) < GAS_EFFICIENCY_DELTA_THRESHOLD_RATIO * 100) {
+      text = `Gas efficiency near ${baseline} baseline (RMV within ~${Math.round(
+        GAS_EFFICIENCY_DELTA_THRESHOLD_RATIO * 100
+      )}% ).`;
+    } else if (delta < 0) {
+      text = `Gas efficiency improved vs ${baseline} baseline (~${Math.abs(percent ?? 0)}% lower RMV).`;
+    } else {
+      text = `Gas efficiency worse vs ${baseline} baseline (~${Math.abs(percent ?? 0)}% higher RMV).`;
+    }
   }
 
-  return `Shorter bottom time than usual by ~${Math.abs(delta)} min.`;
+  return {
+    kind,
+    baseline,
+    text,
+    evidence,
+    score,
+    delta,
+    percent,
+  };
 }
 
-function compareGasEfficiency(
-  estimatedRMV: number | null,
-  avgEstimatedRMV: number | null
-): string | null {
-  if (estimatedRMV === null || avgEstimatedRMV === null || avgEstimatedRMV <= 0) return null;
-
-  const deltaRatio = (estimatedRMV - avgEstimatedRMV) / avgEstimatedRMV;
-  const deltaPercent = round(Math.abs(deltaRatio) * 100);
-
-  if (Math.abs(deltaRatio) < GAS_EFFICIENCY_DELTA_THRESHOLD_RATIO) {
-    return 'Gas efficiency is near your baseline.';
-  }
-
-  if (deltaRatio < 0) {
-    return `Gas efficiency slightly improved compared to your baseline (~${deltaPercent}% lower RMV).`;
-  }
-
-  return `Gas efficiency decreased compared to your baseline (~${deltaPercent}% higher RMV).`;
+function priorityBaselineRank(baseline: ComparisonResult['baseline']): number {
+  if (baseline === 'location') return 1;
+  if (baseline === 'recent') return 2;
+  return 3;
 }
 
-export function hasHistoricalBaseline(profile: DiverProfile): boolean {
-  return (
-    profile.totalLoggedDives >= 5 &&
-    (profile.avgDepth !== null || profile.avgDuration !== null || profile.avgEstimatedRMV !== null)
-  );
+function sortComparisons(a: ComparisonResult, b: ComparisonResult): number {
+  if (b.score !== a.score) return b.score - a.score;
+  const rankDiff = priorityBaselineRank(a.baseline) - priorityBaselineRank(b.baseline);
+  if (rankDiff !== 0) return rankDiff;
+  const kindOrder: Record<ComparisonResult['kind'], number> = { rmv: 1, depth: 2, duration: 3 };
+  return kindOrder[a.kind] - kindOrder[b.kind];
 }
 
-export function pickDeterministicBaselineComparison(metrics: ComputedMetrics): string | null {
-  return (
-    metrics.depthComparedToAverage ??
-    metrics.durationComparedToAverage ??
-    metrics.gasEfficiencyComparedToAverage
-  );
-}
-
-export function computeDiveMetrics(dive: DiveContext, profile: DiverProfile): ComputedMetrics {
+export function computeDiveMetrics(
+  dive: DiveContext,
+  // profile parameter retained for future extensions; currently unused in metrics calculations.
+  _profile: DiverProfile,
+  baselines: BaselinesBundle
+): ComputedMetrics {
   const estimatedRMV = computeEstimatedRMV({
     gasUsedBar: dive.gasUsedBar,
     cylinderSizeLiters: dive.cylinderSizeLiters,
@@ -129,10 +165,71 @@ export function computeDiveMetrics(dive: DiveContext, profile: DiverProfile): Co
     durationMinutes: dive.durationMinutes,
   });
 
+  const availability = baselines.availability;
+  const comparisons: ComparisonResult[] = [];
+
+  const scopes: Array<{
+    label: ComparisonResult['baseline'];
+    baselineObj: BaselinesBundle[keyof BaselinesBundle] | null | undefined;
+    minSamples: number;
+  }> = [
+    { label: 'location', baselineObj: baselines.location, minSamples: LOCATION_BASELINE_MIN },
+    { label: 'recent', baselineObj: baselines.recent, minSamples: RECENT_BASELINE_MIN },
+    { label: 'global', baselineObj: baselines.global, minSamples: GLOBAL_BASELINE_MIN },
+  ];
+
+  for (const { label, baselineObj, minSamples } of scopes) {
+    if (!baselineObj) continue;
+    const base = baselineObj as {
+      sampleSize: number;
+      avgDepth: number | null;
+      avgDuration: number | null;
+      avgRMV: number | null;
+    };
+    const baseEvidencePrefix = `baseline.${label}`;
+    const depthComparison = addComparison({
+      kind: 'depth',
+      baseline: label,
+      current: dive.maxDepthMeters,
+      baselineValue: base.avgDepth,
+      sampleSize: base.sampleSize,
+      minSamples,
+      evidence: ['dive.maxDepthMeters', `${baseEvidencePrefix}.avgDepth`],
+    });
+    if (depthComparison) comparisons.push(depthComparison);
+
+    const durationComparison = addComparison({
+      kind: 'duration',
+      baseline: label,
+      current: dive.durationMinutes,
+      baselineValue: base.avgDuration,
+      sampleSize: base.sampleSize,
+      minSamples,
+      evidence: ['dive.durationMinutes', `${baseEvidencePrefix}.avgDuration`],
+    });
+    if (durationComparison) comparisons.push(durationComparison);
+
+    const rmvComparison = addComparison({
+      kind: 'rmv',
+      baseline: label,
+      current: estimatedRMV,
+      baselineValue: base.avgRMV,
+      sampleSize: base.sampleSize,
+      minSamples,
+      evidence: ['metrics.estimatedRMV', `${baseEvidencePrefix}.avgRMV`],
+    });
+    if (rmvComparison) comparisons.push(rmvComparison);
+  }
+
+  const sortedComparisons = comparisons.sort(sortComparisons);
+  const topComparison = sortedComparisons[0] ?? null;
+
   return {
     estimatedRMV,
-    depthComparedToAverage: compareDepth(dive.maxDepthMeters, profile.avgDepth),
-    durationComparedToAverage: compareDuration(dive.durationMinutes, profile.avgDuration),
-    gasEfficiencyComparedToAverage: compareGasEfficiency(estimatedRMV, profile.avgEstimatedRMV ?? null),
+    rmvConfidence: rmvConfidence(estimatedRMV, dive.averageDepthSource),
+    averageDepthSource: dive.averageDepthSource,
+    comparisons: sortedComparisons,
+    topComparison,
+    baselineAvailability: availability,
   };
 }

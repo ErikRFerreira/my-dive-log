@@ -14,6 +14,7 @@ export type DiverProfilePayload = {
 
 export type DivePayload = {
   id?: string | null;
+  location_id?: string | null;
   location?: string | null;
   country?: string | null;
   locationName?: string | null;
@@ -49,6 +50,7 @@ export type DiveContext = {
   country: string | null;
   maxDepthMeters: number | null;
   averageDepthMeters: number | null;
+  averageDepthSource: 'logged' | 'estimated' | 'unknown';
   durationMinutes: number | null;
   waterTempCelsius: number | null;
   visibility: string | null;
@@ -85,9 +87,47 @@ export type DiveSignal = {
 
 export type ComputedMetrics = {
   estimatedRMV: number | null;
-  gasEfficiencyComparedToAverage: string | null;
-  depthComparedToAverage: string | null;
-  durationComparedToAverage: string | null;
+  rmvConfidence: 'measured' | 'estimated' | 'missing';
+  averageDepthSource: 'logged' | 'estimated' | 'unknown';
+  comparisons: ComparisonResult[];
+  topComparison: ComparisonResult | null;
+  baselineAvailability: BaselinesBundle['availability'];
+};
+
+export type ComparisonResult = {
+  kind: 'depth' | 'duration' | 'rmv';
+  baseline: 'location' | 'global' | 'recent';
+  text: string;
+  evidence: string[];
+  score: number;
+  delta: number;
+  percent?: number | null;
+};
+
+export type BaselineCore = {
+  scope: 'global' | 'location' | 'recent';
+  sampleSize: number;
+  avgDepth: number | null;
+  avgDuration: number | null;
+  avgRMV: number | null;
+  lastDiveDate?: string | null;
+  windowDays?: number | null;
+  locationKey?: string | null;
+};
+
+export type GlobalBaseline = BaselineCore & { scope: 'global' };
+export type LocationBaseline = BaselineCore & { scope: 'location'; locationKey: string };
+export type RecentBaseline = BaselineCore & { scope: 'recent'; windowDays: 30 | 90 };
+
+export type BaselinesBundle = {
+  global?: GlobalBaseline | null;
+  location?: LocationBaseline | null;
+  recent?: RecentBaseline | null;
+  availability: {
+    hasGlobalBaseline: boolean;
+    hasLocationBaseline: boolean;
+    hasRecentBaseline: boolean;
+  };
 };
 
 export type DiveInsightRecommendation = {
@@ -119,6 +159,7 @@ export type StoredDiveInsight = {
   insight: DiveInsightResponse;
   metrics: ComputedMetrics;
   signals: DiveSignal[];
+  baselines: BaselinesBundle;
 };
 
 export type DiveInsightResponseMeta = {
@@ -146,4 +187,5 @@ export type BuildDiveInsightPromptInput = {
   profile: DiverProfile;
   signals: DiveSignal[];
   metrics: ComputedMetrics;
+  baselines: BaselinesBundle;
 };

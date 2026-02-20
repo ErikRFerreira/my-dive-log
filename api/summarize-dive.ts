@@ -26,6 +26,7 @@ import { normalizeDiveContext, normalizeDiverProfile } from '../src/server/summa
 import { buildDiveInsightPrompt } from '../src/server/summarize-dive/prompt.js';
 import { extractSignals } from '../src/server/summarize-dive/signals.js';
 import type {
+  BaselinesBundle,
   DiveContext,
   DiveInsightApiResponse,
   DiveInsightRequest,
@@ -71,6 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if ('error' in userClientResult) {
     return res.status(500).json({ error: userClientResult.error });
   }
+  const supabase = userClientResult as SupabaseClient;
 
   try {
     const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) as
@@ -87,15 +89,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing dive payload' });
     }
 
+    const rateLimit = await enforceRateLimit(supabase, authResult.user.id);
+    if (rateLimit?.blocked) {
+      return res.status(429).json(rateLimit.payload);
+    }
+
     const context = normalizeDiveContext(dive);
     const diverProfile = normalizeDiverProfile(profile);
-    const metrics = computeDiveMetrics(context, diverProfile);
+    const locationKey = buildLocationKey(dive);
+    const baselines = await fetchBaselines({
+      supabase,
+      userId: authResult.user.id,
+      locationKey,
+      nowDate: new Date(),
+    });
+
+    const metrics = computeDiveMetrics(context, diverProfile, baselines);
     const signals = extractSignals(context, diverProfile, metrics);
     const prompt = buildDiveInsightPrompt({
       dive: context,
       profile: diverProfile,
       signals,
       metrics,
+      baselines,
     });
 
     const inputHash = buildInputHash({
@@ -103,6 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       profile: diverProfile,
       metrics,
       signals,
+      baselines,
       promptVersion: PROMPT_VERSION,
       model: MODEL,
     });
@@ -158,7 +175,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? parsed.data
       : createFallbackDiveInsight({ recap: recapFallback });
     const insight = enforceDiveInsightPolicy(parsedInsight, {
-      profile: diverProfile,
       metrics,
       signals,
       recapFallback,
@@ -174,6 +190,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       insight,
       metrics,
       signals,
+      baselines,
     };
 
     await writeStoredDiveInsight(
@@ -220,6 +237,10 @@ function parseStoredDiveInsight(value: unknown): StoredDiveInsight | null {
     typeof record.inputHash !== 'string' ||
     typeof record.generatedAt !== 'string'
   ) {
+    return null;
+  }
+
+  if (!record.baselines || typeof record.baselines !== 'object') {
     return null;
   }
 
@@ -289,6 +310,237 @@ async function writeStoredDiveInsight(
   if (error) {
     console.warn('Unable to persist cached dive insight:', error.message);
   }
+}
+
+type BaselineRow = {
+  scope?: string | null;
+  sample_size?: number | null;
+  avg_depth?: number | null;
+  avg_duration?: number | null;
+  avg_rmv?: number | null;
+  avg_air?: number | null;
+  avg_cyl?: number | null;
+  avg_avg_depth?: number | null;
+  max_date?: string | null;
+};
+
+function toNumberOrNull(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const parsed = typeof value === 'string' ? Number(value) : NaN;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeLocationString(value: string | null | undefined): string | null {
+  if (!value || typeof value !== 'string') return null;
+  const cleaned = value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s]/g, '')
+    .slice(0, 120);
+  return cleaned || null;
+}
+
+function buildLocationKey(dive: DivePayload): string | null {
+  const idKey = dive.location_id ?? dive.id ?? null;
+  if (idKey && typeof idKey === 'string' && idKey.trim().length > 0) {
+    return idKey.trim();
+  }
+  const nameKey =
+    dive.location ??
+    dive.locationName ??
+    (typeof dive.locations === 'object' ? dive.locations?.name : null) ??
+    null;
+  return normalizeLocationString(nameKey ?? null);
+}
+
+async function fetchBaselineScope(options: {
+  supabase: SupabaseClient;
+  userId: string;
+  locationKey: string | null;
+  scope: 'global' | 'location' | 'recent';
+  windowDays?: number | null;
+}): Promise<BaselineRow | null> {
+  const { supabase, userId, locationKey, scope, windowDays } = options;
+
+  // Try RPC first for accurate RMV aggregation.
+  try {
+    const { data, error } = await supabase.rpc('get_dive_baseline', {
+      _user: userId,
+      _location: scope === 'location' ? locationKey : null,
+      _window_days: windowDays ?? null,
+    });
+    if (!error && data && Array.isArray(data) && data.length > 0) {
+      return data[0] as BaselineRow;
+    }
+  } catch (rpcError) {
+    console.warn('RPC get_dive_baseline unavailable, falling back to aggregates', rpcError);
+  }
+
+  // Fallback aggregate query.
+  try {
+    let query = supabase
+      .from('dives')
+      .select(
+        'count:id, avg_depth:avg(depth), avg_duration:avg(duration), avg_air:avg(air_usage), avg_cyl:avg(cylinder_size), avg_avg_depth:avg(average_depth), max_date:max(date)'
+      )
+      .eq('user_id', userId);
+
+    if (scope === 'location' && locationKey) {
+      // Prefer location_id if exists, otherwise location string.
+      query = query.or(`location_id.eq.${locationKey},location.eq.${locationKey}`);
+    }
+
+    if (scope === 'recent' && windowDays) {
+      const sinceDate = new Date();
+      sinceDate.setDate(sinceDate.getDate() - windowDays);
+      query = query.gte('date', sinceDate.toISOString().slice(0, 10));
+    }
+
+    const { data, error } = await query.maybeSingle();
+    if (error) {
+      console.warn('Baseline aggregate query failed', error.message);
+      return null;
+    }
+    return data as BaselineRow;
+  } catch (err) {
+    console.warn('Baseline aggregate fallback failed', err);
+    return null;
+  }
+}
+
+function rowToBaseline(
+  row: BaselineRow | null,
+  scope: 'global' | 'location' | 'recent',
+  locationKey: string | null,
+  windowDays?: number | null
+): BaselinesBundle[keyof BaselinesBundle] | null {
+  if (!row) return null;
+  const sampleSize =
+    toNumberOrNull((row as Record<string, unknown>).sample_size) ??
+    toNumberOrNull((row as Record<string, unknown>).count);
+  if (!sampleSize || sampleSize <= 0) return null;
+
+  const avgDepth = toNumberOrNull(row.avg_depth);
+  const avgDuration = toNumberOrNull(row.avg_duration);
+  const avgRMV =
+    toNumberOrNull(row.avg_rmv) ??
+    (() => {
+      const avgAir = toNumberOrNull(row.avg_air);
+      const avgCyl = toNumberOrNull(row.avg_cyl);
+      const avgDepthForRMV =
+        toNumberOrNull(row.avg_avg_depth) ?? toNumberOrNull(row.avg_depth) ?? null;
+      if (
+        avgAir !== null &&
+        avgCyl !== null &&
+        avgDepthForRMV !== null &&
+        avgDuration !== null &&
+        avgDuration > 0
+      ) {
+        const ata = avgDepthForRMV / 10 + 1;
+        if (ata > 0) {
+          const litersUsed = avgAir * avgCyl;
+          const rmv = litersUsed / (ata * avgDuration);
+          return Number.isFinite(rmv) ? Number(rmv.toFixed(2)) : null;
+        }
+      }
+      return null;
+    })();
+
+  const base = {
+    scope,
+    sampleSize,
+    avgDepth,
+    avgDuration,
+    avgRMV,
+    lastDiveDate: row.max_date ?? null,
+    windowDays: windowDays ?? null,
+    locationKey: scope === 'location' ? locationKey ?? null : null,
+  };
+
+  if (scope === 'global') return base as BaselinesBundle['global'];
+  if (scope === 'location') return base as BaselinesBundle['location'];
+  return base as BaselinesBundle['recent'];
+}
+
+async function fetchBaselines(params: {
+  supabase: SupabaseClient;
+  userId: string;
+  locationKey: string | null;
+  nowDate: Date;
+}): Promise<BaselinesBundle> {
+  const { supabase, userId, locationKey } = params;
+
+  const globalRow = await fetchBaselineScope({
+    supabase,
+    userId,
+    locationKey,
+    scope: 'global',
+  });
+  const locationRow = await fetchBaselineScope({
+    supabase,
+    userId,
+    locationKey,
+    scope: 'location',
+  });
+  const recent30Row = await fetchBaselineScope({
+    supabase,
+    userId,
+    locationKey,
+    scope: 'recent',
+    windowDays: 30,
+  });
+  const recent90Row = recent30Row
+    ? null
+    : await fetchBaselineScope({
+        supabase,
+        userId,
+        locationKey,
+        scope: 'recent',
+        windowDays: 90,
+      });
+
+  const global = rowToBaseline(globalRow, 'global', locationKey);
+  const location = rowToBaseline(locationRow, 'location', locationKey);
+  const recent = rowToBaseline(recent30Row ?? recent90Row, 'recent', locationKey, recent30Row ? 30 : recent90Row ? 90 : null);
+
+  const availability = {
+    hasGlobalBaseline: Boolean(global && global.sampleSize >= 5),
+    hasLocationBaseline: Boolean(location && location.sampleSize >= 3),
+    hasRecentBaseline: Boolean(recent && recent.sampleSize >= 3),
+  };
+
+  return {
+    global: availability.hasGlobalBaseline ? (global as BaselinesBundle['global']) : null,
+    location: availability.hasLocationBaseline ? (location as BaselinesBundle['location']) : null,
+    recent: availability.hasRecentBaseline ? (recent as BaselinesBundle['recent']) : null,
+    availability,
+  };
+}
+
+async function enforceRateLimit(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ blocked: true; payload: { error: string; next_reset?: string } } | null> {
+  try {
+    const { data, error } = await supabase.rpc('consume_ai_credit', { user: userId, limit: 20 });
+    if (error) {
+      console.warn('Rate limit check failed (ignored):', error.message);
+      return null;
+    }
+    if (data && typeof data === 'object' && 'allowed' in data && data.allowed === false) {
+      return {
+        blocked: true,
+        payload: {
+          error: 'rate_limit',
+          next_reset: data.next_reset ?? null,
+        },
+      };
+    }
+  } catch (err) {
+    console.warn('Rate limit RPC unavailable (ignored):', err);
+  }
+  return null;
 }
 
 function buildDeterministicRecap(dive: DiveContext): string {

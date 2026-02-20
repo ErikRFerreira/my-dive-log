@@ -4,16 +4,11 @@ import {
   NO_MEANINGFUL_INSIGHT_TEXT,
   NO_SPECIFIC_RECOMMENDATIONS,
 } from './constants.js';
-import {
-  hasHistoricalBaseline,
-  pickDeterministicBaselineComparison,
-} from './metrics.js';
 import type {
   ComputedMetrics,
   DiveInsightRecommendation,
   DiveInsightResponse,
   DiveSignal,
-  DiverProfile,
   ParseDiveInsightResult,
 } from './types.js';
 
@@ -199,13 +194,7 @@ function rationaleContainsDataSignal(
     return true;
   }
 
-  const metricPhrases = [
-    metrics.depthComparedToAverage,
-    metrics.durationComparedToAverage,
-    metrics.gasEfficiencyComparedToAverage,
-  ]
-    .filter((value): value is string => Boolean(value))
-    .map((value) => value.toLowerCase());
+  const metricPhrases = metrics.comparisons.map((value) => value.text.toLowerCase());
 
   if (metricPhrases.some((phrase) => lowered.includes(phrase))) return true;
 
@@ -242,15 +231,17 @@ function hasComparativeLanguage(text: string): boolean {
 export function enforceDiveInsightPolicy(
   insight: DiveInsightResponse,
   input: {
-    profile: DiverProfile;
     metrics: ComputedMetrics;
     signals: DiveSignal[];
     recapFallback?: string;
   }
 ): DiveInsightResponse {
-  const { profile, metrics, signals } = input;
-  const hasBaseline = hasHistoricalBaseline(profile);
-  const deterministicComparison = pickDeterministicBaselineComparison(metrics);
+  const { metrics, signals } = input;
+  const hasBaseline =
+    metrics.baselineAvailability.hasLocationBaseline ||
+    metrics.baselineAvailability.hasGlobalBaseline ||
+    metrics.baselineAvailability.hasRecentBaseline;
+  const deterministicComparison = metrics.topComparison;
 
   let baselineComparison = insight.dive_insight.baseline_comparison;
   let text = insight.dive_insight.text;
@@ -259,17 +250,16 @@ export function enforceDiveInsightPolicy(
   if (!hasBaseline) {
     baselineComparison = NO_BASELINE_COMPARISON;
   } else if (!hasComparativeLanguage(baselineComparison)) {
-    if (deterministicComparison) {
-      baselineComparison = deterministicComparison;
-      evidence = Array.from(new Set([...evidence, 'deterministic baseline comparison']));
-    } else {
+    if (!deterministicComparison) {
       const fallback = createFallbackDiveInsight({
         recap: input.recapFallback ?? insight.recap,
         baselineComparison:
-          'Historical baseline exists, but this dive is missing depth/duration/gas-efficiency fields for a direct comparison.',
+          'Baseline exists but metrics are insufficient for depth/duration/gas-efficiency comparison.',
       });
       return fallback;
     }
+    baselineComparison = deterministicComparison.text;
+    evidence = Array.from(new Set([...evidence, ...deterministicComparison.evidence]));
   }
 
   if (!text || text.trim().length === 0) {

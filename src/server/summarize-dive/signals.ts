@@ -91,15 +91,15 @@ export function extractSignals(
     );
   }
 
-  if (
-    metrics.gasEfficiencyComparedToAverage &&
-    metrics.gasEfficiencyComparedToAverage.toLowerCase().includes('decreased')
-  ) {
+  const rmvComparison = metrics.comparisons.find(
+    (c) => c.kind === 'rmv' && c.delta !== null && c.delta > 0
+  );
+  if (rmvComparison) {
     pushSignal(
       signals,
       'gas_efficiency_drop',
       'medium',
-      'Gas efficiency dropped compared to the diver baseline.',
+      'Gas efficiency dropped compared to available baseline.',
       'metrics'
     );
   }

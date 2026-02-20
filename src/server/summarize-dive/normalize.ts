@@ -61,6 +61,12 @@ export function normalizeDiveContext(dive: DivePayload): DiveContext {
   const providedAverageDepth = toNullableNumber(dive.average_depth);
   // If average depth is not provided, use a conservative recreational estimate of 70% of max depth.
   const estimatedAverageDepth = maxDepth !== null ? Number((maxDepth * 0.7).toFixed(1)) : null;
+  const averageDepthSource: DiveContext['averageDepthSource'] =
+    providedAverageDepth !== null
+      ? 'logged'
+      : estimatedAverageDepth !== null
+      ? 'estimated'
+      : 'unknown';
   const gasLabel =
     gas === 'nitrox' && nitroxPercent !== null
       ? `${GAS_LABELS.nitrox} ${nitroxPercent}%`
@@ -73,6 +79,7 @@ export function normalizeDiveContext(dive: DivePayload): DiveContext {
     country,
     maxDepthMeters: maxDepth,
     averageDepthMeters: providedAverageDepth ?? estimatedAverageDepth,
+    averageDepthSource,
     durationMinutes: toNullableNumber(dive.duration),
     waterTempCelsius: toNullableNumber(dive.water_temp),
     visibility: labelEnum(toNullableString(dive.visibility), VISIBILITY_LABELS),
