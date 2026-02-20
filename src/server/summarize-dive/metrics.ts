@@ -104,14 +104,14 @@ function addComparison(params: {
   if (kind === 'depth') {
     text =
       Math.abs(delta) < DEPTH_DELTA_THRESHOLD_METERS
-        ? `Depth is in line with ${baseline} baseline (±${DEPTH_DELTA_THRESHOLD_METERS} m).`
+        ? `Depth is in line with ${baseline} baseline (+/-${DEPTH_DELTA_THRESHOLD_METERS} m).`
         : delta > 0
         ? `Depth deeper than ${baseline} average by ~${Math.abs(delta)} m.`
         : `Depth shallower than ${baseline} average by ~${Math.abs(delta)} m.`;
   } else if (kind === 'duration') {
     text =
       Math.abs(delta) < DURATION_DELTA_THRESHOLD_MINUTES
-        ? `Duration matches ${baseline} baseline (±${DURATION_DELTA_THRESHOLD_MINUTES} min).`
+        ? `Duration matches ${baseline} baseline (+/-${DURATION_DELTA_THRESHOLD_MINUTES} min).`
         : delta > 0
         ? `Bottom time longer than ${baseline} average by ~${Math.abs(delta)} min.`
         : `Bottom time shorter than ${baseline} average by ~${Math.abs(delta)} min.`;
@@ -119,7 +119,7 @@ function addComparison(params: {
     if (percent !== null && Math.abs(percent) < GAS_EFFICIENCY_DELTA_THRESHOLD_RATIO * 100) {
       text = `Gas efficiency near ${baseline} baseline (RMV within ~${Math.round(
         GAS_EFFICIENCY_DELTA_THRESHOLD_RATIO * 100
-      )}% ).`;
+      )}%).`;
     } else if (delta < 0) {
       text = `Gas efficiency improved vs ${baseline} baseline (~${Math.abs(percent ?? 0)}% lower RMV).`;
     } else {
@@ -170,7 +170,7 @@ export function computeDiveMetrics(
 
   const scopes: Array<{
     label: ComparisonResult['baseline'];
-    baselineObj: BaselinesBundle[keyof BaselinesBundle] | null | undefined;
+    baselineObj: BaselinesBundle['global'] | BaselinesBundle['location'] | BaselinesBundle['recent'] | null | undefined;
     minSamples: number;
   }> = [
     { label: 'location', baselineObj: baselines.location, minSamples: LOCATION_BASELINE_MIN },
