@@ -1,19 +1,12 @@
 import { Input } from '@/components/ui/input';
 import { NumberInput } from '@/components/ui/number-input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Calendar, MapPin, Waves } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { useController } from 'react-hook-form';
+
 import type { Control, UseFormSetValue } from 'react-hook-form';
 
+import CountryCombobox from '@/features/dives/components/CountryCombobox';
 import { useGetLocations } from '@/features/dives/hooks/useGetLocations';
-import { COUNTRIES } from '@/shared/data/countries';
 import { getLocalDateInputValue } from '@/shared/utils/date';
 import { getErrorMessage } from '@/shared/utils/errorMessage';
 import { convertValueBetweenSystems } from '@/shared/utils/units';
@@ -28,53 +21,26 @@ type Props = {
 };
 
 /**
- * Custom hook that debounces a value by a specified delay.
- * Prevents excessive updates during rapid user input (e.g., search queries).
- *
- * @param value - The value to debounce
- * @param delayMs - Delay in milliseconds before updating
- * @returns The debounced value
- */
-function useDebouncedValue<T>(value: T, delayMs: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delayMs);
-    return () => clearTimeout(timer);
-  }, [value, delayMs]);
-
-  return debouncedValue;
-}
-
-/**
  * Step 1 of dive logging wizard: Essential dive information.
  *
  * Collects required fields:
  * - Date: When the dive occurred (max: today)
  * - Location: Name of dive site with autocomplete from previous locations
- * - Country: Country selection with virtual scrolling for performance
+ * - Country: Input-driven combobox selection
  * - Max Depth: Maximum depth reached with unit conversion (m/ft)
  * - Duration: Total dive time in minutes
  *
  * Features:
  * - Auto-fills country when matching location is selected
- * - Debounced country search for smooth filtering
- * - Virtual scrolling for large country list
+ * - Keyboard-accessible country combobox search
  * - Real-time validation on required fields
  */
 export default function EssentialsStep({ control, setValue }: Props) {
   const {
     locations,
-    isLoading: isLoadingLocations,
     isError: isLocationsError,
     error: locationsError,
   } = useGetLocations();
-  // Country search filter input
-  const [countryQuery, setCountryQuery] = useState('');
-  // Scroll position for virtual scrolling optimization
-  const [scrollTop, setScrollTop] = useState(0);
-  // Reference to scrollable country list container
-  const listRef = useRef<HTMLDivElement | null>(null);
   const { field: dateField, fieldState: dateState } = useController({ name: 'date', control });
   const { field: locationField, fieldState: locationState } = useController({
     name: 'location',
@@ -108,6 +74,7 @@ export default function EssentialsStep({ control, setValue }: Props) {
     return String(clamped);
   };
 
+  // Handles switching between metric and imperial units, converting existing depth value if present
   const switchUnitSystem = (nextUnit: 'metric' | 'imperial') => {
     const prevUnit = unitSystemField.value as 'metric' | 'imperial';
     if (prevUnit === nextUnit) return;
@@ -131,9 +98,6 @@ export default function EssentialsStep({ control, setValue }: Props) {
     setUnitSystem(nextUnit);
   };
 
-  // Debounce search query to reduce re-renders during typing
-  const debouncedQuery = useDebouncedValue(countryQuery, 150);
-
   /**
    * Attempts to auto-fill country when user selects or types a location name.
    * Matches against previously logged locations to reduce manual data entry.
@@ -149,45 +113,8 @@ export default function EssentialsStep({ control, setValue }: Props) {
     if (match?.country_code) {
       const normalizedCode = match.country_code.toUpperCase();
       setValue('countryCode', normalizedCode, { shouldDirty: true, shouldValidate: true });
-      setCountryQuery('');
     }
   };
-
-  // Filter countries by search query (name or code)
-  const filteredCountries = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
-    if (!q) return COUNTRIES;
-    return COUNTRIES.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
-    );
-  }, [debouncedQuery]);
-  // Resolve currently selected country from code for display
-  const selectedCountry = useMemo(() => {
-    const code = countryField.value?.toUpperCase();
-    if (!code) return null;
-    return COUNTRIES.find((c) => c.code.toUpperCase() === code) ?? null;
-  }, [countryField.value]);
-
-  // Reset scroll position when search query changes
-  useEffect(() => {
-    setScrollTop(0);
-    if (listRef.current) listRef.current.scrollTop = 0;
-  }, [debouncedQuery]);
-
-  /**
-   * Virtual scrolling implementation for country list.
-   * Only renders visible items plus small buffer to improve performance.
-   * Spacer divs maintain proper scroll height for non-rendered items.
-   */
-  const ITEM_HEIGHT = 36;
-  const LIST_HEIGHT = 240;
-  const totalCount = filteredCountries.length;
-  const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT));
-  const visibleCount = Math.ceil(LIST_HEIGHT / ITEM_HEIGHT) + 2;
-  const endIndex = Math.min(totalCount, startIndex + visibleCount);
-  const visibleItems = filteredCountries.slice(startIndex, endIndex);
-  const topSpacer = startIndex * ITEM_HEIGHT;
-  const bottomSpacer = Math.max(0, (totalCount - endIndex) * ITEM_HEIGHT);
 
   return (
     <div className="space-y-6">
@@ -289,7 +216,6 @@ export default function EssentialsStep({ control, setValue }: Props) {
           aria-describedby={locationState.error?.message ? 'dive-location-error' : undefined}
           className="text-base"
           list="location-suggestions"
-          disabled={isLoadingLocations}
         />
         {locationState.error?.message && (
           <p id="dive-location-error" className="mt-1 text-sm text-destructive">
@@ -305,55 +231,22 @@ export default function EssentialsStep({ control, setValue }: Props) {
 
       <div>
         <label
-          id="country-label"
+          htmlFor="country-input"
           className="text-sm font-medium text-foreground flex items-center gap-2 mb-2"
         >
           <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
           Country
         </label>
-        <Select value={countryField.value} onValueChange={(value) => countryField.onChange(value)}>
-          <SelectTrigger
-            id="country-trigger"
-            aria-labelledby="country-label"
-            aria-describedby={countryState.error?.message ? 'country-error' : undefined}
-          >
-            <SelectValue placeholder="Select country" />
-          </SelectTrigger>
-          <SelectContent className="max-h-64">
-            <div className="p-2">
-              <Input
-                placeholder="Search countries..."
-                value={countryQuery}
-                onChange={(e) => setCountryQuery(e.target.value)}
-                aria-label="Search countries"
-                className="h-8"
-              />
-            </div>
-            {selectedCountry && (
-              <SelectItem value={selectedCountry.code} className="hidden">
-                {selectedCountry.name}
-              </SelectItem>
-            )}
-            <div
-              ref={listRef}
-              className="overflow-y-auto"
-              style={{ maxHeight: LIST_HEIGHT }}
-              onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
-            >
-              <div style={{ height: topSpacer }} />
-              {visibleItems.length ? (
-                visibleItems.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.name}
-                  </SelectItem>
-                ))
-              ) : (
-                <div className="px-3 py-2 text-sm text-muted-foreground">No matches</div>
-              )}
-              <div style={{ height: bottomSpacer }} />
-            </div>
-          </SelectContent>
-        </Select>
+        <CountryCombobox
+          field={countryField}
+          id="country-input"
+          placeholder="Search countries..."
+          ariaLabel="Search countries"
+          ariaDescribedBy={countryState.error?.message ? 'country-error' : undefined}
+          ariaInvalid={Boolean(countryState.error?.message)}
+          className="text-base"
+          maxResults={50}
+        />
         {countryState.error?.message && (
           <p id="country-error" className="mt-1 text-sm text-destructive">
             {countryState.error.message}
@@ -457,4 +350,3 @@ export default function EssentialsStep({ control, setValue }: Props) {
     </div>
   );
 }
-

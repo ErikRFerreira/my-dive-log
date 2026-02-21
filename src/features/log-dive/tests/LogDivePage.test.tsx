@@ -110,8 +110,8 @@ describe('LogDivePage', () => {
       target: { value: 'Malapascua' },
     });
 
-    // Location auto-fill should select the correct country.
-    expect(screen.getByText(/philippines/i)).toBeInTheDocument();
+    // Location auto-fill should select the correct country in the combobox input.
+    expect(screen.getByDisplayValue(/philippines/i)).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText(/e\.g\., 100/i), {
       target: { value: '100' },

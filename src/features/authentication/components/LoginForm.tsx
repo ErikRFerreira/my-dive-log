@@ -42,7 +42,7 @@ function LoginForm() {
   };
 
   return (
-    <Card className="flex flex-col gap-5 w-full p-8 bg-slate-800/80 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+    <Card className="flex flex-col gap-5 w-full p-8 max-md:px-3 bg-slate-800/80 backdrop-blur-xl border-slate-700/50 shadow-2xl">
       {/* Form Section */}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 w-full" noValidate>
         {/* Email Field */}
@@ -69,9 +69,7 @@ function LoginForm() {
 
         {/* Password Field */}
         <label className="flex flex-col gap-2 group">
-          <span className="text-white text-sm font-semibold ml-1">
-            Password
-          </span>
+          <span className="text-white text-sm font-semibold ml-1">Password</span>
           <div className="relative flex items-center">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
               <Lock className="w-5 h-5" />
@@ -160,4 +158,3 @@ function LoginForm() {
 }
 
 export default LoginForm;
-

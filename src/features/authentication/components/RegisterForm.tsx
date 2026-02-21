@@ -43,14 +43,12 @@ function RegisterForm() {
   };
 
   return (
-    <Card className="flex flex-col gap-5 w-full p-8 bg-slate-800/80 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+    <Card className="flex flex-col gap-5 w-full p-8 max-md:px-3 bg-slate-800/80 backdrop-blur-xl border-slate-700/50 shadow-2xl">
       {/* Form Section */}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 w-full" noValidate>
         {/* Full Name Field */}
         <label className="flex flex-col gap-2 group">
-          <span className="text-white text-sm font-semibold ml-1">
-            Full Name
-          </span>
+          <span className="text-white text-sm font-semibold ml-1">Full Name</span>
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
               <User className="w-5 h-5" />
@@ -94,9 +92,7 @@ function RegisterForm() {
 
         {/* Password Field */}
         <label className="flex flex-col gap-2 group">
-          <span className="text-white text-sm font-semibold ml-1">
-            Password
-          </span>
+          <span className="text-white text-sm font-semibold ml-1">Password</span>
           <div className="relative flex items-center">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
               <Lock className="w-5 h-5" />
@@ -127,9 +123,7 @@ function RegisterForm() {
 
         {/* Confirm Password Field */}
         <label className="flex flex-col gap-2 group">
-          <span className="text-white text-sm font-semibold ml-1">
-            Confirm Password
-          </span>
+          <span className="text-white text-sm font-semibold ml-1">Confirm Password</span>
           <div className="relative flex items-center">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
               <Lock className="w-5 h-5" />
@@ -154,9 +148,7 @@ function RegisterForm() {
             </button>
           </div>
           {errors.confirmPassword?.message && (
-            <p className="text-xs text-red-400 ml-1">
-              {errors.confirmPassword.message}
-            </p>
+            <p className="text-xs text-red-400 ml-1">{errors.confirmPassword.message}</p>
           )}
         </label>
 
@@ -209,4 +201,3 @@ function RegisterForm() {
 }
 
 export default RegisterForm;
-

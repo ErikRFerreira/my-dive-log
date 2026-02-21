@@ -1,16 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { useNavigate } from 'react-router';
-
-import EssentialsStep from '@/features/log-dive/components/EssentialsStep';
 import DiveInfoStep from '@/features/log-dive/components/DiveInfoStep';
 import EquipmentStep from '@/features/log-dive/components/EquipmentStep';
+import EssentialsStep from '@/features/log-dive/components/EssentialsStep';
 import GasUsageStep from '@/features/log-dive/components/GasUsageStep';
-import { useWizardState } from '@/features/log-dive/useWizardState';
 import { WizardProgress } from '@/features/log-dive/components/WizardProgress';
 import { useLogDiveFormSetup } from '@/features/log-dive/hooks/useLogDiveFormSetup';
 import { useLogDiveSubmission } from '@/features/log-dive/hooks/useLogDiveSubmission';
+import { useWizardState } from '@/features/log-dive/useWizardState';
+import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 /**
  * Multi-step dive logging wizard page.
@@ -65,7 +64,7 @@ function LogDivePage() {
   const onSubmit = form.handleSubmit(handleSubmit, handleSubmitError);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 p-6 max-[991px]:px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
           <Button variant="ghost" onClick={onCancel} className="mb-4 -ml-2">
@@ -86,7 +85,7 @@ function LogDivePage() {
           stepLabels={['Essentials', 'Dive Details', 'Equipment', 'Gas Usage']}
         />
 
-        <Card className="p-8 max-[991px]:px-6 max-[991px]:-mt-4 bg-slate-900 border-slate-800 shadow-xl">
+        <Card className="p-8 max-[991px]:px-4 max-[991px]:mt-4 bg-slate-900 border-slate-800 shadow-xl">
           {wizard.step === 1 && <EssentialsStep control={form.control} setValue={form.setValue} />}
           {wizard.step === 2 && <DiveInfoStep control={form.control} />}
           {wizard.step === 3 && <EquipmentStep control={form.control} />}
@@ -146,4 +145,3 @@ function LogDivePage() {
 }
 
 export default LogDivePage;
-

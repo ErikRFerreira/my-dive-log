@@ -60,7 +60,7 @@ function Header({ isSidebarOpen, onToggleSidebar }: HeaderProps) {
   const certLevel = profile?.cert_level;
 
   return (
-    <header className="col-start-1 row-start-1 min-[992px]:col-start-2 h-20 border-b border-[#1e2936] bg-[#0f1419]/20 backdrop-blur-[10px] flex items-center justify-between px-8 max-[991px]:px-4 shadow-sm relative z-20">
+    <header className="col-start-1 row-start-1 min-[992px]:col-start-2 h-20 border-b border-[#1e2936] bg-[#0f1419]/20 backdrop-blur-[10px] flex items-center justify-between px-8 max-[991px]:px-2 shadow-sm relative z-20">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
