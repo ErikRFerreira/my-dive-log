@@ -1,8 +1,10 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useMemo } from 'react';
-import 'leaflet/dist/leaflet.css';
 import { MapPin } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+
+import 'leaflet/dist/leaflet.css';
+
 import type { Dive } from '@/features/dives/types';
 import type { Location } from '@/features/locations/types';
 
@@ -34,6 +36,13 @@ type LocationPin = {
 };
 
 function LocationsMap({ dives, locations }: LocationsMapProps) {
+  // Utility to detect mobile
+  const isMobile = () =>
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(max-width: 768px)').matches;
+  const [interactive, setInteractive] = useState(!isMobile());
+  const [showOverlay, setShowOverlay] = useState(isMobile());
   const locationPins = useMemo<LocationPin[]>(() => {
     const counts = new Map<string, number>();
     const fallbacks = new Map<string, { name: string; country: string | null }>();
@@ -94,46 +103,107 @@ function LocationsMap({ dives, locations }: LocationsMapProps) {
     return null;
   }
 
+  // Overlay click handler
+  const handleActivate = () => {
+    setInteractive(true);
+    setShowOverlay(false);
+  };
+  // Deactivate handler (button)
+  const handleDeactivate = () => {
+    setInteractive(false);
+    setShowOverlay(true);
+  };
+
   return (
-    <section>
+    <section style={{ position: 'relative' }}>
       <div className="flex items-center gap-2 mb-3 px-2">
         <MapPin className="w-5 h-5 text-primary" />
         <h3 className="text-foreground text-lg font-semibold">Locations Map</h3>
       </div>
 
-      <MapContainer
-        center={[0, 0]}
-        zoom={2}
-        scrollWheelZoom={false}
-        className="relative z-0 h-[500px] w-full rounded-2xl overflow-hidden"
-      >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-        />
-        <MapBoundsUpdater bounds={bounds} fallbackCenter={[0, 0]} fallbackZoom={2} />
+      <div style={{ position: 'relative' }}>
+        <MapContainer
+          center={[0, 0]}
+          zoom={2}
+          scrollWheelZoom={interactive}
+          dragging={interactive}
+          touchZoom={interactive}
+          doubleClickZoom={interactive}
+          boxZoom={interactive}
+          keyboard={interactive}
+          className="relative z-0 h-[500px] w-full rounded-2xl overflow-hidden"
+        >
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+          />
+          <MapBoundsUpdater bounds={bounds} fallbackCenter={[0, 0]} fallbackZoom={2} />
 
-        {locationPins.map((pin) => {
-          const label = pin.country ? `${pin.name}, ${pin.country}` : pin.name;
-          return (
-            <Marker
-              key={pin.id}
-              position={[pin.lat, pin.lng]}
-              eventHandlers={{
-                mouseover: (event) => event.target.openPopup(),
-                mouseout: (event) => event.target.closePopup(),
-              }}
-            >
-              <Popup className="locations-map-popup">
-                <div className="text-sm">
-                  <div className="font-semibold text-foreground">{label}</div>
-                  <div className="text-muted-foreground">Total dives: {pin.totalDives}</div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+          {locationPins.map((pin) => {
+            const label = pin.country ? `${pin.name}, ${pin.country}` : pin.name;
+            return (
+              <Marker
+                key={pin.id}
+                position={[pin.lat, pin.lng]}
+                eventHandlers={{
+                  mouseover: (event) => event.target.openPopup(),
+                  mouseout: (event) => event.target.closePopup(),
+                }}
+              >
+                <Popup className="locations-map-popup">
+                  <div className="text-sm">
+                    <div className="font-semibold text-foreground">{label}</div>
+                    <div className="text-muted-foreground">Total dives: {pin.totalDives}</div>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
+        {/* Overlay for mobile */}
+        {showOverlay && isMobile() && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+              cursor: 'pointer',
+            }}
+            onClick={handleActivate}
+          >
+            <span style={{ fontSize: 18, color: '#333', fontWeight: 500 }}>
+              Tap to interact with map
+            </span>
+          </div>
+        )}
+        {/* Deactivate button for mobile when interactive */}
+        {interactive && isMobile() && (
+          <button
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              zIndex: 11,
+              background: '#fff',
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              padding: '6px 12px',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+            onClick={handleDeactivate}
+          >
+            Deactivate map
+          </button>
+        )}
+      </div>
     </section>
   );
 }

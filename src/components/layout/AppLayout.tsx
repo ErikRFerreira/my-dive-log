@@ -27,7 +27,7 @@ function AppLayout() {
           aria-hidden="true"
         />
       )}
-      <main className="col-start-1 row-start-2 min-[992px]:col-start-2 p-8 max-[991px]:p-4 max-[991px]:pb-12 space-y-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
+      <main className="col-start-1 row-start-2 min-[992px]:col-start-2 p-8 max-[991px]:p-4 max-[991px]:pb-[100px] space-y-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900">
         <Outlet />
       </main>
       <AddDive />
